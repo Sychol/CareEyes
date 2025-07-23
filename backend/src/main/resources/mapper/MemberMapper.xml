@@ -2,8 +2,29 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="mapper.MemberMapper">
 
+	<!-- 예시용 -->
 	<select id="selectAll" resultType="Member">
 		SELECT * FROM MEMBER
+	</select>
+	
+	<!-- 회원가입 -->
+	<insert id='signIn' parameterType="Member">
+		INSERT INTO MEMBER (
+			MEMBER_ID, PASSWORD, NAME, EMAIL, PHONE,
+			ROLE, COMPANY, DEPARTMENT
+		) VALUES (
+			#{memberId}, #{password}, #{name}, #{email}, #{phone},
+			#{role}, #{company}, #{department}
+		)
+	</insert>
+	
+	<!-- 중복검사 -->
+	<select id="duplicate" resultType="int" parameterType="Member">
+		SELECT *
+		FROM MEMBER
+		WHERE MEMBER_ID = #{memberId}
+		   OR EMAIL = #{email}
+		   OR PHONE = #{phone}
 	</select>
 	
 </mapper>

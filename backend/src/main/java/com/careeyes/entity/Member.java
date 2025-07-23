@@ -9,17 +9,14 @@ import lombok.NoArgsConstructor;
 @Data
 public class Member {
 
-	private String member_id;
+	private String memberId;
 	private String password;
 	private String name;
 	private String email;
 	private String phone;
-	private Role role;
+	private String role;
 	private String company;
 	private String department;
+	private int alertState = 1; // default 1
 
-}
-
-enum Role {
-	ADMIN, MEMBER; // enum은 상수로 간주되므로 대문자 권장
 }
