@@ -1,4 +1,4 @@
-# flask_yolo_stream.py
+# app.py
 from flask import Flask, Response
 import cv2
 import torch
@@ -9,65 +9,64 @@ import time
 
 app = Flask(__name__)
 
-# 모델 로드
-model = YOLO("model/YOLOv11_base/yolo11l.pt")
-model.to("cuda" if torch.cuda.is_available() else "cpu")
+# 모델 로드 함수
+def load_model():
+    model = YOLO("model/YOLOv11_base/yolo11l.pt")
+    model.to("cuda" if torch.cuda.is_available() else "cpu")
+    # model.names = {
+    #     0: "airplane", 1: "bird", 2: "mammal", 3: "person", 4: "vehicle"
+    # }
+    return model
 
-# 유튜브 URL 스트림 열기
+# 유튜브 URL 스트림 열기 함수
 def get_stream_url(youtube_url):
-    
     streamlink_path = shutil.which("streamlink")
     if streamlink_path is None:
         raise RuntimeError("❌ streamlink 명령어를 찾을 수 없습니다. PATH를 확인하세요.")
-
-    command = [streamlink_path, "--stream-url", youtube_url, "best"]
+    command = [streamlink_path, "--stream-url", youtube_url, "720p"]
     result = subprocess.run(command, capture_output=True, text=True)
     return result.stdout.strip()
 
+# 비디오 캡처 열기 함수
+def open_video_capture(url):
+    cap = cv2.VideoCapture(url)
+    cap.set(cv2.CAP_PROP_BUFFERSIZE, 1) # 버퍼 설정(프레임 누적 방지)
+    if not cap.isOpened():
+        raise RuntimeError("❌ 비디오 캡처를 열 수 없습니다. URL을 확인하세요.")
+    return cap
+
+# 모델 및 비디오 초기화
+model = load_model()
 youtube_url = "https://www.youtube.com/watch?v=91PfFoqvuUk"
 ffmpeg_url = get_stream_url(youtube_url)
-
-# OpenCV로 비디오 캡처 열기
-cap = cv2.VideoCapture(ffmpeg_url)
-# obs 가상 카메라 가져오기
-#cap = cv2.VideoCapture(0)  # 보통 0번이 OBS 가상캠 (윈도우 기준)
-
-# 비디오 캡처가 열렸는지 확인
-if not cap.isOpened():
-    raise RuntimeError("❌ 비디오 캡처를 열 수 없습니다. URL을 확인하세요.")
+cap = open_video_capture(ffmpeg_url)
 
 # 프레임 생성기
 def generate_frames():
     while True:
-        
-        # 프레임 읽기
-        success, frame = cap.read()
+        fps = 30 # youtube_url의 FPS
+        delay = 0.2 # 프레임 간 딜레이 (초 단위)
+
+        for _ in range(int(fps*delay)):  # 프레임을 건너뛰어 버퍼링 방지
+            cap.grab()
+        success, frame = cap.retrieve() # 프레임 가져오기
+
         if not success:
-            raise RuntimeError("❌ 프레임을 읽을 수 없습니다. 비디오 스트림이 종료되었거나 문제가 발생했습니다.")
+            continue
 
+        # frame = cv2.resize(frame, (960, 540)) # 프레임 크기 조정 (선택 사항)
         results = model(frame)[0]
-        
-        # ✨ confidence 필터링
-        filtered = results.boxes[results.boxes.conf >= 0.6]
-
-        # ✨ 필터된 박스로 시각화
+        filtered = results.boxes[results.boxes.conf >= 0.5]
         results.boxes = filtered
         annotated = results.plot()
 
-        # 프레임 인코딩
         _, buffer = cv2.imencode('.jpg', annotated)
         frame_bytes = buffer.tobytes()
 
-        # yield MJPEG 형식으로 응답
         yield (b'--frame\r\n'
                b'Content-Type: image/jpeg\r\n\r\n' + frame_bytes + b'\r\n')
         
-        # ✨ 오래된 프레임 버리기 (최신 프레임까지 read 반복)
-        for _ in range(60):  # 반복하여 버퍼 소모
-            cap.grab()  # decode 없이 next frame 건너뜀
-
-        time.sleep(0.5)
-
+        time.sleep(delay) # 프레임 간 딜레이 (선택 사항)
 
 @app.route('/video_feed')
 def video_feed():
@@ -80,7 +79,7 @@ def index():
         <html>
             <body>
                 <h1>YOLOv11 실시간 감지 스트리밍</h1>
-                <img src="/video_feed" width="800" />
+                <img src="/video_feed" width="1280" />
             </body>
         </html>
     '''
