@@ -48,6 +48,7 @@ public class SecurityConfig {
 					// 특정 URL에 대해서는 인증받지 않더라도 접근 허용
 					.requestMatchers("/join", "/join-process").permitAll()
 					.requestMatchers("/api/**").permitAll()
+					.requestMatchers("/oauth/**").permitAll()
 					// 특정 권한에 따라서 부여되는 페이지 접근 권한
 					.requestMatchers("/admin").hasRole("관리자")
 					.requestMatchers("/user").hasRole("사용자")

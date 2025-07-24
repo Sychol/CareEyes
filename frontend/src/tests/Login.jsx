@@ -1,4 +1,4 @@
-import React, { useState } from 'react' 
+import React, { useState, useEffect } from 'react' 
 import { useNavigate, Link } from 'react-router-dom'; 
 import axios from 'axios';
 // CSS 파일 임포트
@@ -19,7 +19,19 @@ const [id, setId] = useState('');
 
   const [idError, setIdError] = useState('');
   const [passwordError, setPasswordError] = useState('');
-    const navigate = useNavigate();
+  const [kakaoLoginUrl, setKakaoLoginUrl] = useState('');
+  const navigate = useNavigate();
+  useEffect(() => {
+  axios.get('/oauth/kakao/url')
+
+    .then(res => {
+      console.log('🔍 카카오 로그인 URL:', kakaoLoginUrl);
+      setKakaoLoginUrl(res.data);
+  })
+    .catch(err => console.error('Kakao URL 불러오기 실패:', err    
+    ));
+}, []);
+
   /**
    * @function GoogleIcon
    * @description 구글 로고 SVG 아이콘을 렌더링하는 컴포넌트.
@@ -133,7 +145,13 @@ const [id, setId] = useState('');
           <div className="social-section">
             <p>또는 소셜 계정으로 로그인</p>
             <div className="social-icons">
-              <button onClick={() => window.open('https://www.kakao.com', '_blank')} className="social-icon-wrapper kakao">
+              <button onClick={() => {if (kakaoLoginUrl) {
+      console.log('이동할 URL 👉', kakaoLoginUrl);
+      window.location.href = kakaoLoginUrl;
+    } else {
+      alert('카카오 로그인 URL을 불러오는 중입니다. 잠시 후 다시 시도해주세요.');
+    }
+  }} className="social-icon-wrapper kakao">
                 <img src={KakaoIconImage} alt="Kakao Login" />
               </button>
               <button onClick={() => window.open('https://www.naver.com', '_blank')} className="social-icon-wrapper naver">
