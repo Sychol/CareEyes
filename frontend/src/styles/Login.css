@@ -1,0 +1,506 @@
+/* src/components/LoginForm.css */
+
+/* 기본 HTML, Body, Root 스타일 초기화 및 전체 화면 채우기 */
+html, body, #root {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif; /* 폰트 설정 */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background-color: #f0f2f5; /* 전체 배경색 */
+}
+
+/* 전체 화면을 채우는 로그인 컨테이너 */
+.login-container {
+    min-height: 100vh; /* 뷰포트 높이 100% */
+    overflow-y: auto;
+    width: 100vw; /* 뷰포트 너비 100% */
+    display: flex; /* 자식 요소들을 가로로 배치하기 위해 flexbox 사용 */
+    justify-content: center; /* 가로 중앙 정렬 */
+    align-items: center; /* 세로 중앙 정렬 */
+    background-color: #f0f2f5; /* 전체 배경색과 통일 */
+    padding: 20px; /* 전체 컨테이너 패딩 */
+    box-sizing: border-box; /* 패딩, 보더 포함하여 너비 계산 */
+}
+
+/* 가운데 패널 */
+.login-right-panel {
+    display: flex;
+    justify-content: center; /* 가로 중앙 정렬 */
+    align-items: center; /* 세로 중앙 정렬 */
+    padding: 20px;
+    background-color: #ffffff; /* 폼 패널 배경색 */
+    min-height: 100vh; /* 최소 높이 뷰포트 꽉 채움 */
+    width: 100%; /* 부모 컨테이너 너비에 맞춤 */
+    max-width: 600px; /* PC에서 폼의 최대 너비 */
+    border-radius: 10px; /* 모바일처럼 둥근 모서리 적용 */
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1); /* 그림자 적용 */
+    box-sizing: border-box;
+}
+
+/* 폼 자체의 스타일 */
+.login-form {
+    width: 100%;
+    max-width: 400px; /* 폼 내부 요소의 최대 너비 (PC에서도 이 너비를 유지) */
+    display: flex;
+    flex-direction: column;
+    gap: 24px; /* 요소 간 간격 */
+    padding: 20px;
+    border-radius: 8px;
+    box-sizing: border-box;
+}
+/* 로고 섹션 */
+.logo-section {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 30px; /* 로고 섹션 하단 여백 추가 */
+}
+
+.logo-icon {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%; /* 원형 */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 12px; /* 가운데 정렬 및 하단 여백 */
+    box-shadow: 0 4px 12px rgba(100, 100, 255, 0.3); /* 그림자 */
+}
+
+.logo-icon .logo-image {
+    width: 100%; /* 부모 .logo-icon에 꽉 차게 */
+    height: 100%; /* 부모 .logo-icon에 꽉 차게 */
+    object-fit: cover; /* 비율 유지하며 채움 */
+}
+
+/* 서비스 명칭 */
+.logo-title {
+    font-size: 28px;
+    font-weight: bold;
+    color: #333333;
+    margin: 0;
+}
+
+/* 서비스 설명 */
+.logo-subtitle {
+    font-size: 14px;
+    color: #666666;
+    margin: 0;
+}
+
+/* 로그인 타이틀 */
+.form-title {
+    font-size: 28px;
+    color: #333;
+    margin-bottom: 30px;
+    font-weight: 600;
+    text-align: center;
+}
+
+/* 입력 필드 그룹 (input + label/feedback) */
+.input-group {
+    margin-bottom: 5px; /* 입력 그룹 간 간격 */
+    position: relative;
+    display: flex; /* 아이디 필드와 중복확인 버튼을 한 줄에 배치 */
+    align-items: center;
+    gap: 10px; /* 입력 필드와 버튼 사이 간격 */
+}
+/* input-group 내 input-field에 대한 기본 마진 조정 */
+.input-group .input-field {
+    margin-bottom: 0; /* input-field 자체의 하단 마진 제거 (input-group이 관리) */
+}
+
+
+/* 입력 필드 기본 스타일 */
+.input-field {
+    width: 100%; /* input-group 내에서 100% */
+    height: 48px;
+    padding: 0 16px;
+    border: 2px solid #e5e7eb;
+    border-radius: 8px;
+    font-size: 16px;
+    background-color: #ffffff;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    box-sizing: border-box;
+}
+
+.input-field:focus {
+    outline: none;
+    border-color: rgb(100, 100, 255);
+    box-shadow: 0 0 0 3px rgba(100, 100, 255, 0.1);
+}
+
+.input-field::placeholder {
+    color: #9ca3af;
+}
+
+/* 비밀번호 및 아이디 피드백 컨테이너 */
+.password-feedback-container, .feedback-message-container {
+    margin-top: 0px;
+    margin-bottom: 0px; 
+    padding: 5px;
+    background-color: #f8f8f8;
+    border-radius: 5px;
+    font-size: 13px;
+    color: #555;
+    line-height: 1.5;
+    text-align: left;
+    width: 100%; /* input-group 내에서 100% */
+    box-sizing: border-box;
+}
+
+.password-feedback-container p, .feedback-message-container p {
+    margin: 0px 0;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+/* 일반 에러 메시지 */
+.error-message {
+    color: #dc3545; /* 빨간색 */
+    font-size: 14px;
+    margin-top: 0px;
+    text-align: center;
+}
+
+/* 성공 메시지 스타일 (아이디 중복확인 성공 등) */
+.success-message {
+    color: #28a745; /* 초록색 */
+    font-size: 14px;
+    margin-top: 0px;
+    text-align: center;
+}
+
+/* 체크박스 컨테이너 (Remember ID) */
+.checkbox-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 20px; /* 하단 마진 추가 */
+}
+
+.checkbox {
+    width: 16px;
+    height: 16px;
+    accent-color: rgb(100, 100, 255);
+}
+
+.checkbox-label {
+    font-size: 14px;
+    color: #333333;
+    cursor: pointer;
+}
+
+/* 로그인/회원가입 버튼 */
+.login-button {
+    width: 100%;
+    height: 48px;
+    background-color: rgb(100, 100, 255);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 12px rgba(100, 100, 255, 0.3);
+    margin-top: 25px; /* 상단 마진 */
+}
+
+.login-button:hover {
+    background-color: rgb(90, 90, 245);
+    box-shadow: 0 6px 16px rgba(100, 100, 255, 0.4);
+    transform: translateY(-1px);
+}
+
+.login-button:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(100, 100, 255, 0.3);
+}
+
+/* 소셜 로그인 섹션 */
+.social-section {
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid #eee;
+    text-align: center;
+}
+
+.social-section p {
+    color: #777;
+    font-size: 15px;
+    margin-bottom: 20px;
+}
+
+.social-icons {
+    display: flex;
+    justify-content: center;
+    gap: 15px; /* 아이콘 간 간격 */
+}
+
+.social-icon-wrapper {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background-color: #f0f2f5;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.social-icon-wrapper:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+}
+
+/* 카카오 아이콘 스타일 */
+.social-icon-wrapper.kakao {
+  background-color: #FEE500; /* 카카오 노란색 */
+  width: 40px; 
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+.social-icon-wrapper.kakao img {
+    width: 40px; /* 이미지 크기 조정 */
+    height: 40px;
+}
+
+/* 네이버 아이콘 스타일 */
+.social-icon-wrapper.naver {
+  background-color: #03C75A; /* 네이버 초록색 */
+  width: 40px; 
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+.social-icon-wrapper.naver img {
+    width: 40px; 
+    height: 40px;
+}
+
+/* 구글 공식 버튼 스타일 */
+.gsi-material-button {
+  -moz-user-select: none;      /* Mozilla */
+  -webkit-user-select: none;   /* Webkit 기반 브라우저 */
+  -ms-user-select: none;       /* 구 IE/Edge */
+  user-select: none;           /* 표준 */
+
+  -webkit-appearance: none;    /* Webkit 기반 브라우저 */
+  appearance: none;            /* 표준 */
+    background-color: white;
+    background-image: none;
+    border: 1px solid #747775;
+    -webkit-border-radius: 20px;
+    border-radius: 20px;
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
+    color: #1f1f1f;
+    cursor: pointer;
+    font-family: 'Roboto', arial, sans-serif;
+    font-size: 14px;
+    height: 40px;
+    letter-spacing: 0.25px;
+    outline: none;
+    overflow: hidden;
+    padding: 0;
+    position: relative;
+    text-align: center;
+    -webkit-transition: background-color .218s, border-color .218s, box-shadow .218s;
+    transition: background-color .218s, border-color .218s, box-shadow .218s;
+    vertical-align: middle;
+    white-space: nowrap;
+    width: 40px; /* 기본 너비를 40px로 유지 */
+    max-width: 400px; /* 최대 너비는 유지 */
+    min-width: min-content;
+}
+
+.gsi-material-button .gsi-material-button-icon {
+    height: 20px;
+    margin-right: 12px;
+    min-width: 20px;
+    width: 20px;
+    margin: 0;
+    padding: 9px;
+}
+
+.gsi-material-button .gsi-material-button-content-wrapper {
+    -webkit-align-items: center;
+    align-items: center;
+    display: flex;
+    -webkit-flex-direction: row;
+    flex-direction: row;
+    -webkit-flex-wrap: nowrap;
+    flex-wrap: nowrap;
+    height: 100%;
+    justify-content: space-between;
+    position: relative;
+    width: 100%;
+}
+
+.gsi-material-button .gsi-material-button-contents {
+    -webkit-flex-grow: 1;
+    flex-grow: 1;
+    font-family: 'Roboto', arial, sans-serif;
+    font-weight: 500;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    vertical-align: top;
+}
+
+.gsi-material-button .gsi-material-button-state {
+    -webkit-transition: opacity .218s;
+    transition: opacity .218s;
+    bottom: 0;
+    left: 0;
+    opacity: 0;
+    position: absolute;
+    right: 0;
+    top: 0;
+}
+
+.gsi-material-button:disabled {
+    cursor: default;
+    background-color: #ffffff61;
+    border-color: #1f1f1f1f;
+}
+
+.gsi-material-button:disabled .gsi-material-button-contents {
+    opacity: 38%;
+}
+
+.gsi-material-button:disabled .gsi-material-button-icon {
+    opacity: 38%;
+}
+
+.gsi-material-button:not(:disabled):active .gsi-material-button-state,
+.gsi-material-button:not(:disabled):focus .gsi-material-button-state {
+    background-color: #303030;
+    opacity: 12%;
+}
+
+.gsi-material-button:not(:disabled):hover {
+    -webkit-box-shadow: 0 1px 2px 0 rgba(60, 64, 67, .30), 0 1px 3px 1px rgba(60, 64, 67, .15);
+    box-shadow: 0 1px 2px 0 rgba(60, 64, 67, .30), 0 1px 3px 1px rgba(60, 64, 67, .15);
+}
+
+.gsi-material-button:not(:disabled):hover .gsi-material-button-state {
+    background-color: #303030;
+    opacity: 8%;
+}
+
+
+/* 회원가입/로그인 링크 섹션 */
+.join-section {
+    margin-top: 30px;
+    font-size: 15px;
+    text-align: center;
+}
+
+.join-text {
+    color: #555;
+    margin: 0;
+}
+
+.join-link {
+    color: rgb(100, 100, 255);
+    text-decoration: none;
+    font-weight: 600;
+    transition: color 0.2s ease;
+}
+
+.join-link:hover {
+    color: rgb(90, 90, 245);
+    text-decoration: underline;
+}
+
+/* ------------------------------------------- */
+/* 반응형 디자인 (Media Queries)               */
+/* ------------------------------------------- */
+
+/* 더 작은 모바일 기기 (예: iPhone SE, 갤럭시 폴드 등) (최대 너비 480px) */
+@media screen and (max-width: 480px) {
+    .login-right-panel {
+        padding: 15px; /* 작은 모바일에서 패널 패딩 조정 */
+        border-radius: 8px; /* 모서리 둥글기 조금 줄임 */
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08); /* 그림자 약하게 */
+    }
+
+    .login-form {
+        padding: 20px 10px; /* 모바일 폼 패딩 조정 */
+        gap: 18px; /* 요소 간 간격 조정 */
+    }
+
+    .logo-icon {
+        width: 56px; /* 로고 아이콘 크기 줄임 */
+        height: 56px;
+    }
+
+    .logo-title {
+        font-size: 24px; /* 로고 제목 크기 조정 */
+    }
+
+    .logo-subtitle {
+        font-size: 12px; /* 로고 서브타이틀 크기 조정 */
+    }
+
+    .form-title {
+        font-size: 22px; /* 폼 제목 크기 조정 */
+        margin-bottom: 25px;
+    }
+
+    .input-group {
+        margin-bottom: 15px; /* 입력 그룹 간 간격 조정 */
+    }
+
+    .input-field {
+        font-size: 15px;
+        padding: 10px 12px;
+        height: 40px;
+    }
+
+    .login-button {
+        font-size: 16px;
+        padding: 10px;
+        height: 44px;
+        margin-top: 20px;
+    }
+
+    .social-section {
+        margin-top: 20px;
+        padding-top: 15px;
+    }
+
+    .social-section p {
+        font-size: 14px;
+        margin-bottom: 15px;
+    }
+
+    .social-icon-wrapper {
+        width: 38px;
+        height: 38px;
+        margin: 0 5px;
+    }
+
+    .join-section {
+        margin-top: 20px;
+        font-size: 13px;
+    }
+}
