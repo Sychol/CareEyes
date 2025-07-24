@@ -27,4 +27,10 @@
 		   OR PHONE = #{phone}
 	</select>
 	
+	<!-- 로그인용 회원 조회 -->
+	<select id="findById" parameterType="String" resultType="Member">
+		SELECT *
+		FROM MEMBER
+		WHERE MEMBER_ID = #{memberId}
+	</select>
 </mapper>

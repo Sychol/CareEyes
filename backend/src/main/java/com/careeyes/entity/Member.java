@@ -9,14 +9,14 @@ import lombok.NoArgsConstructor;
 @Data
 public class Member {
 
-	private String memberId;
-	private String password;
-	private String name;
-	private String email;
-	private String phone;
-	private String role;
-	private String company;
-	private String department;
-	private int alertState = 1; // default 1
+	private String memberId; // 아이디
+	private String password; // 비밀번호
+	private String name; // 이름
+	private String email; // 이메일
+	private String phone; // 전화번호
+	private String role; // 역할 (admin, member)
+	private String company; // 회사
+	private String department; // 부서
+	private int alertState = 1; // 알림 설정 여부, default 1
 
 }

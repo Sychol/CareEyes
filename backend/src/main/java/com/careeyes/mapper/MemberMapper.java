@@ -3,6 +3,7 @@ package com.careeyes.mapper;
 import java.util.List;
 
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
 import com.careeyes.entity.Member;
 
@@ -14,4 +15,6 @@ public interface MemberMapper {
 	public int duplicate(Member member);
 	
 	public int signIn(Member member);
+	
+	public Member findById(@Param("memberId") String memberId);
 }
