@@ -33,4 +33,15 @@
 		FROM MEMBER
 		WHERE MEMBER_ID = #{memberId}
 	</select>
+	
+	<!-- 소셜 로그인(카카오) -->
+	<select id="findByKakaoId" resultType="Member">
+		SELECT *
+		FROM MEMBER
+		WHERE KAKAO_ID = #{kakaoId}
+	</select>
+	
+	
+	
+	
 </mapper>

@@ -17,6 +17,7 @@ public class Member {
 	private String role; // 역할 (admin, member)
 	private String company; // 회사
 	private String department; // 부서
+	private Long kakaoId; // 카카오 아이디
 	private int alertState = 1; // 알림 설정 여부, default 1
 
 }

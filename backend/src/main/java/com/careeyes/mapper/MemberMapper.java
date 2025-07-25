@@ -17,4 +17,6 @@ public interface MemberMapper {
 	public int signIn(Member member);
 	
 	public Member findById(@Param("memberId") String memberId);
+	
+	public Member findByKakaoId(Long kakaoId);
 }
