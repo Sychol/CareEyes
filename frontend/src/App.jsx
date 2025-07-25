@@ -11,6 +11,7 @@ import Test_ai from './tests/Test_ai';
 import Test_login from './tests/Login';
 import Test_manager from './tests/Manager';
 import Test_worker from './tests/Worker';
+import Test_register from './tests/Register';
 
 
 function App() {
@@ -23,12 +24,13 @@ function App() {
           <Route path='/login' element={<Login />}></Route>
           <Route path='/manager' element={<Manager />}></Route>
           <Route path='/worker' element={<Worker />}></Route>
-
+          
           <Route path='/test_ai' element={<Test_ai />}></Route>
           <Route path='/test_api' element={<Test_api />}></Route>
           <Route path='/test_login' element={<Test_login />}></Route>
-          <Route path='/test_manager' element={<Test_manager />}></Route>
+          <Route path='/test_manager' elemecnt={<Test_manager />}></Route>
           <Route path='/test_worker' element={<Test_worker />}></Route>
+          <Route path="/test_Register" element={<Test_register />} />
         </Routes>
       </div>
     </>
