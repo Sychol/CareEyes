@@ -1,5 +1,6 @@
 package com.careeyes.entity;
 
+import java.sql.Time;
 import java.util.Map;
 
 import lombok.AllArgsConstructor;
@@ -9,13 +10,13 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
-public class Event {
+public class DetectEvent {
 
-    private int event_id;
-    private String date;
-    private String time;
-    private int cctv_id;
-    private String img_path;
+    private int eventId;
+    private String eventDate;
+    private Time eventTime;
+    private int cctvId;
+    private String imgPath;
     private int manage;
     private Map<String, Integer> objects;
     

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.careeyes.mapper.AiMapper">
+
+	<insert id="insertDetectEvent" parameterType="Event" useGeneratedKeys="true" keyProperty="event_id">
+	    INSERT INTO DETECT_EVENT (EVENT_DATE, EVENT_TIME, CCTV_ID, IMG_PATH)
+	    VALUES (#{eventDate}, #{eventTime}, #{cctvId}, #{imgPath})
+	</insert>
+	
+	<insert id="insertDetectItem" parameterType="Detect" useGeneratedKeys="true" keyProperty="detect_id">
+	    INSERT INTO DETECT (EVENT_ID, ITEM_TYPE, ITEM_COUNT)
+	    VALUES (#{eventId}, #{itemType}, #{itemCount})
+	</insert>
+
+</mapper>

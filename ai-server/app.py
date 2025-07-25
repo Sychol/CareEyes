@@ -12,7 +12,7 @@ CONF_THRESHOLD = 0.5 # 신뢰도 임계값
 SPRING_PROXY = "http://localhost:8090/ai" # Spring 서버 프록시 URL
 FPS = 30 # youtube_url의 FPS
 DELAY = 1 # 프레임 간 딜레이 (초 단위)
-SAVE_CLASSES = {"person", "car", "truck", "bus", "bird", "mammal"} # 저장할 클래스
+SAVE_CLASSES = {"airplane","person", "car", "truck", "bus", "bird", "mammal"} # 저장할 클래스
 
 stream_caps = {}  # key: youtube_url, value: VideoCapture 객체
 
@@ -120,11 +120,13 @@ def process_youtube_frame(youtube_url, save_result=False, cctv_id='unknown', del
     annotated_img = results.plot() # 결과 이미지에 박스 그리기
 
     # 저장 조건 확인 및 이미지 저장
+    date_str = None
+    time_str = None
     save_path = None
     if save_result and should_save:
         now = datetime.now()
         date_str = now.strftime("%Y-%m-%d")
-        time_str = now.strftime("%H_%M_%S")
+        time_str = now.strftime("%H-%M-%S")
 
         # 저장 디렉토리 생성
         save_dir = f"./detect_images/{cctv_id}/{date_str}"
@@ -136,12 +138,16 @@ def process_youtube_frame(youtube_url, save_result=False, cctv_id='unknown', del
         cv2.imwrite(save_path, annotated_img)
         print(f"🔍 탐지 완료! {object_counts} → 저장: {save_path}")
 
-    return annotated_img, object_counts, save_path
+    return object_counts, save_path, date_str, time_str, cctv_id
 
 # 💡 Spring 서버로 전송
-def send_to_spring(image_url, object_counts):
+def send_to_spring(object_counts, save_path, date_str, time_str, cctv_id='unknown'):
+    time_str = time_str.replace("-", ":")  # 시간 형식 변경 (예: 12-30-45 → 12:30:45)
     payload = {
-        "imagePath": image_url,
+        "eventDate": date_str,
+        "eventTime": time_str,
+        "cctvId": cctv_id,
+        "imgPath": save_path,
         "objects": object_counts
     }
     headers = {"Content-Type": "application/json"} # JSON 헤더 설정
@@ -206,11 +212,11 @@ def cleanup_video_captures():
 def detect_loop(url, cctv_id='unknown', delay=DELAY):
     while True:
         try:
-            annotated_img, object_counts, save_path = process_youtube_frame(url, save_result=True, cctv_id=cctv_id, delay=delay)
+            object_counts, save_path, date_str, time_str, cctv_id = process_youtube_frame(url, save_result=True, cctv_id=cctv_id, delay=delay)
 
             # image가 저장되었다면 Spring 서버로 전송
             if save_path and object_counts:
-                status, msg = send_to_spring(save_path, object_counts)
+                status, msg = send_to_spring(object_counts, save_path, date_str, time_str, cctv_id)
                 print(f"📡 Spring 응답: {status}, {msg}")
 
         except Exception as e:
@@ -220,8 +226,8 @@ def detect_loop(url, cctv_id='unknown', delay=DELAY):
 # 💡 서버 실행
 if __name__ == '__main__':
     # 자동 감지 루프 시작
-    threading.Thread(target=detect_loop, args=('https://www.youtube.com/watch?v=91PfFoqvuUk', 'east1', 2), daemon=True).start()
-    threading.Thread(target=detect_loop, args=('https://www.youtube.com/watch?v=MjD3gnNFYUo', 'west1', 2), daemon=True).start()
+    threading.Thread(target=detect_loop, args=('https://www.youtube.com/watch?v=91PfFoqvuUk', 101, 2), daemon=True).start()
+    threading.Thread(target=detect_loop, args=('https://www.youtube.com/watch?v=MjD3gnNFYUo', 201, 2), daemon=True).start()
 
     # Flask 서버 실행
     app.run(debug=True, port=5000)

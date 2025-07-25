@@ -7,10 +7,10 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
-public class Detect {
+public class DetectItem {
 
-	private int detect_id;
-	private int event_id;
-	private String type;
-	private int count;
+	private int itemId;
+	private int eventId;
+	private String itemType;
+	private int itemCount;
 }
