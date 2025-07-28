@@ -5,18 +5,20 @@ import java.util.List;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
-import com.careeyes.entity.Member;
+import com.careeyes.entity.Members;
 
 @Mapper
 public interface MemberMapper {
 
-	public List<Member> selectAll(); // 요건 예시용인듯
+	public List<Members> selectAll(); // 요건 예시용인듯
 	
-	public int duplicate(Member member);
+	public int duplicate(Members member);
 	
-	public int signIn(Member member);
+	public int signIn(Members member);
 	
-	public Member findById(@Param("memberId") String memberId);
+	public Members findById(@Param("memberId") String memberId);
 	
-	public Member findByKakaoId(Long kakaoId);
+	public void updateKakaoId(@Param("memberId") String memberId, @Param("kakaoId") Long kakaoId);
+	
+	public Members findByKakaoId(Long kakaoId);
 }

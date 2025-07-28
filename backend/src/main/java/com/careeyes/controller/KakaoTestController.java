@@ -1,13 +1,10 @@
 package com.careeyes.controller;
 
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.careeyes.config.KakaoApi;
-import com.careeyes.entity.Member;
-
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
@@ -24,5 +21,5 @@ public class KakaoTestController {
 	            + "&redirect_uri=" + kakaoApi.getKakaoRedirectUri()
 	            + "&response_type=code";
 	}
-
+	
 }

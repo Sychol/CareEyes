@@ -3,43 +3,49 @@
 <mapper namespace="mapper.MemberMapper">
 
 	<!-- 예시용 -->
-	<select id="selectAll" resultType="Member">
-		SELECT * FROM MEMBER
+	<select id="selectAll" resultType="Members">
+		SELECT * FROM MEMBERS
 	</select>
 	
 	<!-- 회원가입 -->
-	<insert id='signIn' parameterType="Member">
-		INSERT INTO MEMBER (
-			MEMBER_ID, PASSWORD, NAME, EMAIL, PHONE,
-			ROLE, COMPANY, DEPARTMENT
+	<insert id='signIn' parameterType="Members">
+		INSERT INTO MEMBERS (
+			MEMBER_ID, PW, MEMBER_NAME, EMAIL, PHONE,
+			MEMBER_ROLE, COMPANY, DEPARTMENT
 		) VALUES (
-			#{memberId}, #{password}, #{name}, #{email}, #{phone},
-			#{role}, #{company}, #{department}
+			#{memberId}, #{pw}, #{memberName}, #{email}, #{phone},
+			#{memberRole}, #{company}, #{department}
 		)
 	</insert>
 	
 	<!-- 중복검사 -->
-	<select id="duplicate" resultType="int" parameterType="Member">
+	<select id="duplicate" resultType="int" parameterType="Members">
 		SELECT *
-		FROM MEMBER
+		FROM MEMBERS
 		WHERE MEMBER_ID = #{memberId}
 		   OR EMAIL = #{email}
 		   OR PHONE = #{phone}
 	</select>
 	
 	<!-- 로그인용 회원 조회 -->
-	<select id="findById" parameterType="String" resultType="Member">
+	<select id="findById" parameterType="String" resultType="Members">
 		SELECT *
-		FROM MEMBER
+		FROM MEMBERS
 		WHERE MEMBER_ID = #{memberId}
 	</select>
 	
 	<!-- 소셜 로그인(카카오) -->
-	<select id="findByKakaoId" resultType="Member">
+	<select id="findByKakaoId" resultType="Members">
 		SELECT *
-		FROM MEMBER
+		FROM MEMBERS
 		WHERE KAKAO_ID = #{kakaoId}
 	</select>
+	
+	<!-- 기존 계정과 카카오 계정 연동 -->
+	<update id="updateKakaoId">
+		UPDATE MEMBERS SET KAKAO_ID = #{kakaoId}
+		WHERE MEMBER_ID = #{memberId}
+	</update>
 	
 	
 	
