@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback, ChangeEvent, FormEvent, FocusEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import type { JSX } from 'react'; // 'JSX' 네임스페이스 오류 해결을 위해 명시적 임포트
+import type { JSX } from 'react';
 
 // 유효성 검사 로직 임포트
 import {
@@ -14,7 +14,7 @@ import {
   IDValidationResult,
   PWValidationResult,
   PWMatchResult,
-  PhoneNumberValidationResult 
+  PhoneNumberValidationResult
 } from '../ts/Register/registerValidation';
 
 // 약관 데이터 임포트
@@ -28,24 +28,20 @@ import CareEyesLogo from '../assets/logo/CareEyes_Logo.png';
 import '../styles/Register.css';
 import TermsModal from '../components/TermsModal';
 
-// --- 인터페이스 정의 시작 ---
-
 /**
  * @interface FormData
  * @description 회원가입 폼 데이터의 타입을 정의합니다.
- * @description 테이블 정의서의 컬럼명과 일치하도록 변수명을 수정했습니다.
- * @description PHONE 필드는 최종적으로 합쳐진 문자열이 들어갑니다.
  */
 interface FormData {
-  MEMBER_ID: string; // 테이블: MEMBER_ID (VARCHAR)
-  MEMBER_PW: string; // 테이블: PW -> MEMBER_PW로 컬럼명 일치 (VARCHAR)
-  confirmPW: string; // DB 컬럼은 아니지만 클라이언트 유효성 검사를 위해 유지
-  MEMBER_NAME: string; // 테이블: MEMBER_NAME (VARCHAR)
-  EMAIL: string; // 테이블: EMAIL (VARCHAR)
-  PHONE: string; // 테이블: PHONE (VARCHAR)
-  COMPANY: string; // 테이블: COMPANY (VARCHAR) - NN이 아니므로 필수 아님
-  DEPARTMENT: string; // 테이블: DEPARTMENT (VARCHAR) - NN이 아니므로 필수 아님
-  MEMBER_ROLE: string; // 테이블: MEMBER_ROLE (ENUM)
+  memberId: string;
+  memberPw: string;
+  confirmPw: string;
+  memberName: string;
+  email: string;
+  phone: string;
+  company: string;
+  department: string;
+  memberRole: string;
   agreeToTerms: boolean; // 서비스 이용 약관 동의 여부
   agreeToPrivacy: boolean; // 개인정보 처리 방침 동의 여부
 }
@@ -53,17 +49,12 @@ interface FormData {
 /**
  * @interface ModalContent
  * @description 약관 모달 내용의 타입을 정의합니다.
- * 이 인터페이스는 TermsModal copy.tsx 또는 별도의 타입 파일에서 export되고
- * 여기서 import 되어야 합니다. 임시로 여기에 정의합니다.
  */
 interface ModalContent {
   title: string;
   content: string;
   termType: string;
 }
-
-// --- 인터페이스 정의 끝 ---
-
 
 /**
  * @function Register
@@ -74,16 +65,15 @@ function Register() {
   const navigate = useNavigate();
 
   // 폼 데이터 상태 관리
-  // MEMBER_PW로 변경
-  const [formData, setFormData] = useState<Omit<FormData, 'PHONE'>>({
-    MEMBER_ID: '',
-    MEMBER_PW: '', // MEMBER_PW로 변경
-    confirmPW: '',
-    MEMBER_NAME: '',
-    EMAIL: '',
-    COMPANY: '',
-    DEPARTMENT: '',
-    MEMBER_ROLE: '',
+  const [formData, setFormData] = useState<Omit<FormData, 'phone'>>({
+    memberId: '',
+    memberPw: '',
+    confirmPw: '',
+    memberName: '',
+    email: '',
+    company: '',
+    department: '',
+    memberRole: '',
     agreeToTerms: false,
     agreeToPrivacy: false,
   });
@@ -101,7 +91,6 @@ function Register() {
   // 전화번호 필드 포커스 상태
   const [isPhoneFocused, setIsPhoneFocused] = useState<boolean>(false);
 
-
   // ID 유효성 검사 상태
   const [IDValidation, setIDValidation] = useState<IDValidationResult>({
     isIDValid: false,
@@ -110,7 +99,7 @@ function Register() {
   });
   const [isIDFocused, setIsIDFocused] = useState<boolean>(false);
 
-  // 비밀번호 유효성 검사 상태 (MEMBER_PW로 변경)
+  // 비밀번호 유효성 검사 상태
   const [PWValidation, setPWValidation] = useState<PWValidationResult>({
     isValiD: false,
     feedback: {
@@ -131,7 +120,7 @@ function Register() {
   const [showPW, setShowPW] = useState<boolean>(false);
   const [showConfirmPW, setShowConfirmPW] = useState<boolean>(false);
 
-  // passwordMatch 상태 (MEMBER_PW로 변경)
+  // passwordMatch 상태
   const [PWMatch, setPWMatch] = useState<PWMatchResult>({
     isMatch: false,
     message: '',
@@ -152,6 +141,11 @@ function Register() {
     termType: '',
   });
 
+  /**
+   * @function handleChange
+   * @description 폼 입력 필드의 변경 이벤트를 처리합니다.
+   * @param {ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>} e - 변경 이벤트 객체
+   */
   const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
 
@@ -159,46 +153,87 @@ function Register() {
       setFormData(prev => ({ ...prev, [name]: (e.target as HTMLInputElement).checked }));
     }
     else if (name !== 'agreeToAll') {
-        setFormData(prev => ({ ...prev, [name]: value }));
+      setFormData(prev => ({ ...prev, [name]: value }));
     }
     setError('');
     setSuccessMessage('');
   };
 
-
+  /**
+   * @function handleIdFocus
+   * @description 아이디 입력 필드에 포커스될 때의 핸들러
+   * @param {FocusEvent<HTMLInputElement>} e - 포커스 이벤트 객체
+   */
   const handleIdFocus = (e: FocusEvent<HTMLInputElement>) => {
     setIsIDFocused(true);
   };
 
+  /**
+   * @function handleIdBlur
+   * @description 아이디 입력 필드에서 포커스가 벗어날 때의 핸들러
+   * @param {FocusEvent<HTMLInputElement>} e - 포커스 이벤트 객체
+   */
   const handleIdBlur = (e: FocusEvent<HTMLInputElement>) => {
     setIsIDFocused(false);
   };
 
+  /**
+   * @function handlePasswordFocus
+   * @description 비밀번호 입력 필드에 포커스될 때의 핸들러
+   * @param {FocusEvent<HTMLInputElement>} e - 포커스 이벤트 객체
+   */
   const handlePasswordFocus = (e: FocusEvent<HTMLInputElement>) => {
     setIsPWFocused(true);
   };
 
+  /**
+   * @function handlePasswordBlur
+   * @description 비밀번호 입력 필드에서 포커스가 벗어날 때의 핸들러
+   * @param {FocusEvent<HTMLInputElement>} e - 포커스 이벤트 객체
+   */
   const handlePasswordBlur = (e: FocusEvent<HTMLInputElement>) => {
     setIsPWFocused(false);
   };
 
+  /**
+   * @function handleConfirmPasswordFocus
+   * @description 비밀번호 확인 입력 필드에 포커스될 때의 핸들러
+   * @param {FocusEvent<HTMLInputElement>} e - 포커스 이벤트 객체
+   */
   const handleConfirmPasswordFocus = (e: FocusEvent<HTMLInputElement>) => {
     setIsConfirmPWFocused(true);
   };
 
+  /**
+   * @function handleConfirmPasswordBlur
+   * @description 비밀번호 확인 입력 필드에서 포커스가 벗어날 때의 핸들러
+   * @param {FocusEvent<HTMLInputElement>} e - 포커스 이벤트 객체
+   */
   const handleConfirmPasswordBlur = (e: FocusEvent<HTMLInputElement>) => {
     setIsConfirmPWFocused(false);
   };
 
+  /**
+   * @function togglePasswordVisibility
+   * @description 비밀번호 입력 필드의 텍스트 보이기/숨기기를 전환합니다.
+   */
   const togglePasswordVisibility = useCallback((): void => {
     setShowPW(prev => !prev);
   }, []);
 
+  /**
+   * @function toggleConfirmPasswordVisibility
+   * @description 비밀번호 확인 입력 필드의 텍스트 보이기/숨기기를 전환합니다.
+   */
   const toggleConfirmPasswordVisibility = useCallback((): void => {
     setShowConfirmPW(prev => !prev);
   }, []);
 
-
+  /**
+   * @function handleAgreeToAllChange
+   * @description '모든 약관에 전체 동의합니다' 체크박스 변경 이벤트를 처리합니다.
+   * @param {ChangeEvent<HTMLInputElement>} e - 변경 이벤트 객체
+   */
   const handleAgreeToAllChange = (e: ChangeEvent<HTMLInputElement>) => {
     const checked: boolean = e.target.checked;
     setAgreeToAll(checked);
@@ -210,20 +245,38 @@ function Register() {
     setError('');
   };
 
+  // '모든 약관 동의' 체크박스 상태를 개별 약관 동의 상태에 따라 업데이트
   useEffect(() => {
     setAgreeToAll(formData.agreeToTerms && formData.agreeToPrivacy);
   }, [formData.agreeToTerms, formData.agreeToPrivacy]);
 
+  /**
+   * @function handleOpenTermsModal
+   * @description 약관 모달을 엽니다.
+   * @param {string} type - 약관 타입 ('agreeToTerms' 또는 'agreeToPrivacy')
+   * @param {string} content - 모달에 표시할 약관 내용
+   * @param {string} title - 모달 제목
+   */
   const handleOpenTermsModal = useCallback((type: string, content: string, title: string): void => {
     setModalContent({ termType: type, content, title });
     setIsModalOpen(true);
   }, []);
 
+  /**
+   * @function handleCloseTermsModal
+   * @description 약관 모달을 닫습니다.
+   */
   const handleCloseTermsModal = useCallback((): void => {
     setIsModalOpen(false);
     setModalContent({ title: '', content: '', termType: '' });
   }, []);
 
+  /**
+   * @function handleTermsAgreement
+   * @description 약관 동의 여부를 업데이트하고, 동의하지 않았을 경우 에러 메시지를 설정합니다.
+   * @param {string} termType - 약관 타입 ('agreeToTerms' 또는 'agreeToPrivacy')
+   * @param {boolean} agreed - 동의 여부
+   */
   const handleTermsAgreement = useCallback((termType: string, agreed: boolean): void => {
     setFormData(prev => ({
       ...prev,
@@ -236,22 +289,23 @@ function Register() {
     }
   }, []);
 
+  // 아이디 유효성 검사
   useEffect(() => {
-    const validationResult = validateIDPolicy(formData.MEMBER_ID);
+    const validationResult = validateIDPolicy(formData.memberId);
     setIDValidation(validationResult);
-  }, [formData.MEMBER_ID]);
+  }, [formData.memberId]);
 
-  // MEMBER_PW로 변경
+  // 비밀번호 유효성 검사
   useEffect(() => {
-    const validationResult = validatePWPolicy(formData.MEMBER_PW);
+    const validationResult = validatePWPolicy(formData.memberPw);
     setPWValidation(validationResult);
-  }, [formData.MEMBER_PW]);
+  }, [formData.memberPw]);
 
-  // MEMBER_PW로 변경
+  // 비밀번호 일치 여부 검사
   useEffect(() => {
-    const validationResult = validatePWMatch(formData.MEMBER_PW, formData.confirmPW);
+    const validationResult = validatePWMatch(formData.memberPw, formData.confirmPw);
     setPWMatch(validationResult);
-  }, [formData.MEMBER_PW, formData.confirmPW]);
+  }, [formData.memberPw, formData.confirmPw]);
 
   // 전화번호 유효성 검사 및 합치기 (phone1, phone2, phone3 변경될 때마다 실행)
   useEffect(() => {
@@ -265,27 +319,39 @@ function Register() {
     }
   }, [phone1, phone2, phone3]);
 
-  // 전화번호 입력 필드 포커스/블러 핸들러
+  /**
+   * @function handlePhoneFocus
+   * @description 전화번호 입력 필드에 포커스될 때의 핸들러
+   */
   const handlePhoneFocus = () => setIsPhoneFocused(true);
+
+  /**
+   * @function handlePhoneBlur
+   * @description 전화번호 입력 필드에서 포커스가 벗어날 때의 핸들러
+   */
   const handlePhoneBlur = () => setIsPhoneFocused(false);
 
-
+  /**
+   * @function handleSubmit
+   * @description 폼 제출 이벤트를 처리하고 회원가입 요청을 보냅니다.
+   * @param {FormEvent<HTMLFormElement>} e - 폼 이벤트 객체
+   */
   const handleSubmit = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
     setError('');
     setSuccessMessage('');
 
-    // 최종 유효성 검사 (테이블의 NN (Not Null) 제약 조건 반영)
+    // 최종 유효성 검사
     if (!IDValidation.isIDValid) {
       setError(IDValidation.message || '아이디 정책을 만족해주세요.');
       return;
     }
-    // MEMBER_PW로 변경
+
     if (!PWValidation.isValiD) {
       setError(PWValidation.message || '비밀번호 정책을 만족해주세요.');
       return;
     }
-    // MEMBER_PW로 변경
+
     if (!PWMatch.isMatch) {
       setError(PWMatch.message || '비밀번호 확인이 일치하지 않습니다.');
       return;
@@ -296,16 +362,16 @@ function Register() {
       return;
     }
 
-    if (!formData.MEMBER_NAME) {
+    if (!formData.memberName) {
       setError('이름은 필수 입력 필드입니다.');
       return;
     }
-    if (!formData.EMAIL) {
+    if (!formData.email) {
       setError('이메일은 필수 입력 필드입니다.');
       return;
     }
-    
-    if (!formData.MEMBER_ROLE) {
+
+    if (!formData.memberRole) {
       setError('역할을 선택해주세요.');
       return;
     }
@@ -317,14 +383,14 @@ function Register() {
     try {
       // 서버로 보낼 데이터는 테이블 컬럼명과 정확히 일치하도록 매핑
       const requestPayload = {
-        MEMBER_ID: formData.MEMBER_ID,
-        MEMBER_PW: formData.MEMBER_PW, // ★ MEMBER_PW로 변경
-        MEMBER_NAME: formData.MEMBER_NAME,
-        EMAIL: formData.EMAIL,
-        PHONE: phoneNumber, // ★ 합쳐진 전화번호를 PHONE 필드에 할당
-        MEMBER_ROLE: formData.MEMBER_ROLE,
-        COMPANY: formData.COMPANY === '' ? null : formData.COMPANY,
-        DEPARTMENT: formData.DEPARTMENT === '' ? null : formData.DEPARTMENT,
+        memberId: formData.memberId,
+        memberPw: formData.memberPw,
+        memberName: formData.memberName,
+        email: formData.email,
+        phone: phoneNumber,
+        memberRole: formData.memberRole,
+        company: formData.company === '' ? null : formData.company,
+        department: formData.department === '' ? null : formData.department,
       };
 
       const response = await axios.post<{ success: boolean; message?: string }>('/api/signup', requestPayload);
@@ -354,17 +420,17 @@ function Register() {
           <div className="input-group">
             <input
               type="text"
-              name="MEMBER_ID"
+              name="memberId"
               placeholder="아이디 (6~20자, 영문자로 시작)"
               className={`input-field ${isIDFocused && !IDValidation.isIDValid ? 'invalid-field' : isIDFocused ? 'focused-field' : ''}`}
-              value={formData.MEMBER_ID}
+              value={formData.memberId}
               onChange={handleChange}
               onFocus={handleIdFocus}
               onBlur={handleIdBlur}
               maxLength={20}
             />
           </div>
-          {isIDFocused && formData.MEMBER_ID.length > 0 && !IDValidation.isIDValid && (
+          {isIDFocused && formData.memberId.length > 0 && !IDValidation.isIDValid && (
             <div className="feedback-message-container">
               <p className="invalid">
                 <i className="fas fa-times"></i>
@@ -372,14 +438,14 @@ function Register() {
               </p>
             </div>
           )}
-          {isIDFocused && formData.MEMBER_ID.length > 0 && IDValidation.isOnlyNumbers && (
+          {isIDFocused && formData.memberId.length > 0 && IDValidation.isOnlyNumbers && (
             <div className="feedback-message-container">
               <p className="warning-text">
                 ⚠️ 아이디는 영문자를 포함해야 합니다.
               </p>
             </div>
           )}
-          {isIDFocused && formData.MEMBER_ID.length > 0 && IDValidation.isIDValid && !IDValidation.isOnlyNumbers && (
+          {isIDFocused && formData.memberId.length > 0 && IDValidation.isIDValid && !IDValidation.isOnlyNumbers && (
             <div className="feedback-message-container">
               <p className="valid">
                 <i className="fas fa-check"></i>
@@ -388,14 +454,13 @@ function Register() {
             </div>
           )}
 
-
           <div className="input-group password-input-group">
             <input
               type={showPW ? 'text' : 'password'}
-              name="MEMBER_PW" // ★ MEMBER_PW로 변경
+              name="memberPw"
               placeholder="비밀번호"
               className={`input-field ${isPWFocused && !PWValidation.isValiD ? 'invalid-field' : isPWFocused ? 'focused-field' : ''}`}
-              value={formData.MEMBER_PW} // ★ MEMBER_PW로 변경
+              value={formData.memberPw}
               onChange={handleChange}
               onFocus={handlePasswordFocus}
               onBlur={handlePasswordBlur}
@@ -404,7 +469,7 @@ function Register() {
               <i className={showPW ? "fas fa-eye" : "fas fa-eye-slash"}></i>
             </span>
           </div>
-          {isPWFocused && formData.MEMBER_PW.length > 0 && ( // ★ MEMBER_PW로 변경
+          {isPWFocused && formData.memberPw.length > 0 && (
             <div className="password-feedback-container">
               <p className={PWValidation.feedback.length ? 'valid' : 'invalid'}>
                 <i className={PWValidation.feedback.length ? "fas fa-check" : "fas fa-times"}></i>
@@ -420,14 +485,13 @@ function Register() {
             </div>
           )}
 
-
           <div className="input-group password-input-group">
             <input
               type={showConfirmPW ? 'text' : 'password'}
-              name="confirmPW"
+              name="confirmPw"
               placeholder="비밀번호 확인"
               className={`input-field ${isConfirmPWFocused && !PWMatch.isMatch ? 'invalid-field' : isConfirmPWFocused ? 'focused-field' : ''}`}
-              value={formData.confirmPW}
+              value={formData.confirmPw}
               onChange={handleChange}
               onFocus={handleConfirmPasswordFocus}
               onBlur={handleConfirmPasswordBlur}
@@ -436,7 +500,7 @@ function Register() {
               <i className={showConfirmPW ? "fas fa-eye" : "fas fa-eye-slash"}></i>
             </span>
           </div>
-          {isConfirmPWFocused && (formData.confirmPW.length > 0 || formData.MEMBER_PW.length > 0) && ( // ★ MEMBER_PW로 변경
+          {isConfirmPWFocused && (formData.confirmPw.length > 0 || formData.memberPw.length > 0) && (
             <div className="feedback-message-container">
               <p className={PWMatch.isMatch ? 'valid' : 'invalid'}>
                 <i className={PWMatch.isMatch ? "fas fa-check" : "fas fa-times"}></i>
@@ -448,10 +512,10 @@ function Register() {
           <div className="input-group">
             <input
               type="text"
-              name="MEMBER_NAME" // ★ MEMBER_NAME으로 변경
+              name="memberName"
               placeholder="이름"
               className="input-field"
-              value={formData.MEMBER_NAME}
+              value={formData.memberName}
               onChange={handleChange}
             />
           </div>
@@ -459,10 +523,10 @@ function Register() {
           <div className="input-group">
             <input
               type="email"
-              name="EMAIL" // ★ EMAIL로 변경
+              name="email"
               placeholder="이메일"
               className="input-field"
-              value={formData.EMAIL}
+              value={formData.email}
               onChange={handleChange}
             />
           </div>
@@ -472,14 +536,14 @@ function Register() {
             <label htmlFor="phone1" className="phone-label">전화번호</label>
             <div className="phone-input-wrapper">
               <select
-                id="phone1" 
+                id="phone1"
                 name="phone1"
                 value={phone1}
                 onChange={(e: ChangeEvent<HTMLSelectElement>) => setPhone1(e.target.value)}
                 onFocus={handlePhoneFocus}
                 onBlur={handlePhoneBlur}
                 className="phone-part-select"
-                title="전화번호 앞자리" // ★ 접근성을 위해 title 속성 추가
+                title="전화번호 앞자리"
               >
                 <option value="010">010</option>
                 <option value="011">011</option>
@@ -524,7 +588,7 @@ function Register() {
               />
             </div>
           </div>
-          {/* 전화번호 유효성 피드백 메시지 표시 (isPhoneFocused 추가) */}
+          {/* 전화번호 유효성 피드백 메시지 표시 */}
           {isPhoneFocused && (phone1.length > 0 || phone2.length > 0 || phone3.length > 0) && (
             <div className="feedback-message-container">
               <p className={phoneValidation.isValid ? 'valid' : 'invalid'}>
@@ -534,24 +598,23 @@ function Register() {
             </div>
           )}
 
-
           <div className="input-group">
             <input
               type="text"
-              name="COMPANY"
+              name="company"
               placeholder="회사명"
               className="input-field"
-              value={formData.COMPANY}
+              value={formData.company}
               onChange={handleChange}
             />
           </div>
           <div className="input-group">
             <input
               type="text"
-              name="DEPARTMENT" 
+              name="department"
               placeholder="부서명"
               className="input-field"
-              value={formData.DEPARTMENT}
+              value={formData.department}
               onChange={handleChange}
             />
           </div>
@@ -562,9 +625,9 @@ function Register() {
               <label>
                 <input
                   type="radio"
-                  name="MEMBER_ROLE" 
+                  name="memberRole"
                   value="worker"
-                  checked={formData.MEMBER_ROLE === 'worker'}
+                  checked={formData.memberRole === 'worker'}
                   onChange={handleChange}
                 />{' '}
                 작업자
@@ -572,9 +635,9 @@ function Register() {
               <label>
                 <input
                   type="radio"
-                  name="MEMBER_ROLE" 
+                  name="memberRole"
                   value="admin"
-                  checked={formData.MEMBER_ROLE === 'admin'}
+                  checked={formData.memberRole === 'admin'}
                   onChange={handleChange}
                 />{' '}
                 관리자
@@ -647,9 +710,9 @@ function Register() {
               !PWValidation.isValiD ||
               !PWMatch.isMatch ||
               !phoneValidation.isValid ||
-              !formData.MEMBER_NAME ||
-              !formData.EMAIL ||
-              !formData.MEMBER_ROLE || 
+              !formData.memberName ||
+              !formData.email ||
+              !formData.memberRole ||
               !formData.agreeToTerms ||
               !formData.agreeToPrivacy
             }
