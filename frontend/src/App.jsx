@@ -8,7 +8,7 @@ import Worker from './pages/Worker';
 
 import Test_api from './tests/test_api';
 import Test_ai from './tests/Test_ai';
-import Test_login from './tests/Login';
+import Test_login from './tests/Login'; 
 import Test_manager from './tests/Manager';
 import Test_worker from './tests/Worker';
 import Test_register from './tests/Register';

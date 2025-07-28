@@ -100,11 +100,14 @@ html, body, #root {
     align-self: center; /* 부모 영향 안받고 제목을 가로 중앙 정렬 */
 }
 
-/* 입력 필드 그룹 */
+/* 입력 필드 그룹 (기본: 라벨과 인풋이 세로로 쌓이도록) */
 .input-group {
     position: relative;
     margin-bottom: 10px; /* 입력 필드 사이 간격 */
     width: 100%; /* 너비를 100%로 설정 */
+    display: flex;
+    flex-direction: column; /* 기본적으로는 세로 정렬 */
+    align-items: flex-start; /* 자식 요소들을 왼쪽 정렬 */
 }
 
 /* input-group 내부의 input-field에 마진 없애기 */
@@ -149,6 +152,86 @@ html, body, #root {
 .input-field::placeholder {
     color: #9ca3af;
     text-align: center; /* 플레이스홀더 텍스트도 중앙 정렬 */
+}
+
+/* 전화번호 섹션 전체를 감싸는 새로운 컨테이너 (레이블과 인풋을 나란히 정렬) */
+.phone-input-group {
+    display: flex;
+    flex-direction: row; /* 라벨과 입력 필드를 나란히 정렬 */
+    align-items: center; /* 세로 중앙 정렬 */
+    gap: 10px; /* 라벨과 입력 필드 사이 간격 */
+    margin-bottom: 10px; /* 다른 input-group과 동일한 하단 마진 */
+    width: 100%; /* 부모 너비의 100%를 사용 */
+    box-sizing: border-box; /* 패딩 포함 너비 계산 */
+}
+
+/* 전화번호 라벨 스타일 */
+.phone-label {
+    flex-shrink: 0; /* 라벨이 줄어들지 않도록 고정 */
+    width: 80px; /* 라벨의 고정 너비 지정. 필요에 따라 조절해줘. */
+    text-align: left; /* 라벨 텍스트는 왼쪽 정렬 */
+    font-size: 15px;
+    color: #333;
+    font-weight: bold;
+    margin-bottom: 0; /* 이제 같은 줄이므로 아래 마진 제거 */
+}
+
+/* 전화번호 입력 필드 관련 래퍼 */
+.phone-input-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    flex-grow: 1; /* 남은 공간을 모두 차지하도록 확장 */
+    justify-content: flex-start; /* 전화번호 입력 필드 그룹을 왼쪽 정렬 */
+    margin-top: 0; /* 이제 라벨과 같은 줄이므로 상단 마진 제거 */
+}
+
+.phone-part-select,
+.phone-part-input {
+  padding: 15px 10px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 16px;
+  box-sizing: border-box;
+}
+
+.phone-part-select {
+  flex-shrink: 0;
+  padding-right: 35px; /* 드롭다운 화살표 공간 유지 */
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23333' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 15px;
+}
+
+.phone-part-input {
+  flex-grow: 1;
+  text-align: center;
+  max-width: 80px; /* 적절한 최대 너비 설정 (4자리 기준) */
+}
+
+.phone-divider {
+  font-size: 16px;
+  color: #555;
+}
+
+/* input-label 스타일 (일반적인 경우) */
+.input-label {
+    display: block; /* 기본은 블록 레벨 요소로 */
+    text-align: left;
+    margin-bottom: 5px;
+    font-size: 15px;
+    color: #333;
+    font-weight: bold;
+}
+
+/* 포커스 시 스타일은 기존과 동일하게 유지 */
+.phone-part-select:focus,
+.phone-part-input:focus {
+  border-color: #007bff;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
 }
 
 /* 유효성 검사 피드백 메시지 컨테이너 스타일 */
@@ -353,20 +436,22 @@ html, body, #root {
     cursor: not-allowed;
 }
 
-.join-section {
-    text-align: center; /* 로그인 링크 섹션 중앙 정렬 */
-    margin-top: 20px;
+.login-section {
+    width: fit-content; /* 내용물 너비에 맞게 설정 (혹은 적절한 px, % 값) */
+    margin: 20px auto 0 auto; /* 상단 마진 20px, 좌우 마진 auto로 중앙 정렬, 하단 마진 0 */
     font-size: 15px;
     color: #555;
+    /* text-align: center; 는 이 경우엔 그대로 두어도 좋고, 삭제해도 무방함.
+       width: fit-content가 적용되면 이미 내용물 너비만큼 줄어들기 때문이야. */
 }
 
-.join-section .join-link {
+.login-section .login-link {
     color: #007bff;
     text-decoration: none;
     font-weight: bold;
 }
 
-.join-section .join-link:hover {
+.login-section .login-link:hover {
     text-decoration: underline;
 }
 
