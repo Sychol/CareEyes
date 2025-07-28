@@ -18,6 +18,10 @@ public class DetectEvent {
     private int cctvId;
     private String imgPath;
     private int manage;
+    
     private Map<String, Integer> objects;
+    private String location;
+    private String itemType;
+    private int itemCount;
     
 }

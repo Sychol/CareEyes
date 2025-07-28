@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 public class Members {
 
 	private String memberId; // 아이디
-	private String pw; // 비밀번호
+	private String memberPw; // 비밀번호
 	private String memberName; // 이름
 	private String email; // 이메일
 	private String phone; // 전화번호

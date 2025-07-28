@@ -21,4 +21,12 @@ public interface MemberMapper {
 	public void updateKakaoId(@Param("memberId") String memberId, @Param("kakaoId") Long kakaoId);
 	
 	public Members findByKakaoId(Long kakaoId);
+	
+	public List<Members> getWorkerList();
+	
+	public List<Members> getFilteredWorker (
+		@Param("department") String department,
+		@Param("company") String company,
+		@Param("alertState") Integer alertState
+	);
 }

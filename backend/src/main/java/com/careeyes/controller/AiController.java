@@ -14,7 +14,7 @@ import com.careeyes.entity.DetectEvent;
 import com.careeyes.mapper.AiMapper;
 
 @RestController
-@RequestMapping("/ai")
+@RequestMapping("/api/ai")
 public class AiController {
 
 	@Autowired

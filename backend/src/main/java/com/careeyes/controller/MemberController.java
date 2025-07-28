@@ -1,18 +1,24 @@
 package com.careeyes.controller;
 
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import com.careeyes.entity.Members;
 import com.careeyes.mapper.MemberMapper;
 
 import jakarta.servlet.http.HttpSession;
 
+@RestController
+@RequestMapping("/api/member")
 public class MemberController {
 	
 	@Autowired
@@ -32,18 +38,18 @@ public class MemberController {
 	// 로그인
 	@PostMapping("/login")
 	public ResponseEntity<?> login(@RequestBody Map<String, String> request){
-		String id = request.get("id"); 
-		String pw = request.get("pw");
+		String memberId = request.get("memberId"); 
+		String memberPw = request.get("memberPw");
 		
-		Members member = memberMapper.findById(id);
-		if (member == null || !member.getPw().equals(pw)){
+		Members member = memberMapper.findById(memberId);
+		if (member == null || !member.getMemberPw().equals(memberPw)){
 			// id가 null이거나 비밀번호가 DB와 일치하지 않으면
 			return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
 					.body(Map.of("message", "ID 또는 비밀번호가 일치하지 않습니다."));
 		} // 에러 메시지 + 401 보내기
 		return ResponseEntity.ok(Map.of(
-				"id", member.getMemberId(),
-				"role", member.getMemberRole()
+				"memberId", member.getMemberId(),
+				"memberRole", member.getMemberRole()
 				));
 		// 로그인 성공하면 id / role 전달
 	}
@@ -56,7 +62,7 @@ public class MemberController {
 	}
 	
 	// 카카오 계정 연동
-	@PostMapping("/api/account/link-kakao")
+	@PostMapping("/account/link-kakao")
 	public ResponseEntity<?> linkKakao(@RequestBody Map<String, Object> body, HttpSession session) {
 	    // 로그인된 사용자 가져오기
 	    Members loginMember = (Members) session.getAttribute("loginMember");
@@ -76,5 +82,10 @@ public class MemberController {
 	    // 연동 처리
 	    memberMapper.updateKakaoId(loginMember.getMemberId(), kakaoId);
 	    return ResponseEntity.ok("카카오 계정 연동 완료");
+	}
+	
+	@GetMapping("/workerlist")
+	public ResponseEntity<List<Members>> getWorkerList() {
+	    return ResponseEntity.ok(memberMapper.getWorkerList());
 	}
 }

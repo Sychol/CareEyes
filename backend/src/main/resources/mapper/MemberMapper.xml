@@ -1,19 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="mapper.MemberMapper">
+<mapper namespace="com.careeyes.mapper.MemberMapper">
 
-	<!-- 예시용 -->
-	<select id="selectAll" resultType="Members">
-		SELECT * FROM MEMBERS
-	</select>
+	<resultMap id="memberResultMap" type="com.careeyes.entity.Members">
+	    <id     property="memberId"     column="MEMBER_ID"/>
+	    <result property="memberPw"     column="MEMBER_PW"/>
+	    <result property="memberName"   column="MEMBER_NAME"/>
+	    <result property="email"        column="EMAIL"/>
+	    <result property="phone"        column="PHONE"/>
+	    <result property="memberRole"   column="MEMBER_ROLE"/>
+	    <result property="company"      column="COMPANY"/>
+	    <result property="department"   column="DEPARTMENT"/>
+	    <result property="kakaoId"      column="KAKAO_ID"/>
+	    <result property="alertState"   column="ALERT_STATE"/>
+	</resultMap>
 	
 	<!-- 회원가입 -->
 	<insert id='signIn' parameterType="Members">
 		INSERT INTO MEMBERS (
-			MEMBER_ID, PW, MEMBER_NAME, EMAIL, PHONE,
+			MEMBER_ID, MEMBER_PW, MEMBER_NAME, EMAIL, PHONE,
 			MEMBER_ROLE, COMPANY, DEPARTMENT
 		) VALUES (
-			#{memberId}, #{pw}, #{memberName}, #{email}, #{phone},
+			#{memberId}, #{memberPw}, #{memberName}, #{email}, #{phone},
 			#{memberRole}, #{company}, #{department}
 		)
 	</insert>
@@ -46,6 +54,23 @@
 		UPDATE MEMBERS SET KAKAO_ID = #{kakaoId}
 		WHERE MEMBER_ID = #{memberId}
 	</update>
+	
+	<!-- 작업자 리스트 -->
+	<select id="getWorkerList" resultMap="memberResultMap">
+		SELECT MEMBER_NAME, COMPANY, DEPARTMENT, ALERT_STATE, MEMBER_ROLE
+		FROM MEMBERS
+		WHERE MEMBER_ROLE = 'WORKER'
+	</select>
+
+	<!-- 작업자 리스트 (필터... 인데...) -->
+	<select id="getFilteredWorker" resultType="Members">
+		SELECT MEMBER_NAME, COMPANY, DEPARTMENT, ALERT_STATE
+		FROM MEMBERS
+		WHERE MEMBER_ROLE = 'WORKER'
+		  AND (#{department} IS NULL OR DEPARTMENT = #{department})
+		  AND (#{company} IS NULL OR COMPANY = #{company})
+		  AND (#{alertState} IS NULL OR ALERT_STATE = #{alertState})
+	</select>
 	
 	
 	
