@@ -6,13 +6,23 @@ import os
 import atexit
 import threading
 from datetime import datetime
+import boto3
+from botocore.client import Config
+import os
+
 
 app = Flask(__name__)
+
 CONF_THRESHOLD = 0.5 # 신뢰도 임계값
 SPRING_PROXY = "http://localhost:8090/ai" # Spring 서버 프록시 URL
 FPS = 30 # youtube_url의 FPS
 DELAY = 1 # 프레임 간 딜레이 (초 단위)
 SAVE_CLASSES = {"airplane","person", "car", "truck", "bus", "bird", "mammal"} # 저장할 클래스
+# 설정값
+NCLOUD_ACCESS_KEY = '발급받은 Access Key'
+NCLOUD_SECRET_KEY = '발급받은 Secret Key'
+BUCKET_NAME = 'careeyes-bucket'
+ENDPOINT = 'https://kr.object.ncloudstorage.com'
 
 stream_caps = {}  # key: youtube_url, value: VideoCapture 객체
 
@@ -139,6 +149,27 @@ def process_youtube_frame(youtube_url, save_result=False, cctv_id='unknown', del
         print(f"🔍 탐지 완료! {object_counts} → 저장: {save_path}")
 
     return object_counts, save_path, date_str, time_str, cctv_id
+
+def upload_to_ncloud(local_path, object_key):
+    s3 = boto3.client(
+        's3',
+        aws_access_key_id=NCLOUD_ACCESS_KEY,
+        aws_secret_access_key=NCLOUD_SECRET_KEY,
+        endpoint_url=ENDPOINT,
+        config=Config(signature_version='s3v4'),
+        region_name='kr-standard'
+    )
+
+    s3.upload_file(
+        Filename=local_path,
+        Bucket=BUCKET_NAME,
+        Key=object_key,
+        ExtraArgs={'ACL': 'public-read'}  # 외부에서 접근 가능하도록 설정
+    )
+
+    file_url = f"{ENDPOINT}/{BUCKET_NAME}/{object_key}"
+    return file_url
+
 
 # 💡 Spring 서버로 전송
 def send_to_spring(object_counts, save_path, date_str, time_str, cctv_id='unknown'):
