@@ -14,6 +14,7 @@ import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import AirportDashboard from "./components/AirportDashboard";
 import LogIn from "./tests/Login"; // 소문자 확인
+import Join from "./tests/Register";
 
 
 const queryClient = new QueryClient();
@@ -33,7 +34,7 @@ const App = () => (
           <Routes>
             {/* ✅ Layout이 적용되는 내부 페이지들 */}
             <Route element={<Layout />}>
-              <Route path="/" element={<Dashboard />} />
+              <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/cctv" element={<CCTVList />} />
               <Route path="/alerts" element={<AlertHistory />} />
               <Route path="/index" element={<Index />} />
@@ -45,6 +46,7 @@ const App = () => (
             <Route path="/make" element={<AirportDashboard />} />
             <Route path="/sangje" element={<AirportDashboard />} />
             <Route path="/login" element={<LogIn />} />
+            <Route path="/join" element={<Join />} />
           </Routes>
         </BrowserRouter>
       </TooltipProvider>

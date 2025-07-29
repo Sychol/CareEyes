@@ -216,7 +216,7 @@ const Login = () => {
           <div className="join-section">
             <p className="join-text">
               아직 회원이 아니신가요?{' '}
-              <Link to="/Test_register" className="join-link">
+              <Link to="/join" className="join-link">
                 회원가입
               </Link>
             </p>

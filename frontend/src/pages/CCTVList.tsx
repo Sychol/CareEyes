@@ -54,6 +54,14 @@ export default function CCTVList() {
         setError(true);
       });
   }, []);
+  // 변경함! 07/29
+  useEffect(() => {
+  if (filteredData.length > 0) {
+    setSelectedId(filteredData[0].id); // 필터에 해당하는 첫 CCTV 자동 선택
+  } else {
+    setSelectedId(null);
+  }
+}, [selectedLocation, cctvData]); // 의존성: 필터 변경 시 실행
 
   const locations = ["전체", ...Array.from(new Set(cctvData.map((cctv) => cctv.location)))];
   const filteredData = selectedLocation === "전체"

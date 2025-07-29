@@ -6,32 +6,24 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Bell, BellOff, Settings, Filter, Monitor,
-  AlertTriangle, Car, User, Bird, Cat, XCircle
+  AlertTriangle, Car, User, Bird, Cat, XCircle, Plane,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import profileMan1 from "@/assets/profile/man1.png";
 
 // ==========================
-//  타입/상수/유틸 - BEGIN
+// 타입/상수/유틸 - BEGIN
 // ==========================
 interface UserData { MEMBER_NAME: string; DEPARTMENT: string; }
 type StatusType = "미처리" | "처리중" | "처리완료";
 interface DetectionItem { ITEM_TYPE: string; ITEM_COUNT: number; }
 interface DetectionEvent {
-  EVENT_ID: string;
-  EVENT_DATE: string;
-  EVENT_TIME: string;
-  CCTV_ID: string;
-  IMG_PATH: string;
-  MANAGE: StatusType;
-  ITEMS?: DetectionItem[];
-  LOCATION?: string;
+  EVENT_ID: string; EVENT_DATE: string; EVENT_TIME: string; CCTV_ID: string;
+  IMG_PATH: string; MANAGE: StatusType; ITEMS?: DetectionItem[]; LOCATION?: string;
 }
-interface AirportDashboardProps { memberId: string; }
 
 const DEFAULT_USER: UserData = { MEMBER_NAME: "한경찰", DEPARTMENT: "공항순찰대" };
 const STATUS_ENUM: StatusType[] = ["미처리", "처리중", "처리완료"];
-
 const STATUS_BADGE: Record<StatusType, string> = {
   미처리: "bg-red-500 text-white",
   처리중: "bg-orange-500 text-white",
@@ -51,8 +43,9 @@ const NOTIFICATION_TYPES = [
 ];
 
 const API_URL = "http://223.130.130.196:8090/api/eventlist";
+const MEMBER_API_URL = "http://223.130.130.196:8090/api/member/workerlist";
 
-// API 이벤트 → 내부 이벤트 데이터 변환
+// ========== 유틸 ==========
 const mapApiEvent = apiEvent => ({
   EVENT_ID: String(apiEvent.eventId ?? apiEvent.EVENT_ID),
   EVENT_DATE: apiEvent.eventDate ?? apiEvent.EVENT_DATE,
@@ -72,12 +65,12 @@ const mapApiEvent = apiEvent => ({
 
 const ItemTypeIcon = ({ type }: { type: string }) => {
   switch (type) {
-    case "차량": case "car":       return <Car className="h-10 w-10 text-black" />;
-    case "사람": case "person":    return <User className="h-10 w-10 text-black" />;
-    case "새": case "bird":        return <Bird className="h-10 w-10 text-black" />;
-    case "동물": case "animal":    return <Cat className="h-10 w-10 text-black" />;
-    case "airplane":               return <Monitor className="h-10 w-10 text-black" />;
-    default:                       return <XCircle className="h-10 w-10 text-black" />;
+    case "차량": case "vehicle": return <Car className="h-10 w-10 text-black" />;
+    case "사람": case "person": return <User className="h-10 w-10 text-black" />;
+    case "조류": case "bird": return <Bird className="h-10 w-10 text-black" />;
+    case "포유류": case "mammmal": return <Cat className="h-10 w-10 text-black" />;
+    case "비행기": case "airplane": return <Plane className="h-10 w-10 text-black" />;
+    default: return <XCircle className="h-10 w-10 text-black" />;
   }
 };
 
@@ -88,16 +81,10 @@ const StatusBadge = ({ manage, onClick }: { manage: StatusType; onClick: () => v
 );
 
 const StatusChangePopup = ({
-  visible,
-  targetEvent,
-  currentStatusIdx,
-  onChange,
-  onClose
+  visible, targetEvent, currentStatusIdx, onChange, onClose
 }: {
-  visible: boolean;
-  targetEvent: DetectionEvent | null;
-  currentStatusIdx: number;
-  onChange: (num: number) => void;
+  visible: boolean; targetEvent: DetectionEvent | null;
+  currentStatusIdx: number; onChange: (num: number) => void;
   onClose: () => void;
 }) => {
   if (!visible || !targetEvent) return null;
@@ -107,7 +94,7 @@ const StatusChangePopup = ({
         className="bg-white rounded-xl shadow-2xl border-2 border-primary/60 p-6 min-w-[240px] transition-all duration-200"
         style={{ boxShadow: "0 8px 24px rgba(60,60,100,0.18), 0 1.5px 6px rgba(70,120,180,0.10)" }}
       >
-        <div className="font-bold mb-3 text-primary border-b pb-2 border-border/40">작업 상태 변경</div>
+        <div className="font-bold mb-3 text-black border-b pb-2 border-border/40">작업 상태 변경</div>
         {STATUS_ENUM.map((label, idx) => {
           const isCurrent = currentStatusIdx === idx;
           const style = STATUS_STYLEMAP[idx];
@@ -115,10 +102,10 @@ const StatusChangePopup = ({
             <button
               key={label}
               className={`block w-full rounded-lg px-4 py-2 mb-2 text-left border-2 transition-all duration-150
-                  ${isCurrent
-                    ? `${style.bg} ${style.text} font-bold ${style.border}`
-                    : `bg-white ${style.text} border-gray-200 ${style.hover}`
-                  }`}
+              ${isCurrent
+                  ? `${style.bg} text-black font-bold ${style.border}`
+                  : `bg-white text-black border-gray-200 ${style.hover}`
+                }`}
               onClick={() => onChange(idx)}
               disabled={isCurrent}
               style={{ cursor: isCurrent ? "not-allowed" : "pointer", opacity: isCurrent ? 0.7 : 1 }}
@@ -139,34 +126,46 @@ const StatusChangePopup = ({
   );
 };
 // ==========================
-//  타입/상수/유틸 - END
+// 타입/상수/유틸 - END
 // ==========================
 
-const AirportDashboard = ({ memberId }: AirportDashboardProps) => {
+
+const TEST_LOGIN_NAME = "황상제";
+
+const AirportDashboard = () => {
   const { toast } = useToast();
 
   const [userData, setUserData] = useState<UserData>(DEFAULT_USER);
-  const [events, setEvents] = useState<DetectionEvent[]>([]); // 더미데이터 완전 삭제
+  const [events, setEvents] = useState<DetectionEvent[]>([]);
   const [selectedNotification, setSelectedNotification] = useState<'general' | 'emergency' | 'maintenance'>('general');
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [selectedEvent, setSelectedEvent] = useState<DetectionEvent | null>(null);
   const [showSetting, setShowSetting] = useState(false);
   const [statusPopupTarget, setStatusPopupTarget] = useState<DetectionEvent | null>(null);
 
+  // ⬇️ 유저 정보 - 테스트용 loginName 기준
   useEffect(() => {
-    if (!memberId) { setUserData(DEFAULT_USER); return; }
-    axios.get(`/api/member/${memberId}`)
+    axios.get(MEMBER_API_URL)
       .then(res => {
-        const data = res.data;
-        setUserData(data && data.MEMBER_NAME ? data : DEFAULT_USER);
+        const list = Array.isArray(res.data) ? res.data : (res.data?.data || []);
+        const found = list.find((user: any) => user.memberName === TEST_LOGIN_NAME);
+        if (found && found.memberName) {
+          setUserData({
+            MEMBER_NAME: found.memberName,
+            DEPARTMENT: found.department,
+          });
+        } else {
+          setUserData(DEFAULT_USER);
+          toast({ title: "사용자 정보 없음", description: "기본 사용자로 표기합니다.", variant: "destructive" });
+        }
       })
       .catch(() => {
         setUserData(DEFAULT_USER);
         toast({ title: "유저 정보 불러오기 실패", description: "기본 사용자로 표기합니다.", variant: "destructive" });
       });
-  }, [memberId, toast]);
+  }, [toast]);
 
-  // events - API로부터만 받아온다.
+  // ⬇️ 이벤트 리스트
   useEffect(() => {
     axios.get(API_URL)
       .then(res => {
@@ -200,6 +199,7 @@ const AirportDashboard = ({ memberId }: AirportDashboardProps) => {
     }
   };
 
+  // =================== UI ===================
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 flex justify-center">
       <div className="w-full max-w-[430px] min-h-[932px] p-4 space-y-6">
@@ -302,7 +302,7 @@ const AirportDashboard = ({ memberId }: AirportDashboardProps) => {
           <CardHeader className="pb-4">
             <div className="flex items-center justify-between">
               <CardTitle className="flex items-center space-x-2 text-lg">
-                <AlertTriangle className="h-5 w-5 text-warning" />
+                {/* <AlertTriangle className="h-5 w-5 text-warning" /> */}
                 <span>이상물체 탐지 알림 내역</span>
               </CardTitle>
               <div className="flex items-center space-x-2">
@@ -340,10 +340,8 @@ const AirportDashboard = ({ memberId }: AirportDashboardProps) => {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between">
                           <div>
-                            <p className="text-sm font-medium text-foreground">위치: {ev.CCTV_ID}</p>
-                            <p className="text-xs text-muted-foreground mt-1">
-                              일시: {ev.EVENT_DATE} {ev.EVENT_TIME}
-                            </p>
+                            <p className="text-sm font-medium text-foreground">위치: {ev.LOCATION} - {ev.CCTV_ID}</p>
+                            <p className="text-xs text-muted-foreground mt-1">일시: {ev.EVENT_DATE} {ev.EVENT_TIME}</p>
                           </div>
                           <div className="text-right">
                             <StatusBadge manage={ev.MANAGE} onClick={() => setStatusPopupTarget(ev)} />
@@ -372,7 +370,11 @@ const AirportDashboard = ({ memberId }: AirportDashboardProps) => {
           <CardHeader className="pb-4">
             <CardTitle className="flex items-center space-x-2 text-lg">
               <Monitor className="h-5 w-5 text-primary" />
-              <span>{selectedEvent ? selectedEvent.CCTV_ID : "이상물체 탐지현황"}</span>
+              <span>
+                {selectedEvent
+                  ? `${selectedEvent.LOCATION ? selectedEvent.LOCATION + " - " : ""}${selectedEvent.CCTV_ID}`
+                  : "이상물체 탐지현황"}
+              </span>
             </CardTitle>
             <p className="text-sm text-muted-foreground">
               {selectedEvent ? "" : "알림 선택시 이상물체 탐지 이미지를 볼 수 있습니다"}
