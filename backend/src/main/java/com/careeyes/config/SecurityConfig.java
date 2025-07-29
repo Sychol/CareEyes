@@ -8,6 +8,9 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import jakarta.servlet.DispatcherType;
 
@@ -19,6 +22,21 @@ public class SecurityConfig {
 	// Bean 어노테이션을 사용해서 Spring Container에 클래스로 등록
 	// Bean : Spring에서 객체 생성 시 사용
 	//		  Bean == 객체(개발자 입장에서 제어가 불가능한 라이브러리를 변경할 때 사용)
+	
+	@Bean
+	public CorsConfigurationSource corsConfigurationSource() {
+	    CorsConfiguration config = new CorsConfiguration();
+	    config.setAllowCredentials(true); // 쿠키, 세션 등 인증정보 포함 허용 시 true
+	    config.addAllowedOriginPattern("*"); // 또는 "http://localhost:5173"
+	    config.addAllowedHeader("*"); // 어떤 HTTP 헤더를 허용할지(Authorization, Content-Type 등)
+	    config.addAllowedMethod("*"); // 어떤 Method를 허용할지(GET, POST, PUT, DELETE, OPTIONS 등)
+
+	    UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+	    source.registerCorsConfiguration("/**", config); // config를 적용할 요청 URL 경로(/** <- 모든 경로)
+	    return source;
+	}
+
+	
 	@Bean // 클래스 안에 또 다른 클래스를 제작하는 형태(inner class)
 	SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 		// 모든 예외처리를 받아서 try-catch문 대신 Spring에서 처리할 수 있도록 throws 사용
@@ -37,7 +55,8 @@ public class SecurityConfig {
 		// http.cors((cors) -> cors.disable()); // 람다식 사용 추세
 		
 		// 방법 2)
-		http.cors(AbstractHttpConfigurer :: disable)
+		// ✅ CORS 활성화 + custom 설정 적용
+		http.cors(cors -> cors.configurationSource(corsConfigurationSource()))
 			.csrf(AbstractHttpConfigurer :: disable)
 			.authorizeHttpRequests((request)
 					// 람다식 기술(권한에 대한 설정 진행 메서드)
@@ -46,8 +65,9 @@ public class SecurityConfig {
 					// 포워드 방식으로 이동한 요청은 인증 없이 이동 허용
 					.permitAll()
 					// 특정 URL에 대해서는 인증받지 않더라도 접근 허용
-					.requestMatchers("/join", "/join-process").permitAll()
+//					.requestMatchers("/join", "/join-process").permitAll()
 					.requestMatchers("/api/**").permitAll()
+					.requestMatchers("/oauth/**").permitAll()
 					// 특정 권한에 따라서 부여되는 페이지 접근 권한
 					.requestMatchers("/admin").hasRole("관리자")
 					.requestMatchers("/user").hasRole("사용자")

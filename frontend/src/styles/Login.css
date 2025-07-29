@@ -260,6 +260,7 @@ html, body, #root {
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
 }
 
+<<<<<<< HEAD
 /* 카카오 아이콘 스타일 */
 .social-icon-wrapper.kakao {
   background-color: #FEE500; /* 카카오 노란색 */
@@ -294,10 +295,265 @@ html, body, #root {
 .social-icon-wrapper.naver img {
     width: 40px; 
     height: 40px;
+=======
+/* 💡 카카오 소셜 로그인 버튼 스타일 */
+.kakao-material-button {
+  -moz-user-select: none;
+  -webkit-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+
+  -webkit-appearance: none;
+  appearance: none;
+  background-color: #FEE500; 
+  background-image: none;
+  border: 1px solid #FEE500;
+  -webkit-border-radius: 4px;
+  border-radius: 4px;
+  -webkit-box-sizing: border-box;
+  box-sizing: border-box;
+  color: #3C1E1E; 
+  cursor: pointer;
+  font-family: 'Roboto', arial, sans-serif;
+  font-size: 14px;
+  height: 40px;
+  letter-spacing: 0.25px;
+  outline: none;
+  overflow: hidden;
+  padding: 0 12px;
+  position: relative;
+  text-align: center;
+  -webkit-transition: background-color .218s, border-color .218s, box-shadow .218s;
+  transition: background-color .218s, border-color .218s, box-shadow .218s;
+  vertical-align: middle;
+  white-space: nowrap;
+  width: auto; /* 내용에 따라 너비 조절 */
+  max-width: 400px;
+  min-width: min-content;
+
+  /* flex 속성을 추가해서 아이콘과 텍스트 정렬 */
+  display: flex;
+  justify-content: center; /* 가운데 정렬 */
+  align-items: center; /* 수직 가운데 정렬 */
+}
+
+.kakao-material-button .kakao-material-button-icon {
+  height: 20px;
+  margin-right: 8px; /* 아이콘과 텍스트 사이 간격 */
+  min-width: 20px;
+  width: 20px;
+  display: flex; /* 아이콘 자체도 flex로 정렬할 수 있도록 */
+  justify-content: center;
+  align-items: center;
+}
+
+.kakao-material-button .kakao-icon-image {
+  height: 100%; /* 부모 div에 맞게 이미지 크기 조절 */
+  width: 100%;
+  object-fit: contain; /* 이미지 비율 유지 */
+}
+
+.kakao-material-button .kakao-material-button-content-wrapper {
+  -webkit-align-items: center;
+  align-items: center;
+  display: flex;
+  -webkit-flex-direction: row;
+  flex-direction: row;
+  -webkit-flex-wrap: nowrap;
+  flex-wrap: nowrap;
+  height: 100%;
+  justify-content: space-between; /* 아이콘과 텍스트 사이 공간 */
+  position: relative;
+  width: 100%;
+}
+
+.kakao-material-button .kakao-material-button-contents {
+  -webkit-flex-grow: 1;
+  flex-grow: 1;
+  font-family: 'Roboto', arial, sans-serif;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: top;
+  color: #3C1E1E; 
+}
+
+/* 호버 및 클릭 효과 */
+.kakao-material-button:not(:disabled):hover {
+  background-color: #E6CC00; /* 호버 시 약간 어두워지게 */
+  border-color: #E6CC00;
+  -webkit-box-shadow: 0 1px 2px 0 rgba(60, 64, 67, .30), 0 1px 3px 1px rgba(60, 64, 67, .15);
+  box-shadow: 0 1px 2px 0 rgba(60, 64, 67, .30), 0 1px 3px 1px rgba(60, 64, 67, .15);
+}
+
+
+.kakao-material-button:not(:disabled):active {
+  background-color: #D2BB00; /* 클릭 시 더 어두워지게 */
+  border-color: #D2BB00;
+}
+
+/* disabled 상태는 유사하게 적용 */
+.kakao-material-button:disabled {
+  cursor: default;
+  background-color: #FEE50061; /* 비활성화 시 투명도 추가 */
+  border-color: #FEE50030;
+}
+
+/* 카카오 버튼 state 효과  */
+.kakao-material-button .kakao-material-button-state {
+  -webkit-transition: opacity .218s;
+  transition: opacity .218s;
+  bottom: 0;
+  left: 0;
+  opacity: 0;
+  position: absolute;
+  right: 0;
+  top: 0;
+}
+
+.kakao-material-button:not(:disabled):active .kakao-material-button-state,
+.kakao-material-button:not(:disabled):focus .kakao-material-button-state {
+  background-color: #000; /* 활성화/포커스 시 배경색  */
+  opacity: 12%;
+}
+
+.kakao-material-button:not(:disabled):hover .kakao-material-button-state {
+  background-color: #000; /* 호버 시 배경색 */
+  opacity: 8%;
+}
+
+/* 네이버 소셜 로그인 버튼 스타일 */
+.naver-material-button {
+  -moz-user-select: none;
+  -webkit-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+
+  -webkit-appearance: none;
+  appearance: none;
+  background-color: #03c75a; /* 네이버 대표 색상 */
+  background-image: none;
+  border: 1px solid #03c75a; /* 테두리도 같은 색상 */
+  -webkit-border-radius: 4px;
+  border-radius: 4px;
+  -webkit-box-sizing: border-box;
+  box-sizing: border-box;
+  color: #fff; /* 글자색 흰색 */
+  cursor: pointer;
+  font-family: 'Roboto', arial, sans-serif; /* 폰트는 그대로 */
+  font-size: 14px;
+  height: 40px;
+  letter-spacing: 0.25px;
+  outline: none;
+  overflow: hidden;
+  padding: 0 12px; /* 좌우 패딩 */
+  position: relative;
+  text-align: center;
+  -webkit-transition: background-color .218s, border-color .218s, box-shadow .218s;
+  transition: background-color .218s, border-color .218s, box-shadow .218s;
+  vertical-align: middle;
+  white-space: nowrap;
+  width: auto; /* 내용에 따라 너비 조절 */
+  max-width: 400px;
+  min-width: min-content;
+
+  /* flex 속성을 추가해서 아이콘과 텍스트 정렬 */
+  display: flex;
+  justify-content: center; /* 가운데 정렬 */
+  align-items: center; /* 수직 가운데 정렬 */
+}
+
+.naver-material-button .naver-material-button-icon {
+  height: 20px;
+  margin-right: 8px; /* 아이콘과 텍스트 사이 간격 */
+  min-width: 20px;
+  width: 20px;
+  display: flex; /* 아이콘 자체도 flex로 정렬할 수 있도록 */
+  justify-content: center;
+  align-items: center;
+}
+
+.naver-material-button .naver-icon-image {
+  height: 100%; /* 부모 div에 맞게 이미지 크기 조절 */
+  width: 100%;
+  object-fit: contain; /* 이미지 비율 유지 */
+}
+
+
+.naver-material-button .naver-material-button-content-wrapper {
+  -webkit-align-items: center;
+  align-items: center;
+  display: flex;
+  -webkit-flex-direction: row;
+  flex-direction: row;
+  -webkit-flex-wrap: nowrap;
+  flex-wrap: nowrap;
+  height: 100%;
+  justify-content: space-between; /* 아이콘과 텍스트 사이 공간 */
+  position: relative;
+  width: 100%;
+}
+
+.naver-material-button .naver-material-button-contents {
+  -webkit-flex-grow: 1;
+  flex-grow: 1;
+  font-family: 'Roboto', arial, sans-serif; /* 폰트 유지 */
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: top;
+  color: #fff; /* 글자색 흰색 */
+}
+
+/* 호버 및 클릭 효과*/
+.naver-material-button:not(:disabled):hover {
+  background-color: #02b851; /* 호버 시 약간 어두워지게 */
+  -webkit-box-shadow: 0 1px 2px 0 rgba(60, 64, 67, .30), 0 1px 3px 1px rgba(60, 64, 67, .15);
+  box-shadow: 0 1px 2px 0 rgba(60, 64, 67, .30), 0 1px 3px 1px rgba(60, 64, 67, .15);
+}
+
+.naver-material-button:not(:disabled):active {
+  background-color: #01a346; /* 클릭 시 더 어두워지게 */
+}
+
+.naver-material-button:disabled {
+  cursor: default;
+  background-color: #03c75a61; /* 비활성화 시 투명도 추가 */
+  border-color: #03c75a30;
+}
+
+.naver-material-button:disabled .naver-material-button-contents,
+.naver-material-button:disabled .naver-material-button-icon {
+  opacity: 0.6; /* 아이콘 및 텍스트 투명도 조절 */
+}
+
+
+.naver-material-button .naver-material-button-state { 
+  -webkit-transition: opacity .218s;
+  transition: opacity .218s;
+  bottom: 0;
+  left: 0;
+  opacity: 0;
+  position: absolute;
+  right: 0;
+  top: 0;
+}
+
+.naver-material-button:not(:disabled):active .naver-material-button-state,
+.naver-material-button:not(:disabled):focus .naver-material-button-state {
+  background-color: #fff; /* 활성화/포커스 시 배경색 (네이버 로고 흰색 느낌) */
+  opacity: 12%; /* 투명도 */
+}
+
+.naver-material-button:not(:disabled):hover .naver-material-button-state {
+  background-color: #fff; /* 호버 시 배경색 */
+  opacity: 8%; /* 투명도 */
+>>>>>>> 074fb4eee4fd6a61ca1d38d14b583a1fe01e14b1
 }
 
 /* 구글 공식 버튼 스타일 */
 .gsi-material-button {
+<<<<<<< HEAD
   -moz-user-select: none;      /* Mozilla */
   -webkit-user-select: none;   /* Webkit 기반 브라우저 */
   -ms-user-select: none;       /* 구 IE/Edge */
@@ -406,6 +662,113 @@ html, body, #root {
     opacity: 8%;
 }
 
+=======
+  -moz-user-select: none;
+  -webkit-user-select: none;
+  -ms-user-select: none;
+  -webkit-appearance: none;
+  background-color: WHITE;
+  background-image: none;
+  border: 1px solid #747775;
+  -webkit-border-radius: 4px;
+  border-radius: 4px;
+  -webkit-box-sizing: border-box;
+  box-sizing: border-box;
+  color: #1f1f1f;
+  cursor: pointer;
+  font-family: 'Roboto', arial, sans-serif;
+  font-size: 14px;
+  height: 40px;
+  letter-spacing: 0.25px;
+  outline: none;
+  overflow: hidden;
+  padding: 0 12px;
+  position: relative;
+  text-align: center;
+  -webkit-transition: background-color .218s, border-color .218s, box-shadow .218s;
+  transition: background-color .218s, border-color .218s, box-shadow .218s;
+  vertical-align: middle;
+  white-space: nowrap;
+  width: auto;
+  max-width: 400px;
+  min-width: min-content;
+}
+
+.gsi-material-button .gsi-material-button-icon {
+  height: 20px;
+  margin-right: 12px;
+  min-width: 20px;
+  width: 20px;
+}
+
+.gsi-material-button .gsi-material-button-content-wrapper {
+  -webkit-align-items: center;
+  align-items: center;
+  display: flex;
+  -webkit-flex-direction: row;
+  flex-direction: row;
+  -webkit-flex-wrap: nowrap;
+  flex-wrap: nowrap;
+  height: 100%;
+  justify-content: space-between;
+  position: relative;
+  width: 100%;
+}
+
+.gsi-material-button .gsi-material-button-contents {
+  -webkit-flex-grow: 1;
+  flex-grow: 1;
+  font-family: 'Roboto', arial, sans-serif;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: top;
+}
+
+.gsi-material-button .gsi-material-button-state {
+  -webkit-transition: opacity .218s;
+  transition: opacity .218s;
+  bottom: 0;
+  left: 0;
+  opacity: 0;
+  position: absolute;
+  right: 0;
+  top: 0;
+}
+
+.gsi-material-button:disabled {
+  cursor: default;
+  background-color: #ffffff61;
+  border-color: #1f1f1f1f;
+}
+
+.gsi-material-button:disabled .gsi-material-button-contents {
+  opacity: 38%;
+}
+
+.gsi-material-button:disabled .gsi-material-button-icon {
+  opacity: 38%;
+}
+
+.gsi-material-button:not(:disabled):active .gsi-material-button-state, 
+.gsi-material-button:not(:disabled):focus .gsi-material-button-state {
+  background-color: #303030;
+  opacity: 12%;
+}
+
+.gsi-material-button:not(:disabled):hover {
+  -webkit-box-shadow: 0 1px 2px 0 rgba(60, 64, 67, .30), 0 1px 3px 1px rgba(60, 64, 67, .15);
+  box-shadow: 0 1px 2px 0 rgba(60, 64, 67, .30), 0 1px 3px 1px rgba(60, 64, 67, .15);
+}
+
+.gsi-material-button:not(:disabled):hover .gsi-material-button-state {
+  background-color: #303030;
+  opacity: 8%;
+}
+.google-icon-svg {
+  display: block;
+}
+>>>>>>> 074fb4eee4fd6a61ca1d38d14b583a1fe01e14b1
 
 /* 회원가입/로그인 링크 섹션 */
 .join-section {

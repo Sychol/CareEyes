@@ -1,0 +1,615 @@
+/* 기본 HTML, Body, Root 스타일 초기화 및 전체 화면 채우기 */
+html, body, #root {
+    margin: 0;
+    padding: 0;
+    height: 100%; /* HTML, body, #root가 전체 높이를 차지하도록 */
+    width: 100%; /* 너비도 100%로 확실히 지정 */
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background-color: #f0f2f5;
+
+    /* 브라우저 전체 스크롤바는 필요 없으므로 숨김 */
+    overflow: hidden; /* 모든 스크롤바를 숨김 */
+
+    /* 페이지 중앙 정렬을 위해 flex 사용 */
+    display: flex;
+    justify-content: center; /* 가로 중앙 정렬 */
+    align-items: center; /* 세로 중앙 정렬 */
+}
+
+/* 최상위 인증 페이지 컨테이너 (전체 화면 채움, 내부 스크롤 담당) */
+.auth-page-container {
+    display: flex;
+    flex-direction: column; /* 자식 요소를 세로로 쌓음 */
+    align-items: center; /* 컨테이너 내부의 자식 요소들을 가로 중앙으로 정렬 */
+    justify-content: flex-start; /* 자식 요소들을 상단부터 정렬 */
+
+    width: 100vw; /* 뷰포트 너비 100%로 설정 */
+    height: 100vh; /* 뷰포트 높이 100%로 고정 */
+    background-color: #f0f2f5; /* 배경색 유지 */
+    padding: 20px; /* 내부 여백 */
+    box-sizing: border-box; /* 패딩이 너비에 포함되도록 */
+
+    /* 컨테이너 내부 내용이 넘칠 경우 세로 스크롤바 생성 */
+    overflow-y: auto; /* 이 컨테이너에서만 스크롤이 발생하도록 함 */
+    overflow-x: hidden; /* 가로 스크롤바는 숨김 */
+}
+
+/* 로고 섹션 (폼 내부가 아닌 auth-page-container의 직접적인 자식으로 간주) */
+/* 로고는 항상 보이며 스크롤되지 않아야 하므로 flex-shrink: 0; */
+.logo-section {
+    width: 100%; /* 로고 섹션이 auth-page-container 너비 전체를 사용하도록 보장 */
+    text-align: center; /* 로고 섹션 텍스트 중앙 정렬 */
+    margin-bottom: 20px; /* 로고와 카드 사이의 간격 */
+    min-height: 80px; /* 로고 섹션의 최소 높이 지정 */
+    display: flex; /* flex로 설정하여 내부 로고 이미지를 중앙 정렬 */
+    justify-content: center; /* 가로 중앙 정렬 */
+    align-items: center; /* 세로 중앙 정렬 */
+    overflow: hidden; /* 로고 섹션 자체의 내용은 넘치지 않도록 숨김 */
+    flex-shrink: 0; /* 이 요소는 줄어들지 않고 항상 고정된 공간을 차지함 */
+}
+
+/* 로고 이미지에 직접 적용할 스타일 */
+.logo-section .logo {
+    max-width: 180px; /* 로고 이미지 크기 */
+    height: auto; /* 비율 유지를 위해 auto */
+    display: block; /* img 태그는 기본적으로 inline이므로 block으로 변경하여 margin: auto; 적용 */
+    margin: 0 auto; /* 로고 자체를 중앙 정렬 */
+    object-fit: contain; /* 이미지 비율을 유지하면서 주어진 공간에 맞춤 (잘림 방지) */
+}
+
+/* 회원가입 폼을 담는 메인 컨테이너 */
+/* 이 컨테이너는 남은 공간을 모두 차지하고 (flex-grow: 1), 이 안의 내용이 넘치면 auth-page-container의 스크롤이 동작함 */
+.register-container {
+    background-color: #fff;
+    padding: 40px;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    width: 100%; /* 부모 너비의 100%를 사용 */
+    max-width: 450px; /* 폼 컨테이너의 최대 너비 */
+    box-sizing: border-box; /* 패딩이 너비에 포함되도록 */
+    text-align: center; /* 컨테이너 내부의 모든 텍스트 기반 콘텐츠를 중앙 정렬 */
+    flex-grow: 1; /* 남은 수직 공간을 모두 차지함 */
+    display: flex; /* 내부 요소들을 flex로 정렬하기 위해 설정 */
+    flex-direction: column; /* 내부 요소들을 세로로 쌓음 */
+    justify-content: flex-start; /* 내부 요소들을 상단부터 정렬 */
+    align-items: center; /* 내부 요소들을 가로 중앙 정렬 */
+}
+
+/* 회원가입 폼 자체의 스타일 */
+.register-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px; /* 폼 필드 간의 간격 */
+    align-items: flex-start; /* 폼 내부 요소들을 가로 왼쪽으로 정렬 */
+    text-align: center; /* 폼 내부의 모든 텍스트 기반 콘텐츠를 중앙 정렬 */
+    width: 100%; /* 폼이 register-container의 너비에 맞게 */
+    flex-grow: 1; /* 폼도 남은 공간을 차지하도록 하여 내용이 많아도 유연하게 대응 */
+}
+
+/* 폼 제목 (회원가입) */
+.form-title {
+    text-align: center; /* 제목 중앙 정렬 */
+    color: #333;
+    margin-top: 0px; /* '회원가입' 제목 위쪽 마진 최소화 */
+    margin-bottom: 30px; /* '회원가입' 제목 아래쪽 마진 */
+    font-size: 26px;
+    font-weight: 700;
+    flex-shrink: 0; /* 제목도 줄어들지 않도록 */
+    align-self: center; /* 부모 영향 안받고 제목을 가로 중앙 정렬 */
+}
+
+/* 입력 필드 그룹 (기본: 라벨과 인풋이 세로로 쌓이도록) */
+.input-group {
+    position: relative;
+    margin-bottom: 10px; /* 입력 필드 사이 간격 */
+    width: 100%; /* 너비를 100%로 설정 */
+    display: flex;
+    flex-direction: column; /* 기본적으로는 세로 정렬 */
+    align-items: flex-start; /* 자식 요소들을 왼쪽 정렬 */
+}
+
+/* input-group 내부의 input-field에 마진 없애기 */
+.input-group .input-field {
+    margin-bottom: 0;
+}
+
+/* 입력 필드 기본 스타일 */
+.input-field {
+    width: calc(100% - 20px); /* 패딩(좌우 10px씩)을 고려한 너비 */
+    padding: 15px 10px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 16px;
+    background-color: #ffffff;
+    color: #000000; /* 인풋 필드에 적는 글자 색상을 검정색으로 설정 */
+    text-align: center; /* 입력 필드 내부 텍스트 중앙 정렬 */
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    box-sizing: border-box; /* 패딩이 너비에 포함되도록 */
+    display: block; /* input 요소를 블록 레벨로 설정하여 margin: auto 적용 가능하게 함 */
+    margin: 0 auto; /* input 필드 자체를 중앙 정렬 */
+}
+
+.input-field:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
+}
+
+/* 포커스 시 필드 스타일 (JS로 제어) */
+.input-field.focused-field {
+    border-color: #007bff;
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
+}
+
+/* 유효하지 않은 필드 스타일 (JS로 제어) */
+.input-field.invalid-field {
+    border-color: #dc3545;
+    box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.25);
+}
+
+.input-field::placeholder {
+    color: #9ca3af;
+    text-align: center; /* 플레이스홀더 텍스트도 중앙 정렬 */
+}
+
+/* 전화번호 섹션 전체를 감싸는 새로운 컨테이너 (레이블과 인풋을 나란히 정렬) */
+.phone-input-group {
+    display: flex;
+    flex-direction: row; /* 라벨과 입력 필드를 나란히 정렬 */
+    align-items: center; /* 세로 중앙 정렬 */
+    gap: 10px; /* 라벨과 입력 필드 사이 간격 */
+    margin-bottom: 10px; /* 다른 input-group과 동일한 하단 마진 */
+    width: 100%; /* 부모 너비의 100%를 사용 */
+    box-sizing: border-box; /* 패딩 포함 너비 계산 */
+}
+
+/* 전화번호 라벨 스타일 */
+.phone-label {
+    flex-shrink: 0; /* 라벨이 줄어들지 않도록 고정 */
+    width: 80px; /* 라벨의 고정 너비 지정. 필요에 따라 조절해줘. */
+    text-align: left; /* 라벨 텍스트는 왼쪽 정렬 */
+    font-size: 15px;
+    color: #333;
+    font-weight: bold;
+    margin-bottom: 0; /* 이제 같은 줄이므로 아래 마진 제거 */
+}
+
+/* 전화번호 입력 필드 관련 래퍼 */
+.phone-input-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    flex-grow: 1; /* 남은 공간을 모두 차지하도록 확장 */
+    justify-content: flex-start; /* 전화번호 입력 필드 그룹을 왼쪽 정렬 */
+    margin-top: 0; /* 이제 라벨과 같은 줄이므로 상단 마진 제거 */
+}
+
+.phone-part-select,
+.phone-part-input {
+  padding: 15px 10px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 16px;
+  box-sizing: border-box;
+}
+
+.phone-part-select {
+  flex-shrink: 0;
+  padding-right: 35px; /* 드롭다운 화살표 공간 유지 */
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23333' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 15px;
+}
+
+.phone-part-input {
+  flex-grow: 1;
+  text-align: center;
+  max-width: 80px; /* 적절한 최대 너비 설정 (4자리 기준) */
+}
+
+.phone-divider {
+  font-size: 16px;
+  color: #555;
+}
+
+/* input-label 스타일 (일반적인 경우) */
+.input-label {
+    display: block; /* 기본은 블록 레벨 요소로 */
+    text-align: left;
+    margin-bottom: 5px;
+    font-size: 15px;
+    color: #333;
+    font-weight: bold;
+}
+
+/* 포커스 시 스타일은 기존과 동일하게 유지 */
+.phone-part-select:focus,
+.phone-part-input:focus {
+  border-color: #007bff;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
+}
+
+/* 유효성 검사 피드백 메시지 컨테이너 스타일 */
+.feedback-message-container,
+.password-feedback-container {
+    margin-top: -5px; /* 입력 필드와의 간격 조절 */
+    margin-bottom: 10px;
+    width: 100%;
+    box-sizing: border-box;
+    text-align: center; /* 피드백 컨테이너 자체의 텍스트 중앙 정렬 */
+}
+
+.feedback-message-container p,
+.password-feedback-container p {
+    font-size: 13px;
+    margin: 2px 0; /* 줄 간격 조절 */
+    display: flex; /* 아이콘과 텍스트를 한 줄에 정렬 */
+    align-items: center; /* 세로 중앙 정렬 */
+    justify-content: center; /* 아이콘 + 텍스트 그룹 자체를 중앙 정렬 */
+    gap: 5px; /* 아이콘과 텍스트 사이 간격 */
+}
+
+.feedback-message-container .invalid,
+.password-feedback-container .invalid {
+    color: #dc3545; /* 빨간색 */
+}
+
+.feedback-message-container .valid,
+.password-feedback-container .valid {
+    color: #28a745; /* 초록색 */
+}
+
+.feedback-message-container .warning-text,
+.password-feedback-container .warning-text {
+    color: #ffc107; /* 주황색/노란색 */
+}
+
+.feedback-message-container i,
+.password-feedback-container i {
+    width: 15px; /* 아이콘 너비 고정 */
+    text-align: center;
+}
+
+.password-input-group {
+    position: relative;
+    width: 100%;
+}
+
+.password-input-group .input-field {
+    padding-right: 45px; /* 아이콘 공간 확보 */
+}
+
+.password-input-group .icon {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    color: #888;
+    font-size: 18px;
+}
+
+.password-input-group .icon:hover {
+    color: #333;
+}
+
+.form-group-radio {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start; /* 라디오 버튼 그룹도 왼쪽 정렬 */
+    margin-bottom: 15px;
+    font-size: 15px;
+    width: 100%;
+    box-sizing: border-box;
+    padding-left: 10px; /* input 필드와 시작점 맞추기 */
+    padding-right: 10px;
+}
+
+.form-group-radio .radio-label {
+    color: #555;
+    margin-right: 15px;
+    /* min-width: 60px; 필요 없으면 삭제 또는 주석 처리 */
+}
+
+.form-group-radio .radio-options {
+    display: flex;
+    gap: 20px;
+}
+
+.form-group-radio label {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+}
+
+.form-group-radio input[type="radio"] {
+    margin-right: 5px;
+    transform: scale(1.1); /* 라디오 버튼 크기 살짝 키움 */
+}
+
+/* 약관 동의 섹션 */
+.terms-agreement-section {
+    border: 1px solid #eee;
+    padding: 20px;
+    border-radius: 8px;
+    background-color: #f9f9f9;
+    margin-bottom: 20px; /* 버튼 위에 여백 */
+    width: 100%;
+    box-sizing: border-box;
+    text-align: left; /* 약관 섹션은 좌측 정렬 유지 (일반적인 약관 형태) */
+}
+
+.terms-agreement-section .checkbox-label {
+    display: flex;
+    align-items: center;
+    justify-content: space-between; /* 체크박스-텍스트-버튼 간격 균등 분배 */
+    width: 100%;
+    margin-bottom: 10px; /* 개별 약관 항목 간격 */
+}
+
+.terms-agreement-section .checkbox-label:last-of-type {
+    margin-bottom: 0;
+}
+
+.terms-agreement-section .checkbox-label .checkbox {
+    transform: scale(1.2); /* 체크박스 크기 키움 */
+    margin-right: 5px;
+    flex-shrink: 0; /* 체크박스가 줄어들지 않도록 */
+}
+
+.terms-agreement-section .checkbox-label .terms-text {
+    font-size: 15px;
+    color: #444;
+    flex-grow: 1; /* 텍스트가 남은 공간을 최대한 차지하도록 함 */
+    text-align: left; /* 약관 텍스트는 좌측 정렬 유지 */
+}
+
+.terms-agreement-section .checkbox-label .view-terms-button {
+    background: none;
+    border: 1px solid #ccc;
+    padding: 5px 12px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 13px;
+    color: #666;
+    transition: background-color 0.2s;
+    flex-shrink: 0; /* 버튼이 줄어들지 않도록 함 */
+    margin-left: auto; /* 텍스트와 버튼 사이에 가능한 한 많은 공간을 만듦 */
+}
+
+.terms-agreement-section .checkbox-label .view-terms-button:hover {
+    background-color: #e0e0e0;
+}
+
+.terms-agreement-section .terms-divider {
+    border: 0;
+    border-top: 1px dashed #ddd;
+    margin: 15px 0;
+}
+
+.terms-agreement-section .all-agree-checkbox .terms-text {
+    font-weight: bold;
+}
+
+.error-message {
+    color: #dc3545;
+    text-align: center; /* 에러 메시지 중앙 정렬 */
+    margin-top: 10px;
+    margin-bottom: 10px;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.success-message {
+    color: #28a745;
+    text-align: center; /* 성공 메시지 중앙 정렬 */
+    margin-top: 10px;
+    margin-bottom: 10px;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.register-button {
+    width: 100%;
+    padding: 15px;
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.register-button:hover:not(:disabled) {
+    background-color: #0056b3;
+}
+
+.register-button:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+}
+
+.login-section {
+    width: fit-content; /* 내용물 너비에 맞게 설정 (혹은 적절한 px, % 값) */
+    margin: 20px auto 0 auto; /* 상단 마진 20px, 좌우 마진 auto로 중앙 정렬, 하단 마진 0 */
+    font-size: 15px;
+    color: #555;
+    /* text-align: center; 는 이 경우엔 그대로 두어도 좋고, 삭제해도 무방함.
+       width: fit-content가 적용되면 이미 내용물 너비만큼 줄어들기 때문이야. */
+}
+
+.login-section .login-link {
+    color: #007bff;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.login-section .login-link:hover {
+    text-decoration: underline;
+}
+
+/* Modal specific styles */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background: #fff;
+    padding: 30px;
+    border-radius: 10px;
+    width: 90%;
+    max-width: 600px;
+    max-height: 80vh; /* 모달 내용이 너무 길 때 스크롤 가능하게 */
+    overflow-y: auto;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 15px;
+}
+
+.modal-title {
+    font-size: 24px;
+    font-weight: bold;
+    color: #333;
+    margin: 0;
+}
+
+.close-button {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: #888;
+}
+
+.close-button:hover {
+    color: #333;
+}
+
+.modal-body {
+    flex-grow: 1; /* 내용이 가능한 공간을 다 차지하도록 */
+    overflow-y: auto; /* 내용이 길면 스크롤 가능하게 */
+    padding-right: 10px; /* 스크롤바 때문에 내용이 가려지지 않도록 패딩 추가 */
+    line-height: 1.6;
+    color: #555;
+    white-space: pre-wrap; /* 약관 내용의 줄바꿈 유지 */
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: flex-end; /* 버튼을 오른쪽으로 정렬 */
+    gap: 10px;
+    margin-top: 20px;
+    border-top: 1px solid #eee;
+    padding-top: 15px;
+}
+
+.modal-button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 600;
+    transition: background-color 0.2s;
+}
+
+.modal-agree-button {
+    background-color: #007bff;
+    color: #fff;
+}
+
+.modal-agree-button:hover {
+    background-color: #0056b3;
+}
+
+.modal-disagree-button {
+    background-color: #f0f0f0;
+    color: #333;
+}
+
+.modal-disagree-button:hover {
+    background-color: #e0e0e0;
+}
+
+/* 반응형 디자인 */
+@media (max-width: 768px) {
+    .register-container {
+        padding: 25px;
+        margin: 20px auto; /* 모바일에서 상하 마진 조정 */
+    }
+
+    /* auth-page-container의 패딩을 모바일에서 줄여 공간 확보 */
+    .auth-page-container {
+        padding: 10px;
+    }
+
+    .form-title {
+        font-size: 22px;
+        margin-bottom: 25px;
+    }
+
+    .input-field {
+        padding: 12px 10px;
+        font-size: 15px;
+    }
+
+    .register-button {
+        padding: 12px;
+        font-size: 16px;
+    }
+
+    .form-group-radio {
+        flex-direction: column;
+        align-items: flex-start;
+        padding-left: 0;
+        padding-right: 0;
+    }
+
+    .form-group-radio .radio-label {
+        margin-bottom: 10px;
+        margin-right: 0;
+    }
+
+    .form-group-radio .radio-options {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .terms-agreement-section .checkbox-label {
+        flex-direction: column;
+        align-items: flex-start; /* 왼쪽 정렬 */
+        gap: 5px;
+        width: 100%;
+    }
+
+    .terms-agreement-section .checkbox-label .view-terms-button {
+        margin-left: 0;
+        width: 100%;
+    }
+}

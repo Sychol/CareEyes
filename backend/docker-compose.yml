@@ -1,0 +1,7 @@
+services:
+  backend:
+    image: sychol/careeyes-backend:latest
+    container_name: careeyes-backend
+    ports:
+      - "8090:8090"
+    restart: always

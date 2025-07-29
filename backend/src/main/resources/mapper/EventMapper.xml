@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.careeyes.mapper.EventMapper">
+
+	<resultMap id="eventResultMap" type="com.careeyes.entity.DetectEvent">
+	    <id     property="eventId"       column="EVENT_ID"/>
+	    <result property="eventDate"	 column="EVENT_DATE"/>
+	    <result property="eventTime"     column="EVENT_TIME"/>
+	    <result property="imgPath"       column="IMG_PATH"/>
+	    <result property="manage"        column="MANAGE"/>
+	    <result property="location"  	 column="LOCATION"/>
+	    <result property="itemType"      column="ITEM_TYPE"/>
+	    <result property="itemCount"     column="ITEM_COUNT"/>
+	</resultMap>
+
+	<!-- 알림 내역 리스트 -->
+    <select id="getEventList" resultMap="eventResultMap">
+        SELECT E.EVENT_ID, E.EVENT_TIME, E.EVENT_DATE, E.IMG_PATH,  E.MANAGE,
+               C.LOCATION AS LOCATION,
+               D.ITEM_TYPE, D.ITEM_COUNT
+        FROM DETECT_EVENT E
+        JOIN CCTV C ON E.CCTV_ID = C.CCTV_ID
+        JOIN DETECT_ITEM D ON E.EVENT_ID = D.EVENT_ID
+    </select>
+
+	<!-- 알림 내역 리스트 (필터,,, 수정 안 했음 (resultmap))-->
+    <select id="getFilteredEvent" resultType="com.careeyes.entity.DetectEvent">
+        SELECT E.EVENT_ID, E.EVENT_TIME, E.IMG_PATH, E.MANAGE,
+               C.LOCATION AS CCTV_LOCATION,
+               D.TYPE, D.COUNT
+        FROM DETECT_EVENT E
+        JOIN CCTV C ON E.CCTV_ID = C.CCTV_ID
+        JOIN DETECT_ITEM D ON E.EVENT_ID = D.EVENT_ID
+        WHERE (#{type} IS NULL OR D.TYPE = #{type})			  <!-- <, > 기호 엔티티 문자로 변환 -->
+          AND (#{from} IS NULL OR E.EVENT_TIME &gt;= #{from}) <!-- E.EVENT_TIME >= #{from} -->
+          AND (#{to} IS NULL OR E.EVENT_DATE &lt;= #{to})	  <!-- E.EVENT_DATE <= #{to} -->
+          AND (#{manage} IS NULL OR E.MANAGE = #{manage})
+        ORDER BY E.EVENT_TIME DESC
+    </select>
+
+</mapper>

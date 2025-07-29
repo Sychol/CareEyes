@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.careeyes.mapper.MemberMapper">
+
+	<resultMap id="memberResultMap" type="com.careeyes.entity.Members">
+	    <id     property="memberId"     column="MEMBER_ID"/>
+	    <result property="memberPw"     column="MEMBER_PW"/>
+	    <result property="memberName"   column="MEMBER_NAME"/>
+	    <result property="email"        column="EMAIL"/>
+	    <result property="phone"        column="PHONE"/>
+	    <result property="memberRole"   column="MEMBER_ROLE"/>
+	    <result property="company"      column="COMPANY"/>
+	    <result property="department"   column="DEPARTMENT"/>
+	    <result property="kakaoId"      column="KAKAO_ID"/>
+	    <result property="alertState"   column="ALERT_STATE"/>
+	</resultMap>
+	
+	<!-- 회원가입 -->
+	<insert id='signIn' parameterType="Members">
+		INSERT INTO MEMBERS (
+			MEMBER_ID, MEMBER_PW, MEMBER_NAME, EMAIL, PHONE,
+			MEMBER_ROLE, COMPANY, DEPARTMENT
+		) VALUES (
+			#{memberId}, #{memberPw}, #{memberName}, #{email}, #{phone},
+			#{memberRole}, #{company}, #{department}
+		)
+	</insert>
+	
+	<!-- 중복검사 -->
+	<select id="duplicate" resultType="int" parameterType="Members">
+		SELECT *
+		FROM MEMBERS
+		WHERE MEMBER_ID = #{memberId}
+		   OR EMAIL = #{email}
+		   OR PHONE = #{phone}
+	</select>
+	
+	<!-- 로그인용 회원 조회 -->
+	<select id="findById" parameterType="String" resultType="Members">
+		SELECT *
+		FROM MEMBERS
+		WHERE MEMBER_ID = #{memberId}
+	</select>
+	
+	<!-- 소셜 로그인(카카오) -->
+	<select id="findByKakaoId" resultType="Members">
+		SELECT *
+		FROM MEMBERS
+		WHERE KAKAO_ID = #{kakaoId}
+	</select>
+	
+	<!-- 기존 계정과 카카오 계정 연동 -->
+	<update id="updateKakaoId">
+		UPDATE MEMBERS SET KAKAO_ID = #{kakaoId}
+		WHERE MEMBER_ID = #{memberId}
+	</update>
+	
+	<!-- 작업자 리스트 -->
+	<select id="getWorkerList" resultMap="memberResultMap">
+		SELECT MEMBER_NAME, COMPANY, DEPARTMENT, ALERT_STATE, MEMBER_ROLE
+		FROM MEMBERS
+		WHERE MEMBER_ROLE = 'WORKER'
+	</select>
+
+	<!-- 작업자 리스트 (필터... 인데...) -->
+	<select id="getFilteredWorker" resultType="Members">
+		SELECT MEMBER_NAME, COMPANY, DEPARTMENT, ALERT_STATE
+		FROM MEMBERS
+		WHERE MEMBER_ROLE = 'WORKER'
+		  AND (#{department} IS NULL OR DEPARTMENT = #{department})
+		  AND (#{company} IS NULL OR COMPANY = #{company})
+		  AND (#{alertState} IS NULL OR ALERT_STATE = #{alertState})
+	</select>
+	
+	
+	
+	
+</mapper>

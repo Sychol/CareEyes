@@ -1,0 +1,171 @@
+/* src/components/TermsModal.css */
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7); /* 반투명 검은색 배경 */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000; /* 다른 요소들 위에 오버레이되도록 높은 z-index */
+}
+
+.modal-content {
+  background-color: #fff;
+  padding: 30px; /* 패딩을 약간 늘려 여백 확보 */
+  border-radius: 8px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  width: 90%; /* 모바일에서 보기 좋게 너비 조정 */
+  max-width: 600px; /* 데스크톱에서 너무 커지지 않도록 최대 너비 설정 */
+  max-height: 80vh; /* 화면 높이의 80%를 넘지 않도록 */
+  display: flex;
+  flex-direction: column;
+  overflow: hidden; /* 자식 요소의 스크롤을 위해 */
+}
+
+.modal-header {
+  display: flex;
+  justify-content: center; /* 약관 이름(제목)을 중앙 정렬 */
+  align-items: center;
+  margin-bottom: 20px; /* 제목과 내용 사이 간격 늘림 */
+  padding-bottom: 15px; /* 하단 패딩 늘려 경계선과 간격 확보 */
+  border-bottom: 1px solid #eee;
+  position: relative; /* 닫기 버튼 absolute 위치 지정을 위해 */
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-size: 1.6em; /* 폰트 크기 약간 키움 */
+  color: #333;
+  font-weight: bold; /* 제목을 더 굵게 */
+  text-align: center; /* 혹시 모를 텍스트 정렬 */
+  flex-grow: 1; /* 제목이 가능한 공간을 차지하도록 */
+}
+
+.modal-close-button {
+  background: none;
+  border: none;
+  font-size: 1.8em; /* 닫기 버튼 크기 키움 */
+  cursor: pointer;
+  color: #666;
+  padding: 5px;
+  position: absolute; /* 절대 위치로 오른쪽 상단에 배치 */
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  line-height: 1; /* 아이콘이 중앙에 오도록 라인 높이 조절 */
+}
+
+.modal-close-button:hover {
+  color: #333;
+}
+
+.modal-body {
+  flex-grow: 1; /* 남은 공간을 채우도록 설정 */
+  overflow-y: auto; /* 내용이 길면 스크롤 가능하게 */
+  margin-bottom: 25px; /* 본문과 푸터 사이 간격 늘림 */
+  /* 스크롤바 디자인을 위해 웹킷 스크롤바 스타일 추가 (선택 사항) */
+  /*
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+  &::-webkit-scrollbar-thumb {
+    background-color: #ccc;
+    border-radius: 4px;
+  }
+  &::-webkit-scrollbar-track {
+    background-color: #f0f0f0;
+  }
+  */
+}
+
+.modal-body pre {
+  white-space: pre-wrap; /* 줄 바꿈 유지 */
+  word-wrap: break-word; /* 긴 단어 강제 줄 바꿈 */
+  font-family: 'Malgun Gothic', 'Apple SD Gothic Neo', 'Nanum Gothic', sans-serif; /* 폰트 설정 다양화 */
+  font-size: 0.9em; /* 폰트 크기 약간 줄여서 약관 내용처럼 보이게 */
+  line-height: 1.7; /* 줄 간격 약간 늘려 가독성 높임 */
+  color: #444; /* 텍스트 색상을 조금 더 진하게 */
+  background-color: #fcfcfc; /* 배경색을 아주 살짝 밝게 */
+  padding: 20px; /* 내부 패딩 늘림 */
+  border-radius: 6px;
+  border: 1px solid #e0e0e0; /* 테두리 색상 약간 진하게 */
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: center;
+  gap: 20px; /* 버튼 사이 간격 늘림 */
+  padding-top: 20px; /* 푸터 상단 패딩 늘림 */
+  border-top: 1px solid #eee;
+}
+
+.modal-footer button {
+  padding: 12px 30px; /* 버튼 패딩 늘림 */
+  font-size: 1.05em; /* 폰트 크기 약간 키움 */
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.1s ease; /* 호버 시 효과 추가 */
+}
+
+.modal-footer button:active {
+  transform: scale(0.98); /* 클릭 시 살짝 줄어드는 효과 */
+}
+
+.agree-button {
+  background-color: #007bff; /* 파란색 계열로 변경 */
+  color: white;
+}
+
+.agree-button:hover {
+  background-color: #0056b3;
+}
+
+.disagree-button {
+  background-color: #6c757d; /* 회색 계열로 변경 */
+  color: white;
+}
+
+.disagree-button:hover {
+  background-color: #5a6268;
+}
+
+/* 모바일 화면 최적화 */
+@media (max-width: 768px) {
+  .modal-content {
+    width: 95%;
+    margin: 10px; /* 화면 가장자리에 너무 붙지 않게 */
+    padding: 20px; /* 모바일 패딩 조정 */
+  }
+  .modal-header {
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+  }
+  .modal-header h2 {
+    font-size: 1.4em;
+  }
+  .modal-close-button {
+    font-size: 1.5em;
+  }
+  .modal-body {
+    margin-bottom: 15px;
+  }
+  .modal-body pre {
+    padding: 15px;
+    font-size: 0.85em;
+  }
+  .modal-footer {
+    flex-direction: column; /* 모바일에서 버튼을 세로로 정렬 */
+    gap: 10px; /* 모바일 버튼 간격 조절 */
+    padding-top: 15px;
+  }
+  .modal-footer button {
+    width: 100%; /* 버튼 너비 100% */
+    padding: 10px 20px;
+    font-size: 0.95em;
+  }
+}
