@@ -154,7 +154,7 @@ export default function AlertHistory() {
         <AlertFilterPanel
           currentFilters={filters}
           onApply={(newFilters) => {
-            setFilters(newFilters);
+            setFilters(newFilters); 
             setShowFilter(false);
           }}
           onClose={() => setShowFilter(false)}
