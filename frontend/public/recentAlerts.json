@@ -1,0 +1,4 @@
+[
+  { "name": "한정환", "role": "관제센터", "dept": "항공관리", "status": "normal" },
+  { "name": "서종욱", "role": "관제", "dept": "항공관리", "status": "alert" }
+]

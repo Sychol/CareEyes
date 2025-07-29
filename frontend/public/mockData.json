@@ -1,0 +1,30 @@
+{
+  "list": [
+    {
+      "id": "유튜브 CCTV 1",
+      "location": "활주로 동 1 - CCTV 1",
+      "lastDetection": "2025-07-01 08:36",
+      "detectedObject": "차량",
+      "manage": "미처리"
+    },
+    {
+      "id": "유튜브 CCTV 2",
+      "location": "활주로 서 1 - CCTV 1",
+      "lastDetection": "2025-07-01 08:45",
+      "detectedObject": "사람",
+      "manage": "처리됨"
+    }
+  ],
+  "feeds": [
+    {
+      "title": "유튜브 CCTV 1",
+      "subtitle": "실시간 유튜브 스트리밍",
+      "youtubeUrl": "https://www.youtube.com/watch?v=46byb-Qi3pI"
+    },
+    {
+      "title": "유튜브 CCTV 2",
+      "subtitle": "사람 탐지 스트리밍",
+      "youtubeUrl": "https://www.youtube.com/watch?v=MjD3gnNFYUo"
+    }
+  ]
+}

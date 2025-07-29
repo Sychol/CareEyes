@@ -1,0 +1,6 @@
+[
+  { "id": 1, "top": "45%", "left": "12%", "detected": false },
+  { "id": 2, "top": "35%", "left": "42%", "detected": true },
+  { "id": 3, "top": "50%", "left": "68%", "detected": false },
+  { "id": 4, "top": "40%", "left": "82%", "detected": false }
+]
