@@ -13,11 +13,11 @@ import os
 
 app = Flask(__name__)
 
-CONF_THRESHOLD = 0.5 # 신뢰도 임계값
-SPRING_PROXY = "http://localhost:8090/ai" # Spring 서버 프록시 URL
+CONF_THRESHOLD = 0.2 # 신뢰도 임계값
+SPRING_PROXY = "http://localhost:8090/api/ai" # Spring 서버 프록시 URL
 FPS = 30 # youtube_url의 FPS
 DELAY = 1 # 프레임 간 딜레이 (초 단위)
-SAVE_CLASSES = {"airplane","person", "car", "truck", "bus", "bird", "mammal"} # 저장할 클래스
+SAVE_CLASSES = {"airplane", "person", "vehicle", "bird", "mammal"} # 저장할 클래스
 # 설정값
 NCLOUD_ACCESS_KEY = '발급받은 Access Key'
 NCLOUD_SECRET_KEY = '발급받은 Secret Key'
@@ -27,7 +27,7 @@ ENDPOINT = 'https://kr.object.ncloudstorage.com'
 stream_caps = {}  # key: youtube_url, value: VideoCapture 객체
 
 # 💡 YOLO 모델 로드
-model = YOLO("./model/YOLOv11_base/yolo11l.pt")
+model = YOLO("./model/CEv11n_n20k_sz960_e100.pt")
 model.to("cuda" if torch.cuda.is_available() else "cpu")
 
 # 💡 동적 스트림 URL 관리
