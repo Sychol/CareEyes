@@ -1,6 +1,7 @@
 import React, { useState, useEffect, FormEvent } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
+
 // CSS 파일 임포트
 import '../styles/Login.css';
 // 유효성 검사 함수 임포트
@@ -10,6 +11,7 @@ import CareEyesLogo from '../assets/logo/CareEyes_title Logo_nobg.png';
 import KakaoIconImage from '../assets/profile/KakaoLogo.png';
 import NaverIconImage from '../assets/profile/NaverLogo.png';
 
+// 외부 소셜 로그인 버튼 컴포넌트는 더 이상 임포트하지 않음.
 
 /**
  * @function Login
@@ -24,17 +26,21 @@ const Login = () => {
 
   const [memberIdError, setMemberIdError] = useState('');
   const [memberPwError, setMemberPwError] = useState('');
-  const [kakaoLoginUrl, setKakaoLoginUrl] = useState('');
+  const [kakaoLoginUrl, setKakaoLoginUrl] = useState<string | null>(null); // null 가능성 추가
+
   const navigate = useNavigate();
 
   // 카카오 로그인 URL 불러오기
   useEffect(() => {
     axios.get('/oauth/kakao/url')
       .then(res => {
-        console.log('카카오 로그인 URL:', kakaoLoginUrl);
+        console.log('카카오 로그인 URL:', res.data);
         setKakaoLoginUrl(res.data);
       })
-      .catch(err => console.error('Kakao URL 불러오기 실패:', err));
+      .catch(err => {
+        console.error('Kakao URL 불러오기 실패:', err);
+        setKakaoLoginUrl(null); // 에러 발생 시 null로 설정
+      });
   }, []);
 
   /**
@@ -66,14 +72,14 @@ const Login = () => {
     setMemberPwError(newMemberPwError);
 
     if (!isValid) {
-      return;
+      return; 
     }
 
     console.log('Login attempt:', { memberId, memberPw, rememberMe });
 
-    // 로그인 API 호출 (백엔드로 아이디와 비밀번호를 전송)
+        // 로그인 API 호출 (백엔드로 아이디와 비밀번호를 전송)
     try {
-      const response = await axios.post('/api/login', { memberId, memberPw });
+      const response = await axios.post('/api/member/login', { memberId, memberPw }, {withCredentials: true});
       console.log('Login successful:', response.data);
 
       // DOM 조작 대신 메시지 상태를 업데이트하는 방식으로 변경
@@ -162,6 +168,7 @@ const Login = () => {
           <div className="social-section">
             <p>또는 소셜 계정으로 로그인</p>
             <div className="social-icons">
+              {/* 카카오 로그인 버튼 (인라인 구현) */}
               <button
                 onClick={() => {
                   if (kakaoLoginUrl) {
@@ -179,34 +186,38 @@ const Login = () => {
                   <div className="kakao-material-button-icon">
                     <img src={KakaoIconImage} alt="카카오 로그인" className="kakao-icon-image" />
                   </div>
-                  <span className="kakao-material-button-contents">Kakao 로그인</span>
+                  {/* 텍스트 제거 */}
                 </div>
               </button>
+              
+              {/* 네이버 로그인 버튼 (인라인 구현) */}
               <button
-                onClick={() => window.open('https://www.naver.com', '_blank')}
+                onClick={() => window.open('https://www.naver.com', '_blank')} // 임시 URL
                 className="naver-material-button"
                 type="button"
+                aria-label="네이버 로그인"
               >
                 <div className="naver-material-button-content-wrapper">
                   <div className="naver-material-button-icon">
                     <img src={NaverIconImage} alt="네이버 로그인" className="naver-icon-image" />
                   </div>
-                  <span className="naver-material-button-contents">Naver 로그인</span>
+                  {/* 텍스트 제거 */}
                 </div>
               </button>
-              <button className="gsi-material-button">
+
+              {/* 구글 로그인 버튼 (인라인 구현) */}
+              <button 
+                onClick={() => window.open('https://accounts.google.com/o/oauth2/v2/auth?client_id=YOUR_CLIENT_ID&redirect_uri=YOUR_REDIRECT_URI&response_type=code&scope=email%20profile', '_blank')} // 임시 URL
+                className="gsi-material-button"
+                type="button"
+                aria-label="구글 로그인"
+              >
                 <div className="gsi-material-button-state"></div>
                 <div className="gsi-material-button-content-wrapper">
                   <div className="gsi-material-button-icon">
-                    <svg version="1.1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" xmlnsXlink="http://www.w3.org/1999/xlink" className="google-icon-svg">
-                      <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"></path>
-                      <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"></path>
-                      <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"></path>
-                      <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"></path>
-                      <path fill="none" d="M0 0h48v48H0z"></path>
-                    </svg>
+                    <GoogleIcon /> {/* GoogleIcon 컴포넌트 사용 */}
                   </div>
-                  <span className="gsi-material-button-contents">Google 로그인</span>
+                  {/* 텍스트 제거 */}
                 </div>
               </button>
             </div>
@@ -216,7 +227,7 @@ const Login = () => {
           <div className="join-section">
             <p className="join-text">
               아직 회원이 아니신가요?{' '}
-              <Link to="/join" className="join-link">
+              <Link to="/Test_register" className="join-link">
                 회원가입
               </Link>
             </p>
