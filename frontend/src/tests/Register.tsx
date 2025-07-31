@@ -310,6 +310,30 @@ function Register() {
     setIDValidation(validationResult);
   }, [formData.memberId]);
 
+  // ID 중복검사
+useEffect(() => {
+  const checkDuplicateId = async () => {
+    try {
+      const res = await axios.post('/api/member/duplicate', {
+        memberId: formData.memberId,
+        email: '',
+        phone: ''
+      });
+      if (res.data > 0) {
+        setIDValidation(prev => ({
+          ...prev,
+          isIDValid: false,
+          message: '이미 사용 중인 아이디입니다.',
+        }));
+      }
+    } catch (err) {
+      console.error('중복 검사 실패:', err);
+    }
+  };
+
+  if (formData.memberId.length >= 6) checkDuplicateId();
+}, [formData.memberId]);
+
   // 비밀번호 유효성 검사
   useEffect(() => {
     const validationResult = validatePWPolicy(formData.memberPw);
@@ -738,7 +762,7 @@ function Register() {
           <div className="login-section">
             <p className="login-text">
               이미 계정이 있으신가요?{' '}
-              <Link to="/Test_login" className="login-link">
+              <Link to="/Login" className="login-link">
                 로그인
               </Link>
             </p>

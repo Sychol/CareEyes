@@ -1,5 +1,7 @@
 package com.careeyes.config;
 
+import java.util.List;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -17,6 +19,12 @@ import jakarta.servlet.DispatcherType;
 @Configuration // autoScan해서 Spring Container에 적재 필요
 @EnableWebSecurity // 해당 클래스 파일이 webSecurity 설정 파일이 될 수 있도록 추가
 public class SecurityConfig {
+
+//    private final PasswordEncoder passwordEncoder;
+//
+//    SecurityConfig(PasswordEncoder passwordEncoder) {
+//        this.passwordEncoder = passwordEncoder;
+//    }
 	// 커스터마이징할 필터(거름망) 제작 -> 코드를 체인 형태로 작성(연결 -> 연결)
 	
 	// Bean 어노테이션을 사용해서 Spring Container에 클래스로 등록
@@ -27,7 +35,7 @@ public class SecurityConfig {
 	public CorsConfigurationSource corsConfigurationSource() {
 	    CorsConfiguration config = new CorsConfiguration();
 	    config.setAllowCredentials(true); // 쿠키, 세션 등 인증정보 포함 허용 시 true
-	    config.addAllowedOriginPattern("*"); // 또는 "http://localhost:5173"
+	    config.setAllowedOriginPatterns(List.of("http://localhost:5173")); // 또는 "*"
 	    config.addAllowedHeader("*"); // 어떤 HTTP 헤더를 허용할지(Authorization, Content-Type 등)
 	    config.addAllowedMethod("*"); // 어떤 Method를 허용할지(GET, POST, PUT, DELETE, OPTIONS 등)
 
@@ -58,6 +66,7 @@ public class SecurityConfig {
 		// ✅ CORS 활성화 + custom 설정 적용
 		http.cors(cors -> cors.configurationSource(corsConfigurationSource()))
 			.csrf(AbstractHttpConfigurer :: disable)
+			.formLogin(AbstractHttpConfigurer::disable)
 			.authorizeHttpRequests((request)
 					// 람다식 기술(권한에 대한 설정 진행 메서드)
 					// 포워드 방식으로 이동한 요청 허용
@@ -72,18 +81,18 @@ public class SecurityConfig {
 					.requestMatchers("/admin").hasRole("관리자")
 					.requestMatchers("/user").hasRole("사용자")
 					//어떤 요청이 들어와도 인증 받도록 함
-					.anyRequest().authenticated())
+					.anyRequest().authenticated());
 			
 			// 아래의 코드를 작성하면 Spring에서 제작한 필터가 나오지 않고,
 			// loginPage("URL")로 요청한 페이지가 나옴(id는 user, pw는 콘솔의 security password로 로그인)
-			.formLogin((logininfo) -> logininfo.loginPage("/login")
-					// 사용자가 로그인을 안 한 상태 -> "/"주소의 html 보여줌
-					// 로그인 폼에서 로그인 버튼 클릭하면 아래의 "/login-process"로 요청
-					.loginProcessingUrl("/login-process")
-					.usernameParameter("userid")
-					.passwordParameter("userpw")
-					.defaultSuccessUrl("/main")
-					.permitAll());
+//			.formLogin((logininfo) -> logininfo.loginPage("/login"));
+//					// 사용자가 로그인을 안 한 상태 -> "/"주소의 html 보여줌
+//					// 로그인 폼에서 로그인 버튼 클릭하면 아래의 "/login-process"로 요청
+//					.loginProcessingUrl("/login-process")
+//					.usernameParameter("userid")
+//					.passwordParameter("userpw")
+//					.defaultSuccessUrl("/main")
+//					.permitAll());
 		
 		/* 권한을 설정할 때, 사용 가능한 메서드
 		 * 1) permitAll() : 모든 접근 허용

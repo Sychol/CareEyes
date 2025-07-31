@@ -22,6 +22,13 @@
         JOIN CCTV C ON E.CCTV_ID = C.CCTV_ID
         JOIN DETECT_ITEM D ON E.EVENT_ID = D.EVENT_ID
     </select>
+    
+    <!-- 이상물체 작업 상태 변경 -->
+    <update id="updateManageState">
+	    UPDATE DETECT_EVENT
+	    SET MANAGE = #{manage}
+	    WHERE EVENT_ID = #{eventId}
+	</update>
 
 	<!-- 알림 내역 리스트 (필터,,, 수정 안 했음 (resultmap))-->
     <select id="getFilteredEvent" resultType="com.careeyes.entity.DetectEvent">

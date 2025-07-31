@@ -25,14 +25,15 @@ public class MemberController {
 	private MemberMapper memberMapper;
 	
 	// 회원가입
-	@PostMapping("/register")
-	public String register(@RequestBody Members member) {
-		if (memberMapper.duplicate(member) > 0) {
-			return "중복된 ID, 이메일 또는 전화번호입니다";
-		}
-		
-		memberMapper.signIn(member);
-		return "회원가입 성공";
+	@PostMapping("/signup")
+	public ResponseEntity<?> signup(@RequestBody Members member) {
+	    if (memberMapper.duplicate(member) > 0) {
+	        return ResponseEntity.status(HttpStatus.CONFLICT)
+	            .body(Map.of("success", false, "message", "중복된 ID, 이메일 또는 전화번호입니다."));
+	    }
+
+	    memberMapper.signIn(member);
+	    return ResponseEntity.ok(Map.of("success", true));
 	}
 	
 	// 로그인
@@ -49,10 +50,40 @@ public class MemberController {
 		} // 에러 메시지 + 401 보내기
 		return ResponseEntity.ok(Map.of(
 				"memberId", member.getMemberId(),
-				"memberRole", member.getMemberRole()
+				"memberRole", member.getMemberRole(),
+				"memberName", member.getMemberName()
 				));
 		// 로그인 성공하면 id / role 전달
 	}
+	
+//	@PostMapping("/login")
+//	public ResponseEntity<?> login(@RequestBody Map<String, String> request){
+//	    String memberId = request.get("memberId");
+//	    String memberPw = request.get("memberPw");
+//
+//	    Members member = memberMapper.findById(memberId);
+//
+//	    if (member == null) {
+//	        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+//	                .body(Map.of("message", "존재하지 않는 아이디입니다."));
+//	    }
+//
+//	    if (!member.getMemberPw().equals(memberPw)) {
+//	        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+//	                .body(Map.of("message", "비밀번호가 일치하지 않습니다."));
+//	    }
+//
+//	    return ResponseEntity.ok(Map.of(
+//	            "memberId", member.getMemberId(),
+//	            "memberRole", member.getMemberRole()
+//	    ));
+//	}
+	
+	// 중복검사
+	@PostMapping("/duplicate")
+    public int checkDuplicate(@RequestBody Members member) {
+        return memberMapper.duplicate(member); // 0이면 중복 없음, 1 이상이면 중복
+    }
 	
 	// 로그아웃
 	@PostMapping("/logout")

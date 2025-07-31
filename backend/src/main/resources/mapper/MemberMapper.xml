@@ -19,16 +19,16 @@
 	<insert id='signIn' parameterType="Members">
 		INSERT INTO MEMBERS (
 			MEMBER_ID, MEMBER_PW, MEMBER_NAME, EMAIL, PHONE,
-			MEMBER_ROLE, COMPANY, DEPARTMENT
+			MEMBER_ROLE, COMPANY, DEPARTMENT, ALERT_STATE
 		) VALUES (
 			#{memberId}, #{memberPw}, #{memberName}, #{email}, #{phone},
-			#{memberRole}, #{company}, #{department}
+			#{memberRole}, #{company}, #{department}, 1
 		)
 	</insert>
 	
 	<!-- 중복검사 -->
 	<select id="duplicate" resultType="int" parameterType="Members">
-		SELECT *
+		SELECT COUNT(*)
 		FROM MEMBERS
 		WHERE MEMBER_ID = #{memberId}
 		   OR EMAIL = #{email}
@@ -36,7 +36,7 @@
 	</select>
 	
 	<!-- 로그인용 회원 조회 -->
-	<select id="findById" parameterType="String" resultType="Members">
+	<select id="findById" parameterType="String" resultMap="memberResultMap">
 		SELECT *
 		FROM MEMBERS
 		WHERE MEMBER_ID = #{memberId}
