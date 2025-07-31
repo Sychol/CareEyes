@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect, useCallback, ChangeEvent, FormEvent, FocusEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import axios, { AxiosError } from 'axios'; // AxiosError 임포트
+
 import type { JSX } from 'react';
 
 // 유효성 검사 로직 임포트
@@ -38,10 +39,11 @@ interface FormData {
   confirmPw: string;
   memberName: string;
   email: string;
-  phone: string;
+  phone: string; // phone 필드 추가
   company: string;
   department: string;
   memberRole: string;
+  
   agreeToTerms: boolean; // 서비스 이용 약관 동의 여부
   agreeToPrivacy: boolean; // 개인정보 처리 방침 동의 여부
 }
@@ -65,12 +67,13 @@ function Register() {
   const navigate = useNavigate();
 
   // 폼 데이터 상태 관리
-  const [formData, setFormData] = useState<Omit<FormData, 'phone'>>({
+  const [formData, setFormData] = useState<FormData>({
     memberId: '',
     memberPw: '',
     confirmPw: '',
     memberName: '',
     email: '',
+    phone: '', // 초기화
     company: '',
     department: '',
     memberRole: '',
@@ -81,7 +84,6 @@ function Register() {
   const [phone1, setPhone1] = useState<string>('010');
   const [phone2, setPhone2] = useState<string>('');
   const [phone3, setPhone3] = useState<string>('');
-  const [phoneNumber, setPhoneNumber] = useState<string>(''); // 합쳐진 전화번호 상태
 
   // 전화번호 유효성 검사 결과 상태
   const [phoneValidation, setPhoneValidation] = useState<PhoneNumberValidationResult>({
@@ -158,6 +160,19 @@ function Register() {
     setError('');
     setSuccessMessage('');
   };
+
+  /**
+   * @function handlePhonePartChange
+   * @description 전화번호 각 부분 입력 필드의 변경 이벤트를 처리합니다.
+   * @param {string} partName - 'phone1', 'phone2', 'phone3' 중 하나
+   * @param {string} value - 입력된 값
+   */
+  const handlePhonePartChange = useCallback((partName: string, value: string) => {
+    const filteredValue = value.replace(/\D/g, '').substring(0, 4); // 숫자만 허용하고 최대 4자리
+    if (partName === 'phone1') setPhone1(filteredValue);
+    else if (partName === 'phone2') setPhone2(filteredValue);
+    else if (partName === 'phone3') setPhone3(filteredValue);
+  }, []);
 
   /**
    * @function handleIdFocus
@@ -312,12 +327,13 @@ function Register() {
     const validationResult = validatePhoneNumber(phone1, phone2, phone3);
     setPhoneValidation(validationResult); // 유효성 검사 결과 업데이트
 
+    // 유효할 때만 전화번호 합쳐서 formData에 저장
     if (validationResult.isValid) {
-      setPhoneNumber(`${phone1}-${phone2}-${phone3}`); // 유효할 때만 전화번호 합치기
+      setFormData(prev => ({ ...prev, phone: `${phone1}-${phone2}-${phone3}` }));
     } else {
-      setPhoneNumber(''); // 유효하지 않으면 합쳐진 전화번호 비워두기
+      setFormData(prev => ({ ...prev, phone: '' })); // 유효하지 않으면 비워두기
     }
-  }, [phone1, phone2, phone3]);
+  }, [phone1, phone2, phone3]); // formData.phone을 의존성 배열에 넣지 않도록 주의 (무한 루프 방지)
 
   /**
    * @function handlePhoneFocus
@@ -387,7 +403,7 @@ function Register() {
         memberPw: formData.memberPw,
         memberName: formData.memberName,
         email: formData.email,
-        phone: phoneNumber,
+        phone: formData.phone, // formData.phone 사용
         memberRole: formData.memberRole,
         company: formData.company === '' ? null : formData.company,
         department: formData.department === '' ? null : formData.department,
@@ -401,11 +417,26 @@ function Register() {
       } else {
         setError(response.data.message || '회원가입에 실패했습니다. 다시 시도해주세요.');
       }
-    } catch (err: any) {
-      setError(err.response?.data?.message || '회원가입 요청 중 오류가 발생했습니다.');
+    } catch (err) { // err: any 대신 err로 변경
+      if (axios.isAxiosError(err)) {
+        setError(err.response?.data?.message || '회원가입 요청 중 오류가 발생했습니다.');
+      } else {
+        setError('알 수 없는 오류가 발생했습니다.');
+      }
       console.error('Signup Error:', err);
     }
   };
+
+  // 제출 버튼 disabled 상태를 위한 변수
+  const isSubmitDisabled = !IDValidation.isIDValid ||
+    !PWValidation.isValiD ||
+    !PWMatch.isMatch ||
+    !phoneValidation.isValid ||
+    !formData.memberName ||
+    !formData.email ||
+    !formData.memberRole ||
+    !formData.agreeToTerms ||
+    !formData.agreeToPrivacy;
 
   return (
     <div className="auth-page-container">
@@ -539,7 +570,7 @@ function Register() {
                 id="phone1"
                 name="phone1"
                 value={phone1}
-                onChange={(e: ChangeEvent<HTMLSelectElement>) => setPhone1(e.target.value)}
+                onChange={(e: ChangeEvent<HTMLSelectElement>) => handlePhonePartChange('phone1', e.target.value)}
                 onFocus={handlePhoneFocus}
                 onBlur={handlePhoneBlur}
                 className="phone-part-select"
@@ -558,10 +589,7 @@ function Register() {
                 id="phone2"
                 name="phone2"
                 value={phone2}
-                onChange={(e: ChangeEvent<HTMLInputElement>) => {
-                  const filteredValue = e.target.value.replace(/\D/g, '').substring(0, 4);
-                  setPhone2(filteredValue);
-                }}
+                onChange={(e: ChangeEvent<HTMLInputElement>) => handlePhonePartChange('phone2', e.target.value)}
                 onFocus={handlePhoneFocus}
                 onBlur={handlePhoneBlur}
                 maxLength={4}
@@ -575,10 +603,7 @@ function Register() {
                 id="phone3"
                 name="phone3"
                 value={phone3}
-                onChange={(e: ChangeEvent<HTMLInputElement>) => {
-                  const filteredValue = e.target.value.replace(/\D/g, '').substring(0, 4);
-                  setPhone3(filteredValue);
-                }}
+                onChange={(e: ChangeEvent<HTMLInputElement>) => handlePhonePartChange('phone3', e.target.value)}
                 onFocus={handlePhoneFocus}
                 onBlur={handlePhoneBlur}
                 maxLength={4}
@@ -705,17 +730,7 @@ function Register() {
           <button
             type="submit"
             className="register-button"
-            disabled={
-              !IDValidation.isIDValid ||
-              !PWValidation.isValiD ||
-              !PWMatch.isMatch ||
-              !phoneValidation.isValid ||
-              !formData.memberName ||
-              !formData.email ||
-              !formData.memberRole ||
-              !formData.agreeToTerms ||
-              !formData.agreeToPrivacy
-            }
+            disabled={isSubmitDisabled}
           >
             회원가입
           </button>

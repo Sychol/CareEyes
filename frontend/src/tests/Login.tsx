@@ -1,6 +1,6 @@
-import React, { useState, useEffect, FormEvent } from 'react';
+import React, { useState, useEffect, FormEvent, useCallback } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 
 // CSS 파일 임포트
 import '../styles/Login.css';
@@ -10,8 +10,6 @@ import { validateLoginForm } from '../ts/Login/Login';
 import CareEyesLogo from '../assets/logo/CareEyes_title Logo_nobg.png';
 import KakaoIconImage from '../assets/profile/KakaoLogo.png';
 import NaverIconImage from '../assets/profile/NaverLogo.png';
-
-// 외부 소셜 로그인 버튼 컴포넌트는 더 이상 임포트하지 않음.
 
 /**
  * @function Login
@@ -23,10 +21,14 @@ const Login = () => {
   const [memberId, setMemberId] = useState('');
   const [memberPw, setMemberPw] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const [memberIdError, setMemberIdError] = useState('');
   const [memberPwError, setMemberPwError] = useState('');
-  const [kakaoLoginUrl, setKakaoLoginUrl] = useState<string | null>(null); // null 가능성 추가
+  const [kakaoLoginUrl, setKakaoLoginUrl] = useState<string | null>(null);
+
+  const [errorMessage, setErrorMessage] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
 
   const navigate = useNavigate();
 
@@ -39,7 +41,7 @@ const Login = () => {
       })
       .catch(err => {
         console.error('Kakao URL 불러오기 실패:', err);
-        setKakaoLoginUrl(null); // 에러 발생 시 null로 설정
+        setKakaoLoginUrl(null);
       });
   }, []);
 
@@ -59,12 +61,22 @@ const Login = () => {
   );
 
   /**
+   * @function togglePasswordVisibility
+   * @description 비밀번호 입력 필드의 텍스트 보이기/숨기기를 전환합니다.
+   */
+  const togglePasswordVisibility = useCallback((): void => {
+    setShowPassword(prev => !prev);
+  }, []);
+
+  /**
    * @function handleSubmit
    * @description 로그인 폼 제출 시 실행되는 함수. 유효성 검사 후 로그인 로직 실행.
    * @param {FormEvent<HTMLFormElement>} e - 폼 제출 이벤트 객체.
    */
   const handleSubmit = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
+    setErrorMessage('');
+    setSuccessMessage('');
 
     const { MEMBER_IDError: newMemberIdError, PWError: newMemberPwError, isValid } = validateLoginForm(memberId, memberPw);
 
@@ -72,22 +84,26 @@ const Login = () => {
     setMemberPwError(newMemberPwError);
 
     if (!isValid) {
-      return; 
+      setErrorMessage('아이디 또는 비밀번호를 올바르게 입력해주세요.');
+      return;
     }
 
     console.log('Login attempt:', { memberId, memberPw, rememberMe });
 
-        // 로그인 API 호출 (백엔드로 아이디와 비밀번호를 전송)
     try {
-      const response = await axios.post('/api/member/login', { memberId, memberPw }, {withCredentials: true});
+      const response = await axios.post('/api/member/login', { memberId, memberPw }, { withCredentials: true });
       console.log('Login successful:', response.data);
 
-      // DOM 조작 대신 메시지 상태를 업데이트하는 방식으로 변경
-      alert('로그인 성공!');
-    } catch (error: any) {
+      setSuccessMessage('로그인 성공!');
+      // 실제 애플리케이션에서는 로그인 성공 후 대시보드 등으로 리다이렉트
+      // navigate('/dashboard');
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        setErrorMessage(error.response?.data?.message || '로그인 실패: 아이디 또는 비밀번호를 다시 확인해주세요.');
+      } else {
+        setErrorMessage('알 수 없는 오류가 발생했습니다.');
+      }
       console.error('Login failed:', error);
-      // DOM 조작 대신 메시지 상태를 업데이트하는 방식으로 변경
-      alert(error.response?.data?.message || '로그인 실패: 아이디 또는 비밀번호를 다시 확인해주세요.');
     }
   };
 
@@ -133,14 +149,17 @@ const Login = () => {
               />
             </div>
             {memberIdError && <span className="error-message">{memberIdError}</span>}
-            <div className="input-group">
+            <div className="input-group password-input-group">
               <input
-                type="password"
+                type={showPassword ? 'text' : 'password'}
                 className="input-field"
                 placeholder="비밀번호"
                 value={memberPw}
                 onChange={(e) => setMemberPw(e.target.value)}
               />
+              <span className="icon eye-icon" onClick={togglePasswordVisibility}>
+                <i className={showPassword ? "fas fa-eye" : "fas fa-eye-slash"}></i>
+              </span>
             </div>
             {memberPwError && <span className="error-message">{memberPwError}</span>}
 
@@ -162,6 +181,10 @@ const Login = () => {
             <button type="submit" className="login-button">
               로그인
             </button>
+
+            {/* 에러 및 성공 메시지 표시 */}
+            {errorMessage && <p className="error-message">{errorMessage}</p>}
+            {successMessage && <p className="success-message">{successMessage}</p>}
           </form>
 
           {/* 소셜 로그인 버튼*/}
@@ -175,7 +198,7 @@ const Login = () => {
                     console.log('이동할 URL 👉', kakaoLoginUrl);
                     window.location.href = kakaoLoginUrl;
                   } else {
-                    alert('카카오 로그인 URL을 불러오는 중입니다. 잠시 후 다시 시도해주세요.');
+                    setErrorMessage('카카오 로그인 URL을 불러오는 중입니다. 잠시 후 다시 시도해주세요.');
                   }
                 }}
                 className="kakao-material-button"
@@ -189,10 +212,10 @@ const Login = () => {
                   {/* 텍스트 제거 */}
                 </div>
               </button>
-              
+
               {/* 네이버 로그인 버튼 (인라인 구현) */}
               <button
-                onClick={() => window.open('https://www.naver.com', '_blank')} // 임시 URL
+                onClick={() => window.open('https://www.naver.com', '_blank')}
                 className="naver-material-button"
                 type="button"
                 aria-label="네이버 로그인"
@@ -206,8 +229,8 @@ const Login = () => {
               </button>
 
               {/* 구글 로그인 버튼 (인라인 구현) */}
-              <button 
-                onClick={() => window.open('https://accounts.google.com/o/oauth2/v2/auth?client_id=YOUR_CLIENT_ID&redirect_uri=YOUR_REDIRECT_URI&response_type=code&scope=email%20profile', '_blank')} // 임시 URL
+              <button
+                onClick={() => window.open('https://accounts.google.com/o/oauth2/v2/auth?client_id=YOUR_CLIENT_ID&redirect_uri=YOUR_REDIRECT_URI&response_type=code&scope=email%20profile', '_blank')}
                 className="gsi-material-button"
                 type="button"
                 aria-label="구글 로그인"
@@ -215,7 +238,7 @@ const Login = () => {
                 <div className="gsi-material-button-state"></div>
                 <div className="gsi-material-button-content-wrapper">
                   <div className="gsi-material-button-icon">
-                    <GoogleIcon /> {/* GoogleIcon 컴포넌트 사용 */}
+                    <GoogleIcon />
                   </div>
                   {/* 텍스트 제거 */}
                 </div>
