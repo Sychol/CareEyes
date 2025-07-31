@@ -29,6 +29,9 @@ public class EventController {
 		return ResponseEntity.ok(eventMapper.getEventList());
 	}
 	
+	// CCTV 목록 가져오기~ 하도록 해~
+	@GetMapping("/cctvlist")
+	
 	// 이상물체 작업 상태 변경
 	@PatchMapping("/api/event/{eventId}/status")
 	public ResponseEntity<?> updateEventStatus(

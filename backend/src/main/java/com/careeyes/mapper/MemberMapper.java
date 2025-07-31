@@ -14,7 +14,7 @@ public interface MemberMapper {
 	
 	public int duplicate(Members member);
 	
-	public int signIn(Members member);
+	public int join(Members member);
 	
 	public Members findById(@Param("memberId") String memberId);
 	

@@ -11,12 +11,13 @@
 	    <result property="location"  	 column="LOCATION"/>
 	    <result property="itemType"      column="ITEM_TYPE"/>
 	    <result property="itemCount"     column="ITEM_COUNT"/>
+	    <result property="cctvId"     	 column="CCTV_ID"/>
 	</resultMap>
 
 	<!-- 알림 내역 리스트 -->
     <select id="getEventList" resultMap="eventResultMap">
-        SELECT E.EVENT_ID, E.EVENT_TIME, E.EVENT_DATE, E.IMG_PATH,  E.MANAGE,
-               C.LOCATION AS LOCATION,
+        SELECT E.EVENT_ID, E.EVENT_TIME, E.EVENT_DATE, E.IMG_PATH, E.MANAGE,
+               C.LOCATION, C.CCTV_ID,
                D.ITEM_TYPE, D.ITEM_COUNT
         FROM DETECT_EVENT E
         JOIN CCTV C ON E.CCTV_ID = C.CCTV_ID

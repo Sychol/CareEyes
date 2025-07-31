@@ -433,8 +433,7 @@ useEffect(() => {
         department: formData.department === '' ? null : formData.department,
       };
 
-      const response = await axios.post<{ success: boolean; message?: string }>('/api/signup', requestPayload);
-
+      const response = await axios.post<{ success: boolean; message?: string }>('/api/member/join', requestPayload);
       if (response.data.success) {
         setSuccessMessage('회원가입이 성공적으로 완료되었습니다!');
         navigate('/');

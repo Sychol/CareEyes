@@ -13,16 +13,19 @@
 	    <result property="department"   column="DEPARTMENT"/>
 	    <result property="kakaoId"      column="KAKAO_ID"/>
 	    <result property="alertState"   column="ALERT_STATE"/>
+	    <result property="subscriptionJson" column="SUBSCRIPTION_JSON"/>
 	</resultMap>
 	
 	<!-- 회원가입 -->
-	<insert id='signIn' parameterType="Members">
+	<insert id='join' parameterType="Members">
 		INSERT INTO MEMBERS (
 			MEMBER_ID, MEMBER_PW, MEMBER_NAME, EMAIL, PHONE,
-			MEMBER_ROLE, COMPANY, DEPARTMENT, ALERT_STATE
+			MEMBER_ROLE, COMPANY, DEPARTMENT, ALERT_STATE,
+			SUBSCRIPTION_JSON
 		) VALUES (
 			#{memberId}, #{memberPw}, #{memberName}, #{email}, #{phone},
-			#{memberRole}, #{company}, #{department}, 1
+			#{memberRole}, #{company}, #{department}, 1,
+			#{subscriptionJson}
 		)
 	</insert>
 	

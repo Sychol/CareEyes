@@ -25,14 +25,14 @@ public class MemberController {
 	private MemberMapper memberMapper;
 	
 	// 회원가입
-	@PostMapping("/signup")
-	public ResponseEntity<?> signup(@RequestBody Members member) {
+	@PostMapping("/join")
+	public ResponseEntity<?> join(@RequestBody Members member) {
 	    if (memberMapper.duplicate(member) > 0) {
 	        return ResponseEntity.status(HttpStatus.CONFLICT)
 	            .body(Map.of("success", false, "message", "중복된 ID, 이메일 또는 전화번호입니다."));
 	    }
 
-	    memberMapper.signIn(member);
+	    memberMapper.join(member);
 	    return ResponseEntity.ok(Map.of("success", true));
 	}
 	

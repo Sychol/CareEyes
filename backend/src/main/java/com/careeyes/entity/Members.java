@@ -19,5 +19,6 @@ public class Members {
 	private String department; // 부서
 	private Long kakaoId; // 카카오 아이디
 	private int alertState = 1; // 알림 설정 여부, default 1
+	private String subscriptionJson; // 웹 푸시 알림 Json
 
 }

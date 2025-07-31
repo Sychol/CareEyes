@@ -96,7 +96,7 @@ const Login = () => {
 
       setSuccessMessage('로그인 성공!')
       // 실제 애플리케이션에서는 로그인 성공 후 대시보드 등으로 리다이렉트
-      // navigate('/dashboard');
+      navigate('/dashboard');
     } catch (error) {
       if (axios.isAxiosError(error)) {
         setErrorMessage(error.response?.data?.message || '로그인 실패: 아이디 또는 비밀번호를 다시 확인해주세요.');
@@ -250,7 +250,7 @@ const Login = () => {
           <div className="join-section">
             <p className="join-text">
               아직 회원이 아니신가요?{' '}
-              <Link to="/Test_register" className="join-link">
+              <Link to="/join" className="join-link">
                 회원가입
               </Link>
             </p>
