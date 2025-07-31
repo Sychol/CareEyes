@@ -94,7 +94,7 @@ const Login = () => {
       const response = await axios.post('/api/member/login', { memberId, memberPw }, { withCredentials: true });
       console.log('Login successful:', response.data);
 
-      setSuccessMessage('로그인 성공!');
+      setSuccessMessage('로그인 성공!')
       // 실제 애플리케이션에서는 로그인 성공 후 대시보드 등으로 리다이렉트
       // navigate('/dashboard');
     } catch (error) {

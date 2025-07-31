@@ -4,12 +4,14 @@ import java.util.List;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -18,6 +20,7 @@ import jakarta.servlet.DispatcherType;
 
 @Configuration // autoScan해서 Spring Container에 적재 필요
 @EnableWebSecurity // 해당 클래스 파일이 webSecurity 설정 파일이 될 수 있도록 추가
+//@Order(SecurityProperties.BASIC_AUTH_ORDER)
 public class SecurityConfig {
 
 //    private final PasswordEncoder passwordEncoder;
@@ -67,6 +70,8 @@ public class SecurityConfig {
 		http.cors(cors -> cors.configurationSource(corsConfigurationSource()))
 			.csrf(AbstractHttpConfigurer :: disable)
 			.formLogin(AbstractHttpConfigurer::disable)
+			.httpBasic(AbstractHttpConfigurer::disable)
+			
 			.authorizeHttpRequests((request)
 					// 람다식 기술(권한에 대한 설정 진행 메서드)
 					// 포워드 방식으로 이동한 요청 허용
@@ -81,7 +86,11 @@ public class SecurityConfig {
 					.requestMatchers("/admin").hasRole("관리자")
 					.requestMatchers("/user").hasRole("사용자")
 					//어떤 요청이 들어와도 인증 받도록 함
-					.anyRequest().authenticated());
+					.anyRequest().authenticated()
+				)
+
+		
+			.logout(AbstractHttpConfigurer::disable);
 			
 			// 아래의 코드를 작성하면 Spring에서 제작한 필터가 나오지 않고,
 			// loginPage("URL")로 요청한 페이지가 나옴(id는 user, pw는 콘솔의 security password로 로그인)

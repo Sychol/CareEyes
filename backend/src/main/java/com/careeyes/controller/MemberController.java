@@ -38,16 +38,19 @@ public class MemberController {
 	
 	// 로그인
 	@PostMapping("/login")
-	public ResponseEntity<?> login(@RequestBody Map<String, String> request){
+	public ResponseEntity<?> login(@RequestBody Map<String, String> request, HttpSession session){
 		String memberId = request.get("memberId"); 
 		String memberPw = request.get("memberPw");
 		
 		Members member = memberMapper.findById(memberId);
-		if (member == null || !member.getMemberPw().equals(memberPw)){
+		if (member == null || member.getMemberPw() == null ||!member.getMemberPw().equals(memberPw)){
 			// id가 null이거나 비밀번호가 DB와 일치하지 않으면
 			return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
 					.body(Map.of("message", "ID 또는 비밀번호가 일치하지 않습니다."));
 		} // 에러 메시지 + 401 보내기
+		
+		session.setAttribute("loginMember", member);
+		
 		return ResponseEntity.ok(Map.of(
 				"memberId", member.getMemberId(),
 				"memberRole", member.getMemberRole(),
