@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "@/providers/ThemeProvider"; // default export 기준
 import { Layout } from "@/components/Layout";
 
+
 // 페이지
 import Dashboard from "./pages/Dashboard";
 import CCTVList from "./pages/CCTVList";
@@ -13,9 +14,9 @@ import AlertHistory from "./pages/AlertHistory";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import AirportDashboard from "./components/AirportDashboard";
-import LogIn from "./tests/Login"; // 소문자 확인
+import LogIn from "./tests/Login";
 import Join from "./tests/Register";
-
+import Profile from "./tests/Profile"; 
 
 const queryClient = new QueryClient();
 
@@ -47,6 +48,7 @@ const App = () => (
             <Route path="/sangje" element={<AirportDashboard />} />
             <Route path="/login" element={<LogIn />} />
             <Route path="/join" element={<Join />} />
+             <Route path="/test_profile" element={<Profile />} />
           </Routes>
         </BrowserRouter>
       </TooltipProvider>

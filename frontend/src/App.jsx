@@ -12,6 +12,7 @@ import Test_login from './tests/Login';
 import Test_manager from './tests/Manager';
 import Test_worker from './tests/Worker';
 import Test_register from './tests/Register';
+import Test_Profile from './tests/Profile';
 
 
 function App() {
@@ -31,6 +32,7 @@ function App() {
           <Route path='/test_manager' elemecnt={<Test_manager />}></Route>
           <Route path='/test_worker' element={<Test_worker />}></Route>
           <Route path="/test_Register" element={<Test_register />} />
+          <Route path='/test_profile' element={<Test_Profile />}></Route>
         </Routes>
       </div>
     </>
