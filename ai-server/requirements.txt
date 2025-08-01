@@ -1,3 +1,6 @@
 flask
-ultralytics
-pillow
+opencv-python-headless
+ultralytics==8.0.177
+boto3
+python-dotenv
+requests

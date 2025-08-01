@@ -1,7 +1,18 @@
+# backend/docker-compose.yml
+version: '3.8'
 services:
   backend:
+    container_name: careeyes-backend-container
+    build:
+      context: .
+      dockerfile: Dockerfile
     image: sychol/careeyes-backend:latest
-    container_name: careeyes-backend
     ports:
       - "8090:8090"
+    environment:
+      - SERVER_PORT=8090
+      - SPRING_DATASOURCE_URL=jdbc:mysql://project-db-cgi.smhrd.com:3307/CGI_25IS_CLOUD_P3_2
+      - SPRING_DATASOURCE_USERNAME=CGI_25IS_CLOUD_P3_2
+      - SPRING_DATASOURCE_PASSWORD=smhrd2
+      - KAKAO_API_KEY=99b61a29a2963e3f58d79a6f2e9eccb6
     restart: always
