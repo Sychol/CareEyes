@@ -1,29 +1,29 @@
 {
   "list": [
     {
-      "id": "유튜브 CCTV 1",
-      "location": "활주로 동 1 - CCTV 1",
-      "lastDetection": "2025-07-01 08:36",
-      "detectedObject": "차량",
+      "id": "CCTV1",
+      "location": "EAST",
+      "lastDetection": "2025-07-31 13:15",
+      "detectedObject": "조류 (2)",
       "manage": "미처리"
     },
     {
-      "id": "유튜브 CCTV 2",
-      "location": "활주로 서 1 - CCTV 1",
-      "lastDetection": "2025-07-01 08:45",
-      "detectedObject": "사람",
-      "manage": "처리됨"
+      "id": "CCTV2",
+      "location": "WEST",
+      "lastDetection": "2025-07-31 13:10",
+      "detectedObject": "차량 (1)",
+      "manage": "처리완료"
     }
   ],
   "feeds": [
     {
-      "title": "유튜브 CCTV 1",
-      "subtitle": "실시간 유튜브 스트리밍",
-      "youtubeUrl": "https://www.youtube.com/watch?v=46byb-Qi3pI"
+      "title": "CCTV1",
+      "subtitle": "조류 두 마리 탐지",
+      "youtubeUrl": "https://www.youtube.com/watch?v=91PfFoqvuUk"
     },
     {
-      "title": "유튜브 CCTV 2",
-      "subtitle": "사람 탐지 스트리밍",
+      "title": "CCTV2",
+      "subtitle": "차량 한 대 탐지",
       "youtubeUrl": "https://www.youtube.com/watch?v=MjD3gnNFYUo"
     }
   ]

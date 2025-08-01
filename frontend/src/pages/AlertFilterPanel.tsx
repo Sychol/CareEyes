@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { X } from "lucide-react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+import axios from "axios";
 
 interface AlertFilterPanelProps {
   currentFilters: {
@@ -19,22 +20,32 @@ interface AlertFilterPanelProps {
   onClose: () => void;
 }
 
-const levelOptions = ["차량", "조류", "동물", "사람"];
-const locationOptions = [
-  "활주로 동 1 - CCTV 1",
-  "활주로 동 1 - CCTV 2",
-  "활주로 동 1 - CCTV 3",
-  "활주로 서 1 - CCTV 1",
-];
-const statusOptions = ["처리완료", "처리중", "미처리"];
-
 export function AlertFilterPanel({ currentFilters, onApply, onClose }: AlertFilterPanelProps) {
+  const [levelOptions, setLevelOptions] = useState<string[]>([]);
+  const [locationOptions, setLocationOptions] = useState<string[]>([]);
+  const [statusOptions] = useState<string[]>(["처리완료", "처리중", "미처리"]);
+
   const [level, setLevel] = useState<string[]>(currentFilters.level || []);
   const [location, setLocation] = useState<string[]>(currentFilters.location || []);
   const [status, setStatus] = useState<string[]>(currentFilters.status || []);
   const [date, setDate] = useState<Date | null>(
     currentFilters.date ? new Date(currentFilters.date) : null
   );
+
+  useEffect(() => {
+    axios.get("http://223.130.130.196:8090/api/eventlist")
+      .then(res => {
+        const data: { itemType: string; location: string }[] = res.data;
+
+        const itemTypes = Array.from(new Set(data.map((item) => item.itemType)));
+        const locations = Array.from(new Set(data.map((item) => item.location)));
+
+        setLevelOptions(itemTypes);
+        setLocationOptions(locations);
+      })
+      .catch(err => console.error("Failed to fetch filter options:", err));
+  }, []);
+
 
   const toggleItem = (item: string, list: string[], setter: (list: string[]) => void) => {
     setter(list.includes(item) ? list.filter((v) => v !== item) : [...list, item]);
@@ -72,9 +83,8 @@ export function AlertFilterPanel({ currentFilters, onApply, onClose }: AlertFilt
               <button
                 key={item}
                 onClick={() => toggleItem(item, level, setLevel)}
-                className={`px-3 py-1 rounded-full border text-sm ${
-                  level.includes(item) ? "bg-blue-500 text-white" : "bg-gray-100"
-                }`}
+                className={`px-3 py-1 rounded-full border text-sm ${level.includes(item) ? "bg-blue-500 text-white" : "bg-gray-100"
+                  }`}
               >
                 {item}
               </button>
@@ -90,9 +100,8 @@ export function AlertFilterPanel({ currentFilters, onApply, onClose }: AlertFilt
               <button
                 key={item}
                 onClick={() => toggleItem(item, location, setLocation)}
-                className={`px-3 py-1 rounded-full border text-sm ${
-                  location.includes(item) ? "bg-blue-500 text-white" : "bg-gray-100"
-                }`}
+                className={`px-3 py-1 rounded-full border text-sm ${location.includes(item) ? "bg-blue-500 text-white" : "bg-gray-100"
+                  }`}
               >
                 {item}
               </button>
@@ -108,9 +117,8 @@ export function AlertFilterPanel({ currentFilters, onApply, onClose }: AlertFilt
               <button
                 key={item}
                 onClick={() => toggleItem(item, status, setStatus)}
-                className={`px-3 py-1 rounded-full border text-sm ${
-                  status.includes(item) ? "bg-blue-500 text-white" : "bg-gray-100"
-                }`}
+                className={`px-3 py-1 rounded-full border text-sm ${status.includes(item) ? "bg-blue-500 text-white" : "bg-gray-100"
+                  }`}
               >
                 {item}
               </button>
@@ -150,3 +158,5 @@ export function AlertFilterPanel({ currentFilters, onApply, onClose }: AlertFilt
     </div>
   );
 }
+
+export default AlertFilterPanel;
