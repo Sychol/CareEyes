@@ -12,6 +12,7 @@
 	    <result property="itemType"      column="ITEM_TYPE"/>
 	    <result property="itemCount"     column="ITEM_COUNT"/>
 	    <result property="cctvId"     	 column="CCTV_ID"/>
+	   	<result property="activate"		 column="ACTIVATE"/>
 	</resultMap>
 
 	<!-- 알림 내역 리스트 -->
@@ -22,6 +23,11 @@
         FROM DETECT_EVENT E
         JOIN CCTV C ON E.CCTV_ID = C.CCTV_ID
         JOIN DETECT_ITEM D ON E.EVENT_ID = D.EVENT_ID
+    </select>
+    
+    <select id="getCctvList" resultMap="eventResultMap">
+    	SELECT *
+    	FROM CCTV;
     </select>
     
     <!-- 이상물체 작업 상태 변경 -->

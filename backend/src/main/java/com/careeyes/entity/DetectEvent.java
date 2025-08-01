@@ -12,10 +12,9 @@ import lombok.NoArgsConstructor;
 @Data
 public class DetectEvent {
 
-    private int eventId;
+    private int eventId; 
     private String eventDate;
     private Time eventTime;
-    private int cctvId;
     private String imgPath;
     private int manage;
     
@@ -24,4 +23,6 @@ public class DetectEvent {
     private String itemType;
     private int itemCount;
     
+    private int cctvId;
+    private int activate;    
 }

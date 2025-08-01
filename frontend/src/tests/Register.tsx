@@ -1,7 +1,7 @@
 // src/features/Auth/pages/Register.tsx
 
 import React, { useState, useEffect, useCallback, ChangeEvent, FormEvent, FocusEvent } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import axios, { AxiosError } from 'axios'; // AxiosError 임포트
 
 import type { JSX } from 'react';
@@ -46,6 +46,8 @@ interface FormData {
   
   agreeToTerms: boolean; // 서비스 이용 약관 동의 여부
   agreeToPrivacy: boolean; // 개인정보 처리 방침 동의 여부
+
+  kakaoId?: string; // 카카오 아이디 (선택적)
 }
 
 /**
@@ -79,6 +81,7 @@ function Register() {
     memberRole: '',
     agreeToTerms: false,
     agreeToPrivacy: false,
+    kakaoId: undefined,
   });
 
   const [phone1, setPhone1] = useState<string>('010');
@@ -431,6 +434,7 @@ useEffect(() => {
         memberRole: formData.memberRole,
         company: formData.company === '' ? null : formData.company,
         department: formData.department === '' ? null : formData.department,
+        kakaoId: formData.kakaoId ?? null,
       };
 
       const response = await axios.post<{ success: boolean; message?: string }>('/api/member/join', requestPayload);
