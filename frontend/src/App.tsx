@@ -16,9 +16,9 @@ import NotFound from "./pages/NotFound";
 import AirportDashboard from "./components/AirportDashboard";
 import LogIn from "./tests/Login";
 import Join from "./tests/Register";
+import KakaoCallback from "./tests/KakaoCallback";
 import WorkPage from "./pages/WorkPage";
-import Analytics from "./pages/Analytics";
-import Profile from "./tests/Profile";
+import Analytics from "./pages/Analytics"
 
 
 const queryClient = new QueryClient();
@@ -52,7 +52,7 @@ const App = () => (
             <Route path="/airport" element={<AirportDashboard />} />
             <Route path="/login" element={<LogIn />} />
             <Route path="/join" element={<Join />} />
-             <Route path="/test_profile" element={<Profile />} />
+            <Route path="/kakao/callback" element={<KakaoCallback />} />
           </Routes>
         </BrowserRouter>
       </TooltipProvider>

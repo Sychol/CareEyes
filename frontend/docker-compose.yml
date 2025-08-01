@@ -1,0 +1,14 @@
+# frontend/docker-compose.yml
+version: '3.8'
+services:
+  frontend:
+    container_name: careeyes-frontend-container
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: sychol/careeyes-frontend:latest
+    ports:
+      - "80:80"
+    environment:
+      - VITE_BACKEND_SERVER=http://10.0.20.6:8090/
+    restart: always

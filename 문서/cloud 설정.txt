@@ -1,0 +1,227 @@
+======== Ubuntu 환경설정 ========
+
+# apt 업데이트 및 Git 설치
+sudo apt update && sudo apt install -y git curl
+
+# aiserver : 대용량 파일 전용 git lfs 설치
+sudo apt install git-lfs
+
+======== Git 내려받기 ========
+
+# 전체 레포 클론하되, 히스토리 없이 (깃 객체 최소화)
+git clone --filter=blob:none --no-checkout https://github.com/Sychol/CareEyes.git
+cd CareEyes
+
+# sparse-checkout 설정
+git sparse-checkout init --cone
+
+# pull 해올 폴더 지정
+git sparse-checkout set frontend
+git sparse-checkout set backend
+git sparse-checkout set ai-server
+
+# 이제 선택한 폴더만 체크아웃됨
+git checkout main
+
+======== Docker 환경설정 ========
+
+
+curl -fsSL https://get.docker.com -o get-docker.sh
+sudo sh get-docker.sh
+sudo usermod -aG docker $USER
+
+# 권한부여 후 재로그인 필요
+exit
+
+======== Docker Compose 환경설정 ========
+
+sudo apt install -y docker-compose
+
+======== Docker 이미지 빌드 및 Docker Hub 업로드 ========
+
+docker login
+
+cd 경로
+
+# 이미지 빌드
+docker build -t sychol/careeyes-frontend:latest .
+docker build -t sychol/careeyes-backend:latest .
+docker build -t sychol/careeyes-aiserver:latest .
+
+docker push sychol/careeyes-frontend:latest
+docker push sychol/careeyes-backend:latest
+docker push sychol/careeyes-aiserver:latest
+
+======== frontend docker 파일들 ========
+
+### Dockerfile
+FROM node:20-alpine AS builder
+WORKDIR /app
+COPY . .
+RUN npm install && npm run build
+
+FROM nginx:stable-alpine
+COPY --from=builder /app/dist /usr/share/nginx/html
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]
+
+
+### docker-compose.yml
+version: '3.8'
+services:
+  frontend:
+    build: .
+    ports:
+      - "80:80"
+    environment:
+      - VITE_BACKEND_SERVER=http://10.0.20.6:8090/
+
+======== backend docker 파일들 ========
+### Dockerfile
+FROM eclipse-temurin:17-jdk-alpine
+# 작업 디렉토리 생성
+WORKDIR /app
+# Maven Wrapper 및 프로젝트 파일 복사
+COPY . .
+# mvnw 실행 권한 부여
+RUN chmod +x mvnw
+# 프로젝트 빌드 (JAR 생성)
+RUN ./mvnw package -DskipTests
+# 실행할 JAR 파일 이름 (target 폴더 안에 생성됨)
+CMD ["java", "-jar", "target/backend-0.0.1-SNAPSHOT.jar"]
+
+### docker-compose.yml
+version: '3.8'
+services:
+  backend:
+    image: sychol/careeyes-backend:latest
+    ports:
+      - "8090:8090"
+    environment:
+      - SERVER_PORT=8090
+      - SPRING_DATASOURCE_URL=jdbc:mysql://project-db-cgi.smhrd.com:3307/CGI_25IS_CLOUD_P3_2
+      - SPRING_DATASOURCE_USERNAME=CGI_25IS_CLOUD_P3_2
+      - SPRING_DATASOURCE_PASSWORD=smhrd2
+      - KAKAO_API_KEY=99b61a29a2963e3f58d79a6f2e9eccb6
+
+======== aiserver docker 파일들 ========
+### Dockerfile
+# 1. PyTorch + CUDA 기반 이미지
+FROM pytorch/pytorch:2.2.0-cuda11.8-cudnn8-runtime
+
+# 2. 작업 디렉토리 생성
+WORKDIR /app
+
+# 3. 시스템 패키지 설치 (git-lfs 포함)
+RUN apt-get update && apt-get install -y \
+    ffmpeg \
+    python3-opencv \
+    streamlink \
+    git \
+    curl \
+    git-lfs \
+    && apt-get clean
+
+# 4. Git LFS 초기화 (중요!)
+RUN git lfs install
+
+# 5. 코드 복사
+COPY . .  
+COPY .env .env
+
+# 6. Git LFS 파일 다운로드 (해당 디렉토리가 Git 저장소일 경우만 필요)
+# 보통 .pt 같은 파일이 LFS로 추적된 경우
+RUN git lfs pull || echo "⚠️ LFS 파일 없거나 Git clone 환경이 아님"
+
+# 7. Python 패키지 설치
+RUN pip install --upgrade pip
+RUN pip install -r requirements.txt
+
+# 8. Flask 포트 오픈
+EXPOSE 5000
+
+# 9. 실행 명령
+CMD ["python", "app.py"]
+
+
+
+### requirements.txt
+flask
+opencv-python-headless
+ultralytics==8.0.177
+boto3
+python-dotenv
+requests
+
+### docker-compose.yml
+version: '3.8'
+
+services:
+  careeyes-ai:
+    container_name: careeyes-ai-container
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "5000:5000"
+    env_file:
+      - .env
+    restart: always
+
+======== docker-compose.yml 실행 ========
+
+docker-compose up -d
+
+
+======== docker 관련 명령어 ========
+
+# 도커 이미지 생성
+docker build -t <도커허브아이디>/<이미지이름>:<태그> .
+
+# 도커 이미지 푸쉬(업로드)
+docker push <도커허브아이디>/<이미지이름>:<태그>
+
+# 도커 이미지 실행
+docker run -d --name <container name>
+
+# 도커 이미지 확인
+docker images
+
+# 실행 중인 컨테이너 보기
+docker ps -a
+
+# 도커 컨테이너 중지
+docker stop <컨테이너ID>
+
+# 로그 확인(디버깅)
+docker logs -f <container 이름>
+
+# 도커 컨테이너 삭제
+docker rm <컨테이너 ID>
+
+# 도커 이미지 삭제
+docker rmi <이미지 ID>
+
+# 중지된 컨테이너 전체 삭제
+docker container prune
+
+# 사용하지 않는 이미지 전체 삭제
+docker image prune -a
+
+
+======== docker 관련 명령어 ========
+
+# 이미지 빌드 (수정 후에 다시 해야됨)
+docker compose build
+
+# 이미지 실행
+docker compose up -d
+
+# 컨테이너 확인
+docker compose ps
+
+# 로그 확인 (디버깅)
+docker compose logs -f
+
+# 중지 및 삭제
+docker compose down

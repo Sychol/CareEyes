@@ -31,7 +31,6 @@ public class MemberController {
 	        return ResponseEntity.status(HttpStatus.CONFLICT)
 	            .body(Map.of("success", false, "message", "중복된 ID, 이메일 또는 전화번호입니다."));
 	    }
-
 	    memberMapper.join(member);
 	    return ResponseEntity.ok(Map.of("success", true));
 	}
@@ -58,6 +57,23 @@ public class MemberController {
 				));
 		// 로그인 성공하면 id / role 전달
 	}
+	
+	@PostMapping("/kakao-login")
+    public ResponseEntity<?> kakaoLogin(@RequestBody Map<String, Object> request) {
+        Long kakaoId = Long.valueOf(request.get("kakaoId").toString());
+
+        Members member = memberMapper.findByKakaoId(kakaoId);
+        if (member == null) {
+            // 새 사용자 → 프론트에서 회원가입 유도
+            return ResponseEntity.ok(Map.of("status", "NEW_USER"));
+        }
+
+        // 기존 사용자 → 로그인 처리
+        return ResponseEntity.ok(Map.of(
+            "status", "EXISTING_USER",
+            "member", member
+        ));
+    }
 	
 //	@PostMapping("/login")
 //	public ResponseEntity<?> login(@RequestBody Map<String, String> request){
