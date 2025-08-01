@@ -15,6 +15,7 @@ import NotFound from "./pages/NotFound";
 import AirportDashboard from "./components/AirportDashboard";
 import LogIn from "./tests/Login"; // 소문자 확인
 import Join from "./tests/Register";
+import KakaoCallback from "./tests/KakaoCallback";
 
 
 const queryClient = new QueryClient();
@@ -47,6 +48,7 @@ const App = () => (
             <Route path="/sangje" element={<AirportDashboard />} />
             <Route path="/login" element={<LogIn />} />
             <Route path="/join" element={<Join />} />
+            <Route path="/kakao/callback" element={<KakaoCallback />} />
           </Routes>
         </BrowserRouter>
       </TooltipProvider>

@@ -67,6 +67,10 @@ interface ModalContent {
  */
 function Register() {
   const navigate = useNavigate();
+  
+  const location = useLocation();
+
+  const kakaoIdFromState = location.state?.kakaoId;
 
   // 폼 데이터 상태 관리
   const [formData, setFormData] = useState<FormData>({
@@ -81,7 +85,7 @@ function Register() {
     memberRole: '',
     agreeToTerms: false,
     agreeToPrivacy: false,
-    kakaoId: undefined,
+    kakaoId: kakaoIdFromState ?? undefined, // 카카오 아이디가 있을 경우 초기화
   });
 
   const [phone1, setPhone1] = useState<string>('010');
@@ -313,6 +317,7 @@ function Register() {
     setIDValidation(validationResult);
   }, [formData.memberId]);
 
+
   // ID 중복검사
 useEffect(() => {
   const checkDuplicateId = async () => {
@@ -437,10 +442,12 @@ useEffect(() => {
         kakaoId: formData.kakaoId ?? null,
       };
 
+      console.log(requestPayload)
+
       const response = await axios.post<{ success: boolean; message?: string }>('/api/member/join', requestPayload);
       if (response.data.success) {
         setSuccessMessage('회원가입이 성공적으로 완료되었습니다!');
-        navigate('/');
+        navigate('/dashboard'); // 회원가입 성공 후 대시보드로 이동
       } else {
         setError(response.data.message || '회원가입에 실패했습니다. 다시 시도해주세요.');
       }
