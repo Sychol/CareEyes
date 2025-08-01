@@ -1,130 +1,192 @@
 // src/hooks/useProfileManagement.ts
 
-import { useState, useEffect, useCallback } from 'react';
-import {
-    UserProfile,
-    DEFAULT_USER_PROFILE,
-    splitPhoneNumber,
-    formatPhoneNumberPart,
-    mockFetchUserProfile, // 백엔드 연동 시 fetchUserProfile로 교체
-    mockUpdateProfileAndMaybePassword, // 백엔드 연동 시 updateProfile로 교체
-    mockKakaoConnect, // 백엔드 연동 시 실제 카카오 연동 API로 교체
-    mockKakaoDisconnect, // 백엔드 연동 시 실제 카카오 해제 API로 교체
-} from '../ts/Profile/user';
-
-import { usePasswordValidation } from './usePasswordValidation'; // 비밀번호 유효성 훅 임포트
+import { useState, useEffect, useCallback, useMemo } from 'react';
+import { UserProfile, DEFAULT_USER_PROFILE } from '../types/src/types/user';
+import axios from 'axios';
 
 /**
  * @function useProfileManagement
- * @description 사용자 프로필 정보의 조회, 업데이트, 전화번호 및 카카오 연동 관련 로직과 상태를 관리하는 커스텀 훅입니다.
- * @returns {object} 프로필 관련 상태와 핸들러 함수들을 반환합니다.
+ * @description 사용자 프로필 정보 조회, 수정 및 소셜 계정 연동을 관리하는 커스텀 훅입니다.
+ * @returns {object} 프로필 관련 상태, 핸들러 함수들
  */
 export const useProfileManagement = () => {
     const [profile, setProfile] = useState<UserProfile>(DEFAULT_USER_PROFILE);
-    const [isLoading, setIsLoading] = useState<boolean>(true);
+    const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+
+    // 비밀번호 변경 관련 상태
+    const [currentPassword, setCurrentPassword] = useState('');
+    const [newPassword, setNewPassword] = useState('');
+    const [confirmNewPassword, setConfirmNewPassword] = useState('');
     const [passwordChangeMessage, setPasswordChangeMessage] = useState<string | null>(null);
-    const [currentPassword, setCurrentPassword] = useState<string>('');
 
-    const [phonePart1, setPhonePart1] = useState<string>('');
-    const [phonePart2, setPhonePart2] = useState<string>('');
-    const [phonePart3, setPhonePart3] = useState<string>('');
+    // 전화번호를 부분별로 관리
+    const [phonePart1, setPhonePart1] = useState('');
+    const [phonePart2, setPhonePart2] = useState('');
+    const [phonePart3, setPhonePart3] = useState('');
 
-    // 비밀번호 보이기/숨기기 상태
-    const [showNewPassword, setShowNewPassword] = useState<boolean>(false);
-    const [showConfirmNewPassword, setShowConfirmNewPassword] = useState<boolean>(false);
+    // 새 비밀번호 가시성 상태
+    const [showNewPassword, setShowNewPassword] = useState(false);
+    const [showConfirmNewPassword, setShowConfirmNewPassword] = useState(false);
 
-    // 비밀번호 유효성 검사 훅 사용
-    const {
-        newPassword,
-        confirmNewPassword,
-        newPasswordValidation,
-        passwordMatch,
-        isNewPasswordFocused, // usePasswordValidation 훅에서 가져온 포커스 상태
-        isConfirmNewPasswordFocused, // usePasswordValidation 훅에서 가져온 포커스 상태
-        handleNewPasswordChange,
-        handleConfirmNewPasswordChange,
-        handleNewPasswordFocus, // usePasswordValidation 훅에서 가져온 포커스 핸들러
-        handleNewPasswordBlur, // usePasswordValidation 훅에서 가져온 블러 핸들러
-        handleConfirmNewPasswordFocus, // usePasswordValidation 훅에서 가져온 포커스 핸들러
-        handleConfirmNewPasswordBlur, // usePasswordValidation 훅에서 가져온 블러 핸들러
-        validateAllPasswordFields,
-        resetPasswordFields,
-    } = usePasswordValidation();
+    // 비밀번호 유효성 검사 관련 상태 (포커스 여부)
+    const [isNewPasswordFocused, setIsNewPasswordFocused] = useState(false);
+    const [isConfirmNewPasswordFocused, setIsConfirmNewPasswordFocused] = useState(false);
+
 
     /**
-     * @function fetchUserProfileData
-     * @description 사용자 프로필 정보를 불러옵니다.
+     * @function fetchUserProfile
+     * @description 사용자 프로필 정보를 API로부터 비동기적으로 가져옵니다.
      */
-    const fetchUserProfileData = useCallback(async () => {
+    const fetchUserProfile = useCallback(async () => {
         setIsLoading(true);
         setError(null);
         try {
-            const data = await mockFetchUserProfile(); // 실제 API (fetchUserProfile)로 교체 필요
-            setProfile(data);
-            const [p1, p2, p3] = splitPhoneNumber(data.phone);
-            setPhonePart1(p1);
-            setPhonePart2(p2);
-            setPhonePart3(p3);
-        } catch (error: unknown) {
-            let errorMessage = "프로필 정보를 불러오는 데 실패했습니다. 다시 시도해주십시오.";
-            if (error instanceof Error) {
-                // Error 인스턴스일 경우 message 속성 접근
-                console.error("Failed to fetch user profile:", error.message);
-                errorMessage = `프로필 정보를 불러오는 데 실패했습니다: ${error.message}`;
+            // 🚀 목업 데이터를 실제 API 응답으로 교체하는 방법:
+            // 아래 주석 처리된 코드를 활성화하시고, `/api/user/profile` 경로를
+            // 실제 사용자 프로필 정보를 가져오는 API 엔드포인트로 변경해 주세요.
+            // const response = await axios.get('/api/user/profile');
+            // const fetchedProfile: UserProfile = response.data;
+            // setProfile(fetchedProfile);
+
+            // 현재는 목업 데이터(DEFAULT_USER_PROFILE)를 사용하고 있습니다.
+            const fetchedProfile: UserProfile = DEFAULT_USER_PROFILE;
+            setProfile(fetchedProfile);
+
+            // 전화번호를 부분별로 분리
+            if (fetchedProfile.phone) {
+                const parts = fetchedProfile.phone.split('-');
+                if (parts.length === 3) {
+                    setPhonePart1(parts[0]);
+                    setPhonePart2(parts[1]);
+                    setPhonePart3(parts[2]);
+                } else {
+                    // 유효하지 않은 형식의 경우 초기화
+                    setPhonePart1('');
+                    setPhonePart2('');
+                    setPhonePart3('');
+                }
             } else {
-                // 그 외의 경우 일반 에러 메시지
-                console.error("Failed to fetch user profile:", error);
+                setPhonePart1('');
+                setPhonePart2('');
+                setPhonePart3('');
             }
-            setError(errorMessage);
-            setProfile(DEFAULT_USER_PROFILE);
+
+        } catch (err) {
+            console.error('Failed to fetch user profile:', err);
+            setError('프로필 정보를 불러오는데 실패했습니다.');
         } finally {
             setIsLoading(false);
         }
     }, []);
 
+    useEffect(() => {
+        fetchUserProfile();
+    }, [fetchUserProfile]);
+
     /**
      * @function handleEmailChange
      * @description 이메일 입력 필드의 변경을 처리합니다.
-     * @param {React.ChangeEvent<HTMLInputElement>} e - 입력 필드 변경 이벤트 객체
+     * @param {React.ChangeEvent<HTMLInputElement>} e - 변경 이벤트 객체
      */
     const handleEmailChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-        const { name, value } = e.target;
-        setProfile(prevProfile => ({
-            ...prevProfile,
-            [name]: value,
-        }));
+        setProfile(prevProfile => ({ ...prevProfile, email: e.target.value }));
     }, []);
 
     /**
      * @function handlePhonePartChange
-     * @description 전화번호 각 부분 입력 필드의 변경을 처리하고, 숫자만 허용하며 길이를 제한합니다.
-     * @param {number} part - 전화번호 부분 (1, 2, 3)
+     * @description 전화번호 부분 입력 필드의 변경을 처리합니다.
+     * @param {number} partNum - 변경된 전화번호 부분의 인덱스 (1, 2, 3)
      * @param {string} value - 입력된 값
      */
-    const handlePhonePartChange = useCallback((part: number, value: string) => {
-        if (part === 1) {
-            setPhonePart1(formatPhoneNumberPart(value, 3));
-        } else if (part === 2) {
-            setPhonePart2(formatPhoneNumberPart(value, 4));
-        } else if (part === 3) {
-            setPhonePart3(formatPhoneNumberPart(value, 4));
-        }
+    const handlePhonePartChange = useCallback((partNum: number, value: string) => {
+        const numericValue = value.replace(/\D/g, ''); // 숫자만 남기기
+        if (partNum === 1) setPhonePart1(numericValue);
+        else if (partNum === 2) setPhonePart2(numericValue);
+        else if (partNum === 3) setPhonePart3(numericValue);
     }, []);
+
+    /**
+     * @function handleCompanyChange
+     * @description 소속 입력 필드의 변경을 처리합니다.
+     * @param {string} value - 입력된 값
+     */
+    const handleCompanyChange = useCallback((value: string) => {
+        setProfile(prevProfile => ({ ...prevProfile, company: value }));
+    }, []);
+
+    /**
+     * @function handleDepartmentChange
+     * @description 부서 입력 필드의 변경을 처리합니다.
+     * @param {string} value - 입력된 값
+     */
+    const handleDepartmentChange = useCallback((value: string) => {
+        setProfile(prevProfile => ({ ...prevProfile, department: value }));
+    }, []);
+
 
     /**
      * @function handleCurrentPasswordChange
      * @description 현재 비밀번호 입력 필드의 변경을 처리합니다.
-     * @param {React.ChangeEvent<HTMLInputElement>} e - 입력 필드 변경 이벤트 객체
+     * @param {React.ChangeEvent<HTMLInputElement>} e - 변경 이벤트 객체
      */
     const handleCurrentPasswordChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         setCurrentPassword(e.target.value);
-        setPasswordChangeMessage(null); // 메시지 초기화
+    }, []);
+
+    /**
+     * @function handleNewPasswordChange
+     * @description 새 비밀번호 입력 필드의 변경을 처리합니다.
+     * @param {React.ChangeEvent<HTMLInputElement>} e - 변경 이벤트 객체
+     */
+    const handleNewPasswordChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+        setNewPassword(e.target.value);
+    }, []);
+
+    /**
+     * @function handleConfirmNewPasswordChange
+     * @description 새 비밀번호 확인 입력 필드의 변경을 처리합니다.
+     * @param {React.ChangeEvent<HTMLInputElement>} e - 변경 이벤트 객체
+     */
+    const handleConfirmNewPasswordChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+        setConfirmNewPassword(e.target.value);
+    }, []);
+
+    /**
+     * @function handleNewPasswordFocus
+     * @description 새 비밀번호 입력 필드에 포커스 되었을 때 상태를 업데이트합니다.
+     */
+    const handleNewPasswordFocus = useCallback(() => {
+        setIsNewPasswordFocused(true);
+    }, []);
+
+    /**
+     * @function handleNewPasswordBlur
+     * @description 새 비밀번호 입력 필드에서 포커스가 해제되었을 때 상태를 업데이트합니다.
+     */
+    const handleNewPasswordBlur = useCallback(() => {
+        setIsNewPasswordFocused(false);
+    }, []);
+
+    /**
+     * @function handleConfirmNewPasswordFocus
+     * @description 새 비밀번호 확인 입력 필드에 포커스 되었을 때 상태를 업데이트합니다.
+     */
+    const handleConfirmNewPasswordFocus = useCallback(() => {
+        setIsConfirmNewPasswordFocused(true);
+    }, []);
+
+    /**
+     * @function handleConfirmNewPasswordBlur
+     * @description 새 비밀번호 확인 입력 필드에서 포커스가 해제되었을 때 상태를 업데이트합니다.
+     */
+    const handleConfirmNewPasswordBlur = useCallback(() => {
+        setIsConfirmNewPasswordFocused(false);
     }, []);
 
     /**
      * @function toggleNewPasswordVisibility
-     * @description 새 비밀번호 필드 보이기/숨기기 토글 함수
+     * @description 새 비밀번호 입력 필드의 가시성을 토글합니다.
      */
     const toggleNewPasswordVisibility = useCallback(() => {
         setShowNewPassword(prev => !prev);
@@ -132,146 +194,246 @@ export const useProfileManagement = () => {
 
     /**
      * @function toggleConfirmNewPasswordVisibility
-     * @description 새 비밀번호 확인 필드 보이기/숨기기 토글 함수
+     * @description 새 비밀번호 확인 입력 필드의 가시성을 토글합니다.
      */
     const toggleConfirmNewPasswordVisibility = useCallback(() => {
         setShowConfirmNewPassword(prev => !prev);
     }, []);
 
     /**
-     * @function handleUpdateProfile
-     * @description 사용자 프로필 정보와 비밀번호를 업데이트합니다.
+     * @function resetPasswordFields
+     * @description 비밀번호 변경 관련 입력 필드를 초기화합니다.
      */
-    const handleUpdateProfile = useCallback(async (e: React.FormEvent<HTMLFormElement>) => {
-        e.preventDefault(); // 폼 기본 제출 동작 방지
-        setIsLoading(true);
+    const resetPasswordFields = useCallback(() => {
+        setCurrentPassword('');
+        setNewPassword('');
+        setConfirmNewPassword('');
+        setPasswordChangeMessage(null);
+    }, []);
+
+    /**
+     * @function newPasswordValidation
+     * @description 새 비밀번호의 유효성 조건을 검사합니다.
+     * @returns {object} 길이, 2가지 이상 문자 조합, 경고 메시지 포함
+     */
+    const newPasswordValidation = useMemo(() => {
+        const hasLength = newPassword.length >= 8;
+        const hasLetters = /[a-zA-Z]/.test(newPassword);
+        const hasNumbers = /[0-9]/.test(newPassword);
+        const hasSpecialChars = /[!@#$%^&*(),.?":{}|<>]/.test(newPassword);
+
+        let typesCount = 0;
+        if (hasLetters) typesCount++;
+        if (hasNumbers) typesCount++;
+        if (hasSpecialChars) typesCount++;
+
+        const minTwoTypes = typesCount >= 2;
+
+        let warning = '';
+        if (newPassword.length > 0 && !hasLength) {
+            warning = '비밀번호는 8자 이상이어야 합니다.';
+        } else if (newPassword.length > 0 && !minTwoTypes) {
+            warning = '비밀번호는 영문/숫자/특수문자 중 2가지 이상을 조합해야 합니다.';
+        }
+
+        return {
+            length: hasLength,
+            minTwoTypes: minTwoTypes,
+            warning: warning,
+        };
+    }, [newPassword]);
+
+    /**
+     * @function passwordMatch
+     * @description 새 비밀번호와 새 비밀번호 확인 필드의 일치 여부를 검사합니다.
+     * @returns {object} 일치 여부와 메시지 포함
+     */
+    const passwordMatch = useMemo(() => {
+        if (confirmNewPassword.length === 0) {
+            return { isMatch: false, message: '' };
+        }
+        if (newPassword === confirmNewPassword) {
+            return { isMatch: true, message: '비밀번호가 일치합니다.' };
+        }
+        return { isMatch: false, message: '비밀번호가 일치하지 않습니다.' };
+    }, [newPassword, confirmNewPassword]);
+
+    /**
+     * @function isPasswordValid
+     * @description 비밀번호 변경 시 모든 유효성 검사를 통과했는지 확인합니다.
+     * @returns {boolean} 유효성 통과 여부
+     */
+    const isPasswordValid = useMemo(() => {
+        if (!newPassword && !confirmNewPassword) return true; // 비밀번호 변경 필드가 비어있으면 유효성 검사 통과로 간주
+        return newPasswordValidation.length &&
+               newPasswordValidation.minTwoTypes &&
+               passwordMatch.isMatch &&
+               newPasswordValidation.warning === '';
+    }, [newPassword, confirmNewPassword, newPasswordValidation, passwordMatch]);
+
+
+    /**
+     * @function updateProfile
+     * @description 사용자 프로필 정보를 업데이트합니다. (비동기 처리)
+     */
+    const updateProfile = useCallback(async () => {
         setError(null);
         setPasswordChangeMessage(null);
 
-        const passwordFieldsFilled = currentPassword || newPassword || confirmNewPassword;
+        const fullPhoneNumber = `${phonePart1}-${phonePart2}-${phonePart3}`;
 
-        if (passwordFieldsFilled) {
-            // 모든 비밀번호 필드가 채워졌는지 확인 (currentPassword는 여기서만 확인)
+        // 비밀번호 변경 시 유효성 검사 추가
+        if (currentPassword || newPassword || confirmNewPassword) {
             if (!currentPassword) {
-                setPasswordChangeMessage("비밀번호 변경 시 현재 비밀번호를 입력하셔야 합니다.");
-                setIsLoading(false);
+                setError('현재 비밀번호를 입력해주세요.');
                 return;
             }
-
-            // 비밀번호 유효성 검사 훅을 통한 최종 유효성 검사
-            const { isValid, message } = validateAllPasswordFields();
-
-            if (!isValid) {
-                setPasswordChangeMessage(message);
-                setIsLoading(false);
+            if (!newPassword || !confirmNewPassword) {
+                setError('새 비밀번호와 확인 비밀번호를 모두 입력해주세요.');
+                return;
+            }
+            if (!isPasswordValid) {
+                setError('새 비밀번호가 유효성 조건을 충족하지 않거나 일치하지 않습니다.');
                 return;
             }
         }
 
         try {
-            // 실제 API (updateProfile)로 교체 필요
-            const { updatedProfile, passwordMessage } = await mockUpdateProfileAndMaybePassword(
-                profile,
-                profile.memberName,
-                profile.email,
-                phonePart1,
-                phonePart2,
-                phonePart3,
-                currentPassword,
-                newPassword,
-                confirmNewPassword
-            );
-            
-            setProfile(updatedProfile);
-            setPasswordChangeMessage(passwordMessage);
-            alert('프로필 정보가 성공적으로 업데이트되었습니다! (목 데이터 반영)');
-            
-            // 비밀번호 변경 성공 시 필드 초기화 및 유효성 메시지 초기화
-            setCurrentPassword('');
-            resetPasswordFields(); // 커스텀 훅의 초기화 함수 사용
-            setShowNewPassword(false); // 비밀번호 필드 가리기
-            setShowConfirmNewPassword(false); // 비밀번호 확인 필드 가리기
+            const updatedData = {
+                email: profile.email,
+                phone: fullPhoneNumber,
+                company: profile.company, // 소속 추가
+                department: profile.department, // 부서 추가
+                // 비밀번호 변경 요청이 있을 경우에만 추가
+                ...(newPassword && {
+                    currentPassword: currentPassword,
+                    newPassword: newPassword,
+                }),
+            };
 
-        } catch (error: unknown) {
-            let errorMessage = "프로필 정보 업데이트에 실패했습니다. 다시 시도해주십시오.";
-            if (error instanceof Error) {
-                // Error 인스턴스일 경우 message 속성 접근
-                console.error("Failed to update user profile:", error.message);
-                errorMessage = `프로필 정보 업데이트에 실패했습니다: ${error.message}`;
-                setPasswordChangeMessage(error.message); // 에러 메시지를 passwordChangeMessage로도 표시
-            } else {
-                // 그 외의 경우 일반 에러 메시지
-                console.error("Failed to update user profile:", error);
+            // 🚀 프로필 정보 업데이트 API 호출:
+            // 아래 주석 처리된 코드를 활성화하시고, `/api/user/profile` 경로를
+            // 실제 프로필 업데이트 API 엔드포인트로 변경해 주세요.
+            // await axios.put('/api/user/profile', updatedData);
+
+            console.log('Profile updated:', updatedData);
+            setPasswordChangeMessage('프로필 정보가 성공적으로 업데이트되었습니다!');
+            resetPasswordFields(); // 비밀번호 필드 초기화
+            // 프로필 정보 다시 불러오기 (선택 사항)
+            // fetchUserProfile();
+
+        } catch (err) {
+            console.error('Failed to update profile:', err);
+            setError('프로필 업데이트에 실패했습니다. 다시 시도해주세요.');
+            if (axios.isAxiosError(err) && err.response?.status === 401) {
+                setError('현재 비밀번호가 올바르지 않습니다.');
             }
-            setError(errorMessage); // 일반 에러 메시지
-        } finally {
-            setIsLoading(false);
         }
-    }, [
-        profile, 
-        phonePart1, phonePart2, phonePart3, 
-        currentPassword, newPassword, confirmNewPassword,
-        validateAllPasswordFields, resetPasswordFields,
-    ]);
+    }, [profile, phonePart1, phonePart2, phonePart3, currentPassword, newPassword, confirmNewPassword, isPasswordValid, resetPasswordFields]);
 
     /**
      * @function handleKakaoConnect
-     * @description 카카오 계정 연동을 시작합니다.
+     * @description 카카오 계정 연동을 처리합니다.
      */
     const handleKakaoConnect = useCallback(async () => {
-        setIsLoading(true);
-        setError(null);
         try {
-            const updatedProfile = await mockKakaoConnect(profile); // 실제 API로 교체 필요
-            setProfile(updatedProfile);
-            alert('카카오 계정 연동 절차를 시작합니다! (프론트엔드 테스트용)');
-        } catch (error: unknown) {
-            let errorMessage = "카카오 계정 연동에 실패했습니다.";
-            if (error instanceof Error) {
-                // Error 인스턴스일 경우 message 속성 접근
-                console.error("Failed to connect Kakao account:", error.message);
-                errorMessage = `카카오 계정 연동에 실패했습니다: ${error.message}`;
-            } else {
-                // 그 외의 경우 일반 에러 메시지
-                console.error("Failed to connect Kakao account:", error);
-            }
-            setError(errorMessage);
-        } finally {
-            setIsLoading(false);
+            // 실제 카카오 연동 로직 (예: 팝업 열기, 리다이렉트)
+            // const response = await axios.get('/api/auth/kakao');
+            console.log('카카오 연동 시도');
+            alert('카카오 연동 기능은 아직 구현되지 않았습니다.');
+            // 연동 성공 후 profile 상태 업데이트
+            // setProfile(prev => ({ ...prev, kakaoId: 123456789 })); // 예시 ID
+        } catch (err) {
+            console.error('카카오 연동 실패:', err);
+            setError('카카오 연동에 실패했습니다.');
         }
-    }, [profile]);
+    }, []);
 
     /**
      * @function handleKakaoDisconnect
-     * @description 카카오 계정 연동을 해지합니다.
+     * @description 카카오 계정 연동 해지를 처리합니다.
      */
     const handleKakaoDisconnect = useCallback(async () => {
-        setIsLoading(true);
-        setError(null);
         try {
-            const updatedProfile = await mockKakaoDisconnect(profile); // 실제 API로 교체 필요
-            setProfile(updatedProfile);
-            alert('카카오 계정 연동이 성공적으로 해지되었습니다. (목 데이터 반영)');
-        } catch (error: unknown) {
-            let errorMessage = "카카오 계정 연동 해지에 실패했습니다. 다시 시도해주십시오.";
-            if (error instanceof Error) {
-                // Error 인스턴스일 경우 message 속성 접근
-                console.error("Failed to disconnect Kakao account:", error.message);
-                errorMessage = `카카오 계정 연동 해지에 실패했습니다: ${error.message}`;
-            } else {
-                // 그 외의 경우 일반 에러 메시지
-                console.error("Failed to disconnect Kakao account:", error);
-            }
-            setError(errorMessage);
-        } finally {
-            setIsLoading(false);
+            // 실제 카카오 연동 해지 로직
+            // await axios.post('/api/auth/kakao/disconnect');
+            console.log('카카오 연동 해지');
+            alert('카카오 연동 해지 기능은 아직 구현되지 않았습니다.');
+            setProfile(prev => ({ ...prev, kakaoId: null }));
+        } catch (err) {
+            console.error('카카오 연동 해지 실패:', err);
+            setError('카카오 연동 해지에 실패했습니다.');
         }
-    }, [profile]);
+    }, []);
 
-    // 컴포넌트 마운트 시 프로필 정보 불러오기
-    useEffect(() => {
-        fetchUserProfileData();
-    }, [fetchUserProfileData]);
+    /**
+     * @function handleNaverConnect
+     * @description 네이버 계정 연동을 처리합니다.
+     */
+    const handleNaverConnect = useCallback(async () => {
+        try {
+            // 실제 네이버 연동 로직
+            // const response = await axios.get('/api/auth/naver');
+            console.log('네이버 연동 시도');
+            alert('네이버 연동 기능은 아직 구현되지 않았습니다.');
+            // setProfile(prev => ({ ...prev, naverId: 'naver_user_id_example' }));
+        } catch (err) {
+            console.error('네이버 연동 실패:', err);
+            setError('네이버 연동에 실패했습니다.');
+        }
+    }, []);
+
+    /**
+     * @function handleNaverDisconnect
+     * @description 네이버 계정 연동 해지를 처리합니다.
+     */
+    const handleNaverDisconnect = useCallback(async () => {
+        try {
+            // 실제 네이버 연동 해지 로직
+            // await axios.post('/api/auth/naver/disconnect');
+            console.log('네이버 연동 해지');
+            alert('네이버 연동 해지 기능은 아직 구현되지 않았습니다.');
+            setProfile(prev => ({ ...prev, naverId: null }));
+        } catch (err) {
+            console.error('네이버 연동 해지 실패:', err);
+            setError('네이버 연동 해지에 실패했습니다.');
+        }
+    }, []);
+
+    /**
+     * @function handleGoogleConnect
+     * @description 구글 계정 연동을 처리합니다.
+     */
+    const handleGoogleConnect = useCallback(async () => {
+        try {
+            // 실제 구글 연동 로직
+            // const response = await axios.get('/api/auth/google');
+            console.log('구글 연동 시도');
+            alert('구글 연동 기능은 아직 구현되지 않았습니다.');
+            // setProfile(prev => ({ ...prev, googleId: 'google_user_id_example' }));
+        } catch (err) {
+            console.error('구글 연동 실패:', err);
+            setError('구글 연동에 실패했습니다.');
+        }
+    }, []);
+
+    /**
+     * @function handleGoogleDisconnect
+     * @description 구글 계정 연동 해지를 처리합니다.
+     */
+    const handleGoogleDisconnect = useCallback(async () => {
+        try {
+            // 실제 구글 연동 해지 로직
+            // await axios.post('/api/auth/google/disconnect');
+            console.log('구글 연동 해지');
+            alert('구글 연동 해지 기능은 아직 구현되지 않았습니다.');
+            setProfile(prev => ({ ...prev, googleId: null }));
+        } catch (err) {
+            console.error('구글 연동 해지 실패:', err);
+            setError('구글 연동 해지에 실패했습니다.');
+        }
+    }, []);
+
 
     return {
         profile,
@@ -283,26 +445,33 @@ export const useProfileManagement = () => {
         passwordChangeMessage,
         newPasswordValidation,
         passwordMatch,
+        isPasswordValid,
         phonePart1,
         phonePart2,
         phonePart3,
-        showNewPassword, // 새 비밀번호 필드 보이기 여부
-        showConfirmNewPassword, // 새 비밀번호 확인 필드 보이기 여부
-        isNewPasswordFocused, // 새 비밀번호 필드 포커스 상태
-        isConfirmNewPasswordFocused, // 새 비밀번호 확인 필드 포커스 상태
+        showNewPassword,
+        showConfirmNewPassword,
+        isNewPasswordFocused,
+        isConfirmNewPasswordFocused,
         handleEmailChange,
         handlePhonePartChange,
+        handleCompanyChange,
+        handleDepartmentChange,
         handleCurrentPasswordChange,
         handleNewPasswordChange,
         handleConfirmNewPasswordChange,
-        handleNewPasswordFocus, // 새 비밀번호 필드 포커스 핸들러
-        handleNewPasswordBlur, // 새 비밀번호 필드 블러 핸들러
-        handleConfirmNewPasswordFocus, // 새 비밀번호 확인 필드 포커스 핸들러
-        handleConfirmNewPasswordBlur, // 새 비밀번호 확인 필드 블러 핸들러
-        toggleNewPasswordVisibility, // 새 비밀번호 필드 보이기/숨기기 토글 함수
-        toggleConfirmNewPasswordVisibility, // 새 비밀번호 확인 필드 보이기/숨기기 토글 함수
-        handleUpdateProfile,
+        handleNewPasswordFocus,
+        handleNewPasswordBlur,
+        handleConfirmNewPasswordFocus,
+        handleConfirmNewPasswordBlur,
+        toggleNewPasswordVisibility,
+        toggleConfirmNewPasswordVisibility,
+        updateProfile,
         handleKakaoConnect,
         handleKakaoDisconnect,
+        handleNaverConnect,
+        handleNaverDisconnect,
+        handleGoogleConnect,
+        handleGoogleDisconnect,
     };
 };

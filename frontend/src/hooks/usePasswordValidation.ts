@@ -1,152 +1,164 @@
 // src/hooks/usePasswordValidation.ts
 
-import { useState, useCallback, FocusEvent } from 'react';
-import {
-    validatePWPolicy, // user.ts에서 유효성 검사 함수 임포트
-    validatePWMatch,  // user.ts에서 유효성 검사 함수 임포트
-    PWValidationResult,
-    PWMatchResult,
-} from '../ts/Profile/user';
+import React, { useState, useCallback, useMemo } from 'react';
+
+// 비밀번호 유효성 검사를 위한 정규 표현식
+const passwordRegex = {
+    length: /.{8,}/, // 8자 이상
+    minTwoTypes: /(?=.*[a-zA-Z])(?=.*\d)|(?=.*[a-zA-Z])(?=.*[!@#$%^&*])|(?=.*\d)(?=.*[!@#$%^&*])/, // 영문, 숫자, 특수문자 중 2가지 이상 - 백슬래시(\) 이스케이프 수정
+};
+
+/**
+ * @interface PasswordValidationFeedback
+ * @description 비밀번호 유효성 검사 결과에 대한 상세 피드백 인터페이스
+ */
+export interface PasswordValidationFeedback {
+    length?: boolean; // 8자 이상
+    minTwoTypes?: boolean; // 2종류 이상 문자 조합
+    warning?: string; // 추가 경고 메시지 (예: 연속된 숫자/문자)
+}
+
+/**
+ * @interface PasswordMatchFeedback
+ * @description 새 비밀번호와 확인 비밀번호 일치 여부 피드백 인터페이스
+ */
+export interface PasswordMatchFeedback {
+    isMatch: boolean;
+    message: string;
+}
 
 /**
  * @function usePasswordValidation
- * @description 비밀번호 유효성 검사 및 확인 로직과 상태를 관리하는 커스텀 훅입니다.
- * @returns {object} 비밀번호 상태, 유효성 결과, 변경 핸들러, 포커스 상태, 그리고 최종 유효성 검사 함수를 반환합니다.
+ * @description 비밀번호 유효성 검사 및 일치 여부 상태를 관리하는 커스텀 훅입니다.
+ * @returns {object} 비밀번호 관련 상태와 핸들러 함수들을 반환합니다.
  */
 export const usePasswordValidation = () => {
     const [newPassword, setNewPassword] = useState<string>('');
     const [confirmNewPassword, setConfirmNewPassword] = useState<string>('');
-    const [newPasswordValidation, setNewPasswordValidation] = useState<PWValidationResult | null>(null);
-    const [passwordMatch, setPasswordMatch] = useState<PWMatchResult | null>(null);
-
-    // 비밀번호 필드 포커스 상태
     const [isNewPasswordFocused, setIsNewPasswordFocused] = useState<boolean>(false);
     const [isConfirmNewPasswordFocused, setIsConfirmNewPasswordFocused] = useState<boolean>(false);
 
     /**
      * @function handleNewPasswordChange
-     * @description 새 비밀번호 입력 필드의 변경을 처리하고, 비밀번호 정책 유효성을 검사합니다.
-     * @param {React.ChangeEvent<HTMLInputElement>} e - 입력 필드 변경 이벤트 객체
+     * @description 새 비밀번호 입력 필드의 변경을 처리합니다.
      */
     const handleNewPasswordChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-        const value = e.target.value;
-        setNewPassword(value);
-        const validation = validatePWPolicy(value); // user.ts의 함수 호출
-        setNewPasswordValidation(validation);
-
-        if (confirmNewPassword.length > 0) {
-            setPasswordMatch(validatePWMatch(value, confirmNewPassword)); // user.ts의 함수 호출
-        } else {
-            setPasswordMatch(null);
-        }
-    }, [confirmNewPassword]);
+        setNewPassword(e.target.value);
+    }, []);
 
     /**
      * @function handleConfirmNewPasswordChange
-     * @description 새 비밀번호 확인 입력 필드의 변경을 처리하고, 비밀번호 일치 여부를 검사합니다.
-     * @param {React.ChangeEvent<HTMLInputElement>} e - 입력 필드 변경 이벤트 객체
+     * @description 새 비밀번호 확인 입력 필드의 변경을 처리합니다.
      */
     const handleConfirmNewPasswordChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-        const value = e.target.value;
-        setConfirmNewPassword(value);
-        setPasswordMatch(validatePWMatch(newPassword, value)); // user.ts의 함수 호출
-    }, [newPassword]);
+        setConfirmNewPassword(e.target.value);
+    }, []);
 
     /**
      * @function handleNewPasswordFocus
-     * @description 새 비밀번호 입력 필드에 포커스될 때의 핸들러
-     * @param {FocusEvent<HTMLInputElement>} e - 포커스 이벤트 객체
+     * @description 새 비밀번호 필드 포커스 시 상태를 업데이트합니다.
      */
-    const handleNewPasswordFocus = useCallback((e: FocusEvent<HTMLInputElement>) => {
-        setIsNewPasswordFocused(true);
-    }, []);
+    const handleNewPasswordFocus = useCallback(() => setIsNewPasswordFocused(true), []);
 
     /**
      * @function handleNewPasswordBlur
-     * @description 새 비밀번호 입력 필드에서 포커스가 벗어날 때의 핸들러
-     * @param {FocusEvent<HTMLInputElement>} e - 포커스 이벤트 객체
+     * @description 새 비밀번호 필드 블러 시 상태를 업데이트합니다.
      */
-    const handleNewPasswordBlur = useCallback((e: FocusEvent<HTMLInputElement>) => {
-        setIsNewPasswordFocused(false);
-    }, []);
+    const handleNewPasswordBlur = useCallback(() => setIsNewPasswordFocused(false), []);
 
     /**
      * @function handleConfirmNewPasswordFocus
-     * @description 새 비밀번호 확인 입력 필드에 포커스될 때의 핸들러
-     * @param {FocusEvent<HTMLInputElement>} e - 포커스 이벤트 객체
+     * @description 새 비밀번호 확인 필드 포커스 시 상태를 업데이트합니다.
      */
-    const handleConfirmNewPasswordFocus = useCallback((e: FocusEvent<HTMLInputElement>) => {
-        setIsConfirmNewPasswordFocused(true);
-    }, []);
+    const handleConfirmNewPasswordFocus = useCallback(() => setIsConfirmNewPasswordFocused(true), []);
 
     /**
      * @function handleConfirmNewPasswordBlur
-     * @description 새 비밀번호 확인 입력 필드에서 포커스가 벗어날 때의 핸들러
-     * @param {FocusEvent<HTMLInputElement>} e - 포커스 이벤트 객체
+     * @description 새 비밀번호 확인 필드 블러 시 상태를 업데이트합니다.
      */
-    const handleConfirmNewPasswordBlur = useCallback((e: FocusEvent<HTMLInputElement>) => {
-        setIsConfirmNewPasswordFocused(false);
-    }, []);
+    const handleConfirmNewPasswordBlur = useCallback(() => setIsConfirmNewPasswordFocused(false), []);
 
-    /**
-     * @function validateAllPasswordFields
-     * @description 현재 입력된 비밀번호 필드들의 최종 유효성을 검사합니다.
-     * @returns {{isValid: boolean, message: string | null}} 전체 비밀번호 필드의 유효성 결과와 메시지
-     */
-    const validateAllPasswordFields = useCallback(() => {
-        const passwordFieldsFilled = newPassword || confirmNewPassword;
+    // 새 비밀번호 유효성 검사 결과
+    const newPasswordValidation = useMemo<PasswordValidationFeedback>(() => {
+        const length = passwordRegex.length.test(newPassword);
+        const minTwoTypes = passwordRegex.minTwoTypes.test(newPassword);
 
-        if (passwordFieldsFilled) {
-            // 새 비밀번호 정책 유효성 검사
-            const newPwValidation = validatePWPolicy(newPassword); // user.ts의 함수 호출
-            setNewPasswordValidation(newPwValidation);
+        // 연속된 숫자/문자 경고 (간단한 예시)
+        let warning = '';
+        if (/(.)\1\1/.test(newPassword)) { // 백슬래시(\) 이스케이프 수정
+            warning = "3자 이상 연속된 동일 문자/숫자는 사용하실 수 없습니다.";
+        }
+        if (/(123)|(234)|(abc)|(bcd)/.test(newPassword)) { // 백슬래시(\) 이스케이프 수정
+            warning = "3자 이상 연속된 숫자/문자는 사용하실 수 없습니다.";
+        }
 
-            if (!newPwValidation.isValiD) {
-                return { isValid: false, message: newPwValidation.message };
+        return {
+            length,
+            minTwoTypes,
+            warning,
+        };
+    }, [newPassword]);
+
+    // 비밀번호 일치 여부
+    const passwordMatch = useMemo<PasswordMatchFeedback>(() => {
+        const isMatch = newPassword === confirmNewPassword && newPassword.length > 0;
+        const message = isMatch ? "새 비밀번호와 일치합니다." : "새 비밀번호와 일치하지 않습니다.";
+        return { isMatch, message };
+    }, [newPassword, confirmNewPassword]);
+
+    // 비밀번호 변경 전체 유효성 검사
+    const isPasswordValid = useMemo(() => {
+        // 비밀번호가 비어있으면 유효하지 않다고 판단
+        if (!newPassword && !confirmNewPassword) {
+            return { isValid: true, message: "" }; // 비밀번호 변경을 하지 않는 경우
+        }
+
+        // 새 비밀번호가 비어있지 않은 경우
+        if (newPassword || confirmNewPassword) {
+            if (!newPasswordValidation.length) {
+                return { isValid: false, message: "새 비밀번호는 8자 이상이어야 합니다." };
             }
-
-            // 새 비밀번호 일치 여부 검사
-            const pwMatch = validatePWMatch(newPassword, confirmNewPassword); // user.ts의 함수 호출
-            setPasswordMatch(pwMatch);
-
-            if (!pwMatch.isMatch) {
-                return { isValid: false, message: pwMatch.message };
+            if (!newPasswordValidation.minTwoTypes) {
+                return { isValid: false, message: "새 비밀번호는 2종류 이상 문자 조합이어야 합니다." };
+            }
+            if (newPasswordValidation.warning) {
+                return { isValid: false, message: newPasswordValidation.warning };
             }
         }
-        
-        return { isValid: true, message: null };
 
-    }, [newPassword, confirmNewPassword]);
+        // 비밀번호 일치 여부 검사
+        if (!passwordMatch.isMatch) {
+            return { isValid: false, message: passwordMatch.message || "새 비밀번호와 확인 비밀번호가 일치하지 않습니다." };
+        }
+
+        return { isValid: true, message: "비밀번호 변경이 가능합니다." };
+    }, [newPassword, confirmNewPassword, newPasswordValidation, passwordMatch]);
 
     /**
      * @function resetPasswordFields
-     * @description 비밀번호 관련 입력 필드와 유효성 상태를 초기화합니다.
+     * @description 비밀번호 관련 필드들을 초기화합니다.
      */
     const resetPasswordFields = useCallback(() => {
         setNewPassword('');
         setConfirmNewPassword('');
-        setNewPasswordValidation(null);
-        setPasswordMatch(null);
-        setIsNewPasswordFocused(false); // 포커스 상태 초기화
-        setIsConfirmNewPasswordFocused(false); // 포커스 상태 초기화
+        setIsNewPasswordFocused(false);
+        setIsConfirmNewPasswordFocused(false);
     }, []);
 
     return {
         newPassword,
-        setNewPassword,
         confirmNewPassword,
-        setConfirmNewPassword,
         newPasswordValidation,
         passwordMatch,
         isNewPasswordFocused,
         isConfirmNewPasswordFocused,
+        isPasswordValid,
         handleNewPasswordChange,
         handleConfirmNewPasswordChange,
         handleNewPasswordFocus,
         handleNewPasswordBlur,
         handleConfirmNewPasswordFocus,
         handleConfirmNewPasswordBlur,
-        validateAllPasswordFields,
         resetPasswordFields,
     };
 };

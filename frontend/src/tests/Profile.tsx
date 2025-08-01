@@ -1,16 +1,18 @@
-// src/pages/Profile.tsx
+// src/components/Profile.tsx
 
 import React from 'react';
 import { useProfileManagement } from '../hooks/useProfileManagement';
 
-import styles from '../styles/Profile.module.css';
-import KakaoLogo from '../assets/profile/KakaoLogo.png';
+// 이미지 에셋 import
+import KakaoLogo from '../assets/profile/kakao.png';
+import NaverLogo from '../assets/profile/naver.png';
+import GoogleLogo from '../assets/profile/google.png';
 
 /**
- * @function ProfilePage
- * @description 사용자 프로필 정보를 표시하고 수정하는 페이지 컴포넌트
+ * @function Profile
+ * @description 사용자 프로필 정보를 표시하고 수정하는 페이지 컴포넌트입니다.
  */
-const ProfilePage: React.FC = () => {
+const Profile = () => {
     const {
         profile,
         isLoading,
@@ -21,6 +23,7 @@ const ProfilePage: React.FC = () => {
         passwordChangeMessage,
         newPasswordValidation,
         passwordMatch,
+        isPasswordValid,
         phonePart1,
         phonePart2,
         phonePart3,
@@ -39,333 +42,388 @@ const ProfilePage: React.FC = () => {
         handleConfirmNewPasswordBlur,
         toggleNewPasswordVisibility,
         toggleConfirmNewPasswordVisibility,
-        handleUpdateProfile,
+        updateProfile,
         handleKakaoConnect,
         handleKakaoDisconnect,
+        handleNaverConnect,
+        handleNaverDisconnect,
+        handleGoogleConnect,
+        handleGoogleDisconnect,
     } = useProfileManagement();
 
+
     /**
-     * @function renderPasswordFeedback
-     * @description 새 비밀번호 유효성 검사 피드백 메시지를 렌더링합니다.
-     * @returns {JSX.Element | null} 유효성 피드백 메시지 JSX 또는 null
+     * @function handleSubmit
+     * @description 폼 제출 시 프로필 정보를 업데이트합니다.
+     * @param {React.FormEvent} e - 폼 이벤트 객체
      */
-    const renderPasswordFeedback = () => {
-        // 새 비밀번호 필드에 포커스가 없으면 메시지를 숨깁니다.
-        if (!isNewPasswordFocused) {
-            return null;
-        }
-
-        // 새 비밀번호가 비어있고, 확인 비밀번호만 입력되었거나 확인 비밀번호 필드에 포커스가 있는 경우
-        if (newPassword.length === 0 && (confirmNewPassword.length > 0 || isConfirmNewPasswordFocused)) {
-            return (
-                <div className={styles['password-feedback-container']}>
-                    <p className={styles.invalid}>
-                        새 비밀번호를 먼저 입력해주세요.
-                    </p>
-                </div>
-            );
-        }
-
-        // 새 비밀번호 필드에 포커스가 있거나, 새 비밀번호가 입력되기 시작했고 유효성 검사가 필요한 경우
-        // newPasswordValidation이 null이 아닐 때만 feedback 속성에 접근
-        if (newPassword.length > 0 && newPasswordValidation) {
-            const feedback = newPasswordValidation?.feedback;
-            // minTwoTypes 속성이 있는지 확인하고 사용합니다.
-            const isMinTwoTypesValid = feedback && 'minTwoTypes' in feedback ? feedback.minTwoTypes : false;
-
-            return (
-                <div className={styles['password-feedback-container']}>
-                    <p className={feedback?.length ? styles.valid : styles.invalid}>
-                        비밀번호는 8자 이상이어야 합니다.
-                    </p>
-                    <p className={isMinTwoTypesValid ? styles.valid : styles.invalid}>
-                        비밀번호는 2종류 이상 문자 조합이어야 합니다.
-                    </p>
-                    {newPasswordValidation?.warning && (
-                        <p className={styles['warning-text']}>
-                            {newPasswordValidation.warning}
-                        </p>
-                    )}
-                </div>
-            );
-        }
-
-        return null;
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        updateProfile();
     };
 
     /**
-     * @function renderConfirmPasswordMatch
-     * @description 새 비밀번호 확인 필드 아래에 일치 여부 메시지를 렌더링합니다.
-     * @returns {JSX.Element | null} 일치 여부 메시지 JSX 또는 null
+     * @function handleCancel
+     * @description 취소 버튼 클릭 시 이전 페이지로 돌아갑니다.
      */
-    const renderConfirmPasswordMatch = () => {
-        // 확인 비밀번호 필드에 포커스가 없으면 메시지를 숨깁니다.
-        if (!isConfirmNewPasswordFocused) {
-            return null;
-        }
-
-        // 새 비밀번호가 입력되었고, 확인 비밀번호가 입력되기 시작했거나 포커스가 있을 때
-        if (newPassword.length > 0 && (confirmNewPassword.length > 0 || isConfirmNewPasswordFocused)) {
-            // passwordMatch 객체가 존재할 때만 메시지 표시
-            if (passwordMatch) {
-                return (
-                    <div className={styles['password-feedback-container']}>
-                        <p className={passwordMatch.isMatch ? styles.valid : styles.invalid}>
-                            {passwordMatch.message}
-                        </p>
-                    </div>
-                );
-            } else if (isConfirmNewPasswordFocused && confirmNewPassword.length === 0) {
-                // 새 비밀번호는 있는데 확인 비밀번호가 비어있고, 확인 필드에 포커스가 있는 경우
-                return (
-                    <div className={styles['password-feedback-container']}>
-                        <p className={styles.invalid}>
-                            비밀번호 확인을 입력해주세요.
-                        </p>
-                    </div>
-                );
-            }
-        }
-        return null;
+    const handleCancel = () => {
+        window.history.back(); // 이전 페이지로 돌아가기
     };
 
-    // 로딩 중일 때 로딩 메시지를 표시합니다.
+
     if (isLoading) {
-        return <div className={styles.loadingMessage}>프로필 정보를 불러오는 중입니다...</div>;
+        return (
+            <div className="flex justify-center items-center h-screen bg-gray-100 font-inter">
+                <div className="p-8 bg-white rounded-2xl shadow-lg w-full max-w-2xl text-center">
+                    <p className="text-xl font-semibold text-gray-700">로딩 중...</p>
+                </div>
+            </div>
+        );
     }
 
     return (
-        <div className={styles.profileContainer}>
-            <h2 className={styles.pageTitle}>내 정보</h2>
-            <form onSubmit={handleUpdateProfile}>
-                <section>
-                    <h3 className={styles.sectionTitle}>기본 정보</h3>
-                    <div className={styles.formGroup}>
-                        <label htmlFor="memberId" className={styles.label}>아이디</label>
-                        <input
-                            type="text"
-                            id="memberId"
-                            name="memberId"
-                            value={profile.memberId}
-                            readOnly
-                            className={styles.inputField}
-                            title="사용자 아이디"
-                        />
+        <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4 sm:p-6 lg:p-8 font-inter">
+            <div className="bg-white rounded-2xl shadow-lg w-full max-w-2xl p-6 sm:p-8 lg:p-10 max-h-[calc(100vh-5rem)] overflow-y-auto custom-scroll-hidden">
+                {/* 로고 또는 프로필 공간 */}
+                <div className="flex justify-center mb-6">
+                    <div className="w-24 h-24 rounded-full bg-gray-200 flex items-center justify-center text-gray-500">
+                        {/* 여기에 로고 또는 프로필 이미지를 추가할 수 있습니다. */}
+                        {/* <img src="/path/to/logo.png" alt="로고" className="w-full h-full object-cover rounded-full" /> */}
+                        <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                     </div>
-                    <div className={styles.formGroup}>
-                        <label htmlFor="memberName" className={styles.label}>이름</label>
-                        <input
-                            type="text"
-                            id="memberName"
-                            name="memberName"
-                            value={profile.memberName}
-                            readOnly // 이름 필드를 읽기 전용으로 변경
-                            className={styles.inputField}
-                            placeholder="이름을 입력하세요"
-                            title="이름"
-                        />
-                    </div>
-                    <div className={styles.formGroup}>
-                        <label htmlFor="email" className={styles.label}>이메일</label>
-                        <input
-                            type="email"
-                            id="email"
-                            name="email"
-                            value={profile.email}
-                            onChange={handleEmailChange}
-                            className={styles.inputField}
-                            placeholder="이메일을 입력하세요"
-                            title="이메일 주소"
-                        />
-                    </div>
-                    <div className={styles.formGroup}>
-                        <label htmlFor="phone" className={styles.label}>전화번호</label>
-                        <div className={styles.phoneNumberInputGroup}>
-                            <input
-                                type="text"
-                                id="phonePart1"
-                                value={phonePart1}
-                                onChange={(e) => handlePhonePartChange(1, e.target.value)}
-                                className={`${styles.inputField} ${styles.phonePart1}`}
-                                maxLength={3}
-                                placeholder="010"
-                                title="전화번호 첫째 자리"
-                            />
-                            <span>-</span>
-                            <input
-                                type="text"
-                                id="phonePart2"
-                                value={phonePart2}
-                                onChange={(e) => handlePhonePartChange(2, e.target.value)}
-                                className={`${styles.inputField} ${styles.phonePart2}`}
-                                maxLength={4}
-                                placeholder="1234"
-                                title="전화번호 둘째 자리"
-                            />
-                            <span>-</span>
-                            <input
-                                type="text"
-                                id="phonePart3"
-                                value={phonePart3}
-                                onChange={(e) => handlePhonePartChange(3, e.target.value)}
-                                className={`${styles.inputField} ${styles.phonePart3}`}
-                                maxLength={4}
-                                placeholder="5678"
-                                title="전화번호 셋째 자리"
-                            />
-                        </div>
-                    </div>
-                </section>
+                </div>
+                <h1 className="text-3xl sm:text-4xl font-extrabold text-center text-gray-800 mb-8">회원정보 수정</h1>
+                <form onSubmit={handleSubmit} className="space-y-6">
+                    {/* 사용자 정보 섹션 */}
+                    <section className="space-y-4">
+                        <h2 className="text-2xl font-bold text-gray-700">개인 정보</h2>
 
-                <section>
-                    <h3 className={styles.sectionTitle}>비밀번호 변경</h3>
-                    <div className={styles.formGroup}>
-                        <label htmlFor="currentPassword" className={styles.label}>현재 비밀번호</label>
-                        <div className={styles.passwordFieldGroup}>
+                        {/* 멤버 ID (읽기 전용) */}
+                        <div>
+                            <label htmlFor="memberId" className="block text-sm font-medium text-gray-600 mb-1">ID</label>
                             <input
-                                type={showNewPassword ? 'text' : 'password'}
-                                id="currentPassword"
-                                value={currentPassword}
-                                onChange={handleCurrentPasswordChange}
-                                className={styles.inputField}
-                                placeholder="현재 비밀번호"
-                                title="현재 비밀번호"
+                                id="memberId"
+                                type="text"
+                                value={profile.memberId}
+                                className="w-full p-3 border border-gray-300 rounded-lg bg-gray-100 cursor-not-allowed" // 읽기 전용 스타일
+                                title="회원 ID"
+                                disabled // 수정 불가능하게 설정
                             />
-                            <i
-                                className={`${styles.passwordToggleIcon} fas ${showNewPassword ? 'fa-eye' : 'fa-eye-slash'}`}
-                                onClick={toggleNewPasswordVisibility}
-                                aria-label={showNewPassword ? '현재 비밀번호 숨기기' : '현재 비밀번호 보기'}
-                                title={showNewPassword ? '현재 비밀번호 숨기기' : '현재 비밀번호 보기'}
-                            ></i>
                         </div>
-                    </div>
-                    <div className={styles.formGroup}>
-                        <label htmlFor="newPassword" className={styles.label}>새 비밀번호</label>
-                        <div className={styles.passwordFieldGroup}>
-                            <input
-                                type={showNewPassword ? 'text' : 'password'}
-                                id="newPassword"
-                                value={newPassword}
-                                onChange={handleNewPasswordChange}
-                                onFocus={handleNewPasswordFocus}
-                                onBlur={handleNewPasswordBlur}
-                                className={styles.inputField}
-                                placeholder="새 비밀번호"
-                                title="새 비밀번호"
-                            />
-                            <i
-                                className={`${styles.passwordToggleIcon} fas ${showNewPassword ? 'fa-eye' : 'fa-eye-slash'}`}
-                                onClick={toggleNewPasswordVisibility}
-                                aria-label={showNewPassword ? '새 비밀번호 숨기기' : '새 비밀번호 보기'}
-                                title={showNewPassword ? '새 비밀번호 숨기기' : '새 비밀번호 보기'}
-                            ></i>
-                        </div>
-                    </div>
-                    {renderPasswordFeedback()}
-                    <div className={styles.formGroup}>
-                        <label htmlFor="confirmNewPassword" className={styles.label}>새 비밀번호 확인</label>
-                        <div className={styles.passwordFieldGroup}>
-                            <input
-                                type={showConfirmNewPassword ? 'text' : 'password'}
-                                id="confirmNewPassword"
-                                value={confirmNewPassword}
-                                onChange={handleConfirmNewPasswordChange}
-                                onFocus={handleConfirmNewPasswordFocus}
-                                onBlur={handleConfirmNewPasswordBlur}
-                                className={styles.inputField}
-                                placeholder="새 비밀번호 확인"
-                                title="새 비밀번호 확인"
-                            />
-                            <i
-                                className={`${styles.passwordToggleIcon} fas ${showConfirmNewPassword ? 'fa-eye' : 'fa-eye-slash'}`}
-                                onClick={toggleConfirmNewPasswordVisibility}
-                                aria-label={showConfirmNewPassword ? '새 비밀번호 확인 숨기기' : '새 비밀번호 확인 보기'}
-                                title={showConfirmNewPassword ? '새 비밀번호 확인 숨기기' : '새 비밀번호 확인 보기'}
-                            ></i>
-                        </div>
-                    </div>
-                    {renderConfirmPasswordMatch()}
-                </section>
 
-                <section>
-                    <h3 className={styles.sectionTitle}>회사 정보</h3>
-                    <div className={styles.formGroup}>
-                        <label htmlFor="memberRole" className={styles.label}>역할</label>
-                        <input
-                            type="text"
-                            id="memberRole"
-                            name="memberRole"
-                            value={profile.memberRole === 'ADMIN' ? '관리자' : '작업자'} // '직원'을 '작업자'로 변경
-                            readOnly
-                            className={styles.inputField}
-                            title="사용자 역할"
-                        />
-                    </div>
-                    <div className={styles.formGroup}>
-                        <label htmlFor="company" className={styles.label}>회사명</label>
-                        <input
-                            type="text"
-                            id="company"
-                            name="company"
-                            value={profile.company || ''} // null일 경우 빈 문자열로 표시
-                            readOnly
-                            className={styles.inputField}
-                            title="회사명"
-                        />
-                    </div>
-                    <div className={styles.formGroup}>
-                        <label htmlFor="department" className={styles.label}>부서</label>
-                        <input
-                            type="text"
-                            id="department"
-                            name="department"
-                            value={profile.department || ''} // null일 경우 빈 문자열로 표시
-                            readOnly
-                            className={styles.inputField}
-                            title="부서명"
-                        />
-                    </div>
-                </section>
+                        {/* 회원 이름 (읽기 전용) */}
+                        <div>
+                            <label htmlFor="memberName" className="block text-sm font-medium text-gray-600 mb-1">이름</label>
+                            <input
+                                id="memberName"
+                                type="text"
+                                value={profile.memberName}
+                                className="w-full p-3 border border-gray-300 rounded-lg bg-gray-100 cursor-not-allowed" // 읽기 전용 스타일
+                                title="회원 이름"
+                                disabled // 수정 불가능하게 설정
+                            />
+                        </div>
 
-                <section>
-                    <h3 className={styles.sectionTitle}>카카오 계정 연동</h3>
-                    <div className={styles.formGroup}>
-                        <label htmlFor="kakaoId" className={styles.label}>카카오 ID</label>
-                        {profile.kakaoId ? (
-                            <div className={styles.kakaoStatusWrapper}>
-                                <span className={styles.kakaoConnectedEmail}>{profile.kakaoId}</span>
+                        <div>
+                            <label htmlFor="email" className="block text-sm font-medium text-gray-600 mb-1">이메일</label>
+                            <input
+                                id="email"
+                                type="email"
+                                value={profile.email}
+                                onChange={handleEmailChange}
+                                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200"
+                                placeholder="이메일 주소"
+                                required
+                                title="이메일 주소"
+                            />
+                        </div>
+                        <div>
+                            <label htmlFor="phoneNumber" className="block text-sm font-medium text-gray-600 mb-1">전화번호</label>
+                            <div className="flex space-x-2">
+                                <input
+                                    id="phonePart1"
+                                    type="text"
+                                    value={phonePart1}
+                                    onChange={(e) => handlePhonePartChange(1, e.target.value)}
+                                    className="w-1/3 p-3 text-center border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 transition-colors duration-200"
+                                    maxLength={3}
+                                    aria-label="전화번호 첫째 자리"
+                                    title="전화번호 첫째 자리"
+                                />
+                                <input
+                                    id="phonePart2"
+                                    type="text"
+                                    value={phonePart2}
+                                    onChange={(e) => handlePhonePartChange(2, e.target.value)}
+                                    className="w-1/3 p-3 text-center border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 transition-colors duration-200"
+                                    maxLength={4}
+                                    aria-label="전화번호 둘째 자리"
+                                    title="전화번호 둘째 자리"
+                                />
+                                <input
+                                    id="phonePart3"
+                                    type="text"
+                                    value={phonePart3}
+                                    onChange={(e) => handlePhonePartChange(3, e.target.value)}
+                                    className="w-1/3 p-3 text-center border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 transition-colors duration-200"
+                                    maxLength={4}
+                                    aria-label="전화번호 셋째 자리"
+                                    title="전화번호 셋째 자리"
+                                />
+                            </div>
+                        </div>
+
+                        {/* 소속 (읽기 전용) */}
+                        <div>
+                            <label htmlFor="company" className="block text-sm font-medium text-gray-600 mb-1">소속</label>
+                            <input
+                                id="company"
+                                type="text"
+                                value={profile.company || ''}
+                                className="w-full p-3 border border-gray-300 rounded-lg bg-gray-100 cursor-not-allowed" // 읽기 전용 스타일
+                                title="소속 회사"
+                                disabled // 수정 불가능하게 설정
+                            />
+                        </div>
+
+                        {/* 부서 (읽기 전용) */}
+                        <div>
+                            <label htmlFor="department" className="block text-sm font-medium text-gray-600 mb-1">부서</label>
+                            <input
+                                id="department"
+                                type="text"
+                                value={profile.department || ''}
+                                className="w-full p-3 border border-gray-300 rounded-lg bg-gray-100 cursor-not-allowed" // 읽기 전용 스타일
+                                title="부서"
+                                disabled // 수정 불가능하게 설정
+                            />
+                        </div>
+
+                    </section>
+
+                    {/* 비밀번호 변경 섹션 */}
+                    <section className="space-y-4 mt-8">
+                        <h2 className="text-2xl font-bold text-gray-700 flex items-center justify-between">
+                            비밀번호 변경
+                        </h2>
+                        <div>
+                            <label htmlFor="currentPassword" className="block text-sm font-medium text-gray-600 mb-1">현재 비밀번호</label>
+                            <div className="relative">
+                                <input
+                                    id="currentPassword"
+                                    type="password"
+                                    value={currentPassword}
+                                    onChange={handleCurrentPasswordChange}
+                                    className="w-full p-3 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 transition-colors duration-200"
+                                    placeholder="현재 비밀번호를 입력해주세요"
+                                    title="현재 비밀번호"
+                                />
+                                <span className="absolute inset-y-0 right-0 pr-3 flex items-center text-sm leading-5">
+                                    <button
+                                        type="button"
+                                        className="text-gray-500 hover:text-gray-700"
+                                        onClick={() => { console.log('비밀번호 보기/숨기기 토글') }} // 실제 토글 함수를 여기에 연결
+                                        title="현재 비밀번호 보기/숨기기"
+                                    >
+                                        <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                                            <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                                            <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" />
+                                        </svg>
+                                    </button>
+                                </span>
+                            </div>
+                        </div>
+                        <div>
+                            <label htmlFor="newPassword" className="block text-sm font-medium text-gray-600 mb-1">새 비밀번호</label>
+                            <div className="relative">
+                                <input
+                                    id="newPassword"
+                                    type={showNewPassword ? 'text' : 'password'}
+                                    value={newPassword}
+                                    onChange={handleNewPasswordChange}
+                                    onFocus={handleNewPasswordFocus}
+                                    onBlur={handleNewPasswordBlur}
+                                    className="w-full p-3 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 transition-colors duration-200"
+                                    placeholder="8자 이상, 영문/숫자/특수문자 중 2가지 이상"
+                                    title="새 비밀번호"
+                                />
+                                <span className="absolute inset-y-0 right-0 pr-3 flex items-center text-sm leading-5">
+                                    <button
+                                        type="button"
+                                        className="text-gray-500 hover:text-gray-700"
+                                        onClick={toggleNewPasswordVisibility}
+                                        title="새 비밀번호 보기/숨기기"
+                                    >
+                                        <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                                            <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                                            <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" />
+                                        </svg>
+                                    </button>
+                                </span>
+                            </div>
+                            {isNewPasswordFocused && newPassword.length > 0 && (
+                                <ul className="mt-2 text-sm text-gray-600 list-inside space-y-1">
+                                    <li className={`flex items-center ${newPasswordValidation.length ? 'text-green-500' : 'text-red-500'}`}>
+                                        <span className="mr-2">{newPasswordValidation.length ? '✓' : '✗'}</span>
+                                        8자 이상
+                                    </li>
+                                    <li className={`flex items-center ${newPasswordValidation.minTwoTypes ? 'text-green-500' : 'text-red-500'}`}>
+                                        <span className="mr-2">{newPasswordValidation.minTwoTypes ? '✓' : '✗'}</span>
+                                        2종류 이상 문자 조합
+                                    </li>
+                                </ul>
+                            )}
+                            {newPasswordValidation.warning && (
+                                <p className="mt-2 text-sm text-red-500">{newPasswordValidation.warning}</p>
+                            )}
+                        </div>
+                        <div>
+                            <label htmlFor="confirmNewPassword" className="block text-sm font-medium text-gray-600 mb-1">새 비밀번호 확인</label>
+                            <div className="relative">
+                                <input
+                                    id="confirmNewPassword"
+                                    type={showConfirmNewPassword ? 'text' : 'password'}
+                                    value={confirmNewPassword}
+                                    onChange={handleConfirmNewPasswordChange}
+                                    onFocus={handleConfirmNewPasswordFocus}
+                                    onBlur={handleConfirmNewPasswordBlur}
+                                    className="w-full p-3 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 transition-colors duration-200"
+                                    placeholder="새 비밀번호를 다시 입력해주세요"
+                                    title="새 비밀번호 확인"
+                                />
+                                <span className="absolute inset-y-0 right-0 pr-3 flex items-center text-sm leading-5">
+                                    <button
+                                        type="button"
+                                        className="text-gray-500 hover:text-gray-700"
+                                        onClick={toggleConfirmNewPasswordVisibility}
+                                        title="새 비밀번호 확인 보기/숨기기"
+                                    >
+                                        <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                                            <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                                            <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" />
+                                        </svg>
+                                    </button>
+                                </span>
+                            </div>
+                            {isConfirmNewPasswordFocused && newPassword.length > 0 && (
+                                <p className={`mt-2 text-sm ${passwordMatch.isMatch ? 'text-green-500' : 'text-red-500'}`}>
+                                    {passwordMatch.message}
+                                </p>
+                            )}
+                        </div>
+                    </section>
+
+                    {/* 소셜 계정 연동 섹션 */}
+                    <section className="space-y-4 mt-8">
+                        <h2 className="text-2xl font-bold text-gray-700">소셜 계정</h2>
+
+                        {/* 카카오 연동 */}
+                        <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl shadow-inner">
+                            <div className="flex items-center gap-4">
+                                <img src={KakaoLogo} alt="카카오 로고" className="w-8 h-8" />
+                                <span className="text-base font-medium text-gray-700">카카오</span>
+                            </div>
+                            {profile.kakaoId ? (
                                 <button
                                     type="button"
-                                    className={styles.kakaoDisconnectButton}
+                                    className="px-5 py-2 bg-red-600 text-white border-none rounded-lg cursor-pointer text-base font-medium transition duration-300 ease-in-out whitespace-nowrap hover:bg-red-700"
                                     onClick={handleKakaoDisconnect}
                                     title="카카오 계정 연동 해지"
                                 >
                                     연동 해제
                                 </button>
+                            ) : (
+                                <button
+                                    type="button"
+                                    className="px-5 py-2 bg-yellow-400 text-black border-none rounded-lg cursor-pointer text-base font-medium transition duration-300 ease-in-out whitespace-nowrap hover:bg-yellow-500"
+                                    onClick={handleKakaoConnect}
+                                    title="카카오 계정 연동"
+                                >
+                                    연동하기
+                                </button>
+                            )}
+                        </div>
+
+                        {/* 네이버 연동 */}
+                        <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl shadow-inner">
+                            <div className="flex items-center gap-4">
+                                <img src={NaverLogo} alt="네이버 로고" className="w-8 h-8" />
+                                <span className="text-base font-medium text-gray-700">네이버</span>
                             </div>
-                        ) : (
-                            <button
-                                type="button"
-                                className={`${styles.kakaoButton} ${styles.kakaoConnectButtonWithIcon}`}
-                                onClick={handleKakaoConnect}
-                                title="카카오 계정 연동"
-                            >
-                                <img src={KakaoLogo} alt="카카오 로그인" className={styles.kakaoButtonIcon} />
-                                카카오계정 연동하기
-                            </button>
-                        )}
+                            {profile.naverId ? (
+                                <button
+                                    type="button"
+                                    className="px-5 py-2 bg-red-600 text-white border-none rounded-lg cursor-pointer text-base font-medium transition duration-300 ease-in-out whitespace-nowrap hover:bg-red-700"
+                                    onClick={handleNaverDisconnect}
+                                    title="네이버 계정 연동 해지"
+                                >
+                                    연동 해제
+                                </button>
+                            ) : (
+                                <button
+                                    type="button"
+                                    className="px-5 py-2 bg-green-500 text-white border-none rounded-lg cursor-pointer text-base font-medium transition duration-300 ease-in-out whitespace-nowrap hover:bg-green-600"
+                                    onClick={handleNaverConnect}
+                                    title="네이버 계정 연동"
+                                >
+                                    연동하기
+                                </button>
+                            )}
+                        </div>
+
+                        {/* 구글 연동 */}
+                        <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl shadow-inner">
+                            <div className="flex items-center gap-4">
+                                <img src={GoogleLogo} alt="구글 로고" className="w-8 h-8" />
+                                <span className="text-base font-medium text-gray-700">구글</span>
+                            </div>
+                            {profile.googleId ? (
+                                <button
+                                    type="button"
+                                    className="px-5 py-2 bg-red-600 text-white border-none rounded-lg cursor-pointer text-base font-medium transition duration-300 ease-in-out whitespace-nowrap hover:bg-red-700"
+                                    onClick={handleGoogleDisconnect}
+                                    title="구글 계정 연동 해지"
+                                >
+                                    연동 해제
+                                </button>
+                            ) : (
+                                <button
+                                    type="button"
+                                    className="px-5 py-2 bg-blue-500 text-white border-none rounded-lg cursor-pointer text-base font-medium transition duration-300 ease-in-out whitespace-nowrap hover:bg-blue-600"
+                                    onClick={handleGoogleConnect}
+                                    title="구글 계정 연동"
+                                >
+                                    연동하기
+                                </button>
+                            )}
+                        </div>
+
+                    </section>
+
+                    {error && <p className="text-center mt-5 p-3 rounded-lg text-base font-medium bg-red-100 text-red-600">{error}</p>}
+                    {passwordChangeMessage && <p className="text-center mt-5 p-3 rounded-lg text-base font-medium bg-green-100 text-green-600">{passwordChangeMessage}</p>}
+
+                    {/* 버튼 섹션 */}
+                    <div className="flex justify-center mt-8 gap-4">
+                        <button
+                            type="submit"
+                            className="px-6 py-3 border-none rounded-lg text-base font-semibold cursor-pointer transition duration-300 ease-in-out min-w-32 text-center hover:-translate-y-0.5 text-white bg-careeyes"
+                        >
+                            정보 수정
+                        </button>
+                        {/* 취소 버튼 */}
+                        <button
+                            type="button"
+                            onClick={handleCancel}
+                            className="px-6 py-3 border border-gray-300 rounded-lg text-base font-semibold cursor-pointer transition duration-300 ease-in-out min-w-32 text-center hover:-translate-y-0.5 bg-white text-gray-700 hover:bg-gray-100"
+                        >
+                            취소
+                        </button>
                     </div>
-                </section>
-
-                {error && <p className={styles.errorMessage}>{error}</p>}
-                {passwordChangeMessage && <p className={styles.successMessage}>{passwordChangeMessage}</p>}
-
-                <div className={styles.bottomButtonGroup}>
-                    <button type="submit" className={`${styles.button} ${styles.primaryButton}`}>정보 수정</button>
-                </div>
-            </form>
+                </form>
+            </div>
         </div>
     );
 };
 
-export default ProfilePage;
+export default Profile;

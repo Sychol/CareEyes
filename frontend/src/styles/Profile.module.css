@@ -1,441 +1,339 @@
 /* src/styles/Profile.module.css */
 
-/* 기본 HTML, Body, Root 스타일 초기화 및 전체 화면 채우기 */
-:root, body, html, #root {
-    height: 100%;
-    margin: 0;
-    padding: 0;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    background-color: #f0f2f5;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    overflow: hidden;
+/*
+ * CSS 변수(Custom Properties)를 사용하여 색상과 간격을 통일했습니다.
+ * 이제 이 변수들만 변경하면 전체 페이지의 디자인을 쉽게 바꿀 수 있습니다.
+ */
+:root {
+  --profile-primary-color: #4CAF50; /* 포인트 색상 (녹색) */
+  --profile-secondary-color: #2c3e50; /* 섹션 제목 색상 */
+  --profile-text-color: #333; /* 기본 텍스트 색상 */
+  --profile-background-color: #f9f9f9; /* 섹션 배경색 */
+  --profile-border-color: #ddd; /* 기본 테두리 색상 */
+  --profile-input-bg-readonly: #e9ecef; /* 읽기 전용 필드 배경색 */
+  --profile-error-color: #dc3545; /* 에러 메시지 색상 */
+  --profile-warning-color: #ffc107; /* 경고 메시지 색상 */
+  --profile-success-color: #28a745; /* 성공 메시지 색상 */
+  --profile-kakao-color: #FEE500; /* 카카오 색상 */
+  --profile-shadow-light: 0 8px 24px rgba(0, 0, 0, 0.08); /* 컨테이너 그림자 */
+  --profile-shadow-button: 0 2px 4px rgba(0, 0, 0, 0.1); /* 버튼 그림자 */
+  --profile-border-radius: 12px; /* 기본 둥근 모서리 */
 }
 
-/* Font Awesome 아이콘을 위한 필수 CSS */
-.fas:before {
-    font-family: "Font Awesome 6 Free";
-    font-weight: 900;
-    display: inline-block;
-}
-.far:before {
-    font-family: "Font Awesome 6 Regular";
-    font-weight: 400;
-    display: inline-block;
-}
-.fa-eye:before { content: "\f06e"; }
-.fa-eye-slash:before { content: "\f070"; }
-.fa-check:before { content: "\f00c"; }
-.fa-times:before { content: "\f00d"; }
-.fa-exclamation-triangle:before { content: "\f071"; }
-
-
-/* Profile Container - 전체 폼을 감싸는 컨테이너 */
 .profileContainer {
-    width: 100%;
-    max-width: 600px;
-    background-color: #ffffff;
-    padding: 35px 40px;
-    border-radius: 10px;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-    box-sizing: border-box;
-    display: flex;
-    flex-direction: column;
-    overflow-y: auto;
-    max-height: 90vh;
-
-    /* 스크롤바 숨김 (Firefox) */
-    scrollbar-width: none;
-    /* 스크롤바 숨김 (IE, Edge) */
-    -ms-overflow-style: none;
+  max-width: 800px;
+  margin: 40px auto;
+  padding: 30px;
+  background-color: #fff;
+  border-radius: var(--profile-border-radius);
+  box-shadow: var(--profile-shadow-light);
+  font-family: 'Pretendard', sans-serif;
+  color: var(--profile-text-color);
 }
-
-/* WebKit 브라우저(Chrome, Safari 등)용 스크롤바 숨김 */
-.profileContainer::-webkit-scrollbar {
-    display: none;
-}
-
 
 .pageTitle {
-    text-align: center;
-    color: #333333;
-    margin-bottom: 30px;
-    font-size: 28px;
-    font-weight: 700;
-    border-bottom: 2px solid #eeeeee;
-    padding-bottom: 15px;
+  font-size: 28px;
+  font-weight: 700;
+  color: #1a1a1a;
+  text-align: center;
+  margin-bottom: 30px;
+  position: relative;
+}
+
+.pageTitle::after {
+  content: '';
+  display: block;
+  width: 60px;
+  height: 4px;
+  background-color: var(--profile-primary-color);
+  margin: 15px auto 0;
+  border-radius: 2px;
+}
+
+section {
+  background-color: var(--profile-background-color);
+  border-radius: 10px;
+  padding: 25px;
+  margin-bottom: 25px;
+  border: 1px solid #eee;
 }
 
 .sectionTitle {
-    color: #5b5be2;
-    margin-top: 35px;
-    margin-bottom: 20px;
-    font-size: 20px;
-    border-left: 4px solid #5b5be2;
-    padding-left: 10px;
-    font-weight: 600;
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--profile-secondary-color);
+  margin-top: 0;
+  margin-bottom: 20px;
+  border-bottom: 2px solid #e0e0e0;
+  padding-bottom: 10px;
 }
 
 .formGroup {
-    display: flex;
-    align-items: center;
-    margin-bottom: 18px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
 }
 
 .label {
-    min-width: 110px;
-    font-weight: 600;
-    color: #555;
-    flex-shrink: 0;
-    font-size: 16px;
-    margin-right: 15px;
+  flex-basis: 120px;
+  min-width: 120px;
+  font-size: 15px;
+  font-weight: 500;
+  color: #555;
+  white-space: nowrap;
 }
 
 .inputField {
-    flex-grow: 1;
-    width: 100%;
-    max-width: 350px;
-    padding: 12px 15px;
-    border: 1px solid #cccccc;
-    border-radius: 5px;
-    font-size: 16px;
-    color: #333;
-    outline: none;
-    transition: border-color 0.2s, box-shadow 0.2s;
-    box-sizing: border-box;
-}
-
-.inputField::placeholder {
-    color: #aaaaaa;
+  flex-grow: 1;
+  padding: 12px 15px;
+  border: 1px solid var(--profile-border-color);
+  border-radius: 8px;
+  font-size: 15px;
+  color: var(--profile-text-color);
+  outline: none;
+  transition: border-color 0.3s, box-shadow 0.3s;
+  background-color: #fff;
 }
 
 .inputField:focus {
-    outline: none;
-    border-color: #5b5be2;
-    box-shadow: 0 0 0 3px rgba(91, 91, 226, 0.2);
+  border-color: var(--profile-primary-color);
+  box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.2);
 }
 
 .inputField[readOnly] {
-    background-color: #f5f5f5;
-    color: #888;
-    cursor: not-allowed;
+  background-color: var(--profile-input-bg-readonly);
+  cursor: not-allowed;
+  color: #666;
+  border-color: #ccc;
 }
 
 .phoneNumberInputGroup {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    flex-grow: 1;
-    max-width: 350px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-grow: 1;
 }
 
-.phoneNumberInputGroup input {
-    width: calc(33.33% - 10px);
-    text-align: center;
-    min-width: 60px;
+.phoneNumberInputGroup .inputField {
+  text-align: center;
+  padding: 12px 8px;
+  flex-basis: calc((100% - 16px) / 3);
 }
 
 .phoneNumberInputGroup span {
-    color: #555;
-    font-size: 1.1em;
+  font-size: 16px;
+  color: #777;
 }
 
-/* 비밀번호 필드 옆 아이콘을 위한 스타일 */
 .passwordFieldGroup {
-    position: relative;
-    flex-grow: 1;
-    max-width: 350px;
-    display: flex;
-    align-items: center;
+  flex-grow: 1;
+  position: relative;
+  display: flex;
+  align-items: center;
 }
 
 .passwordFieldGroup .inputField {
-    padding-right: 45px;
-    max-width: 100%;
+  padding-right: 40px;
 }
 
 .passwordToggleIcon {
-    position: absolute;
-    right: 15px;
-    top: 50%;
-    transform: translateY(-50%);
-    cursor: pointer;
-    font-size: 18px;
-    color: #666;
-    transition: color 0.2s;
+  position: absolute;
+  right: 15px;
+  cursor: pointer;
+  color: #888;
+  font-size: 18px;
+  transition: color 0.2s;
 }
 
 .passwordToggleIcon:hover {
-    color: #5b5be2;
+  color: var(--profile-primary-color);
 }
 
-
-/* 유효성 검사 메시지 컨테이너 스타일 */
 .password-feedback-container {
-    margin-top: -10px;
-    width: 100%;
-    max-width: 350px;
-    align-self: flex-end;
-    margin-right: auto;
-    margin-left: calc(110px + 15px);
-
-
-    padding: 10px 15px;
-    background-color: #f8f8f8;
-    border: 1px solid #e0e0e0;
-    border-radius: 5px;
-    font-size: 0.9em;
-    color: #555;
-    box-sizing: border-box;
+  margin-top: -10px;
+  margin-left: 135px;
+  margin-bottom: 20px;
 }
 
 .password-feedback-container p {
-    margin: 3px 0;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-weight: 500;
+  font-size: 13px;
+  margin-top: 5px;
+  margin-bottom: 0;
+  line-height: 1.4;
 }
 
-.password-feedback-container p .fas,
-.password-feedback-container p .far {
-    font-size: 0.8em;
-    width: 18px;
-    text-align: center;
-}
-
-/* 메시지 종류별 색상 */
 .valid {
-    color: #28a745;
+  color: var(--profile-success-color);
 }
 
 .invalid {
-    color: #dc3545;
+  color: var(--profile-error-color);
 }
 
 .warning-text {
-    color: #ffc107;
-}
-
-/* 일반 에러/성공 메시지 (폼 하단) */
-p.errorMessage, p.successMessage {
-    text-align: center;
-    margin-top: 20px;
-    font-size: 1.1em;
-    padding: 10px;
-    border-radius: 5px;
-    font-weight: 600;
-}
-
-p.errorMessage {
-    background-color: #ffebeb;
-    color: #c0392b;
-    border: 1px solid #e74c3c;
-}
-
-p.successMessage {
-    background-color: #ebfaeb;
-    color: #27ae60;
-    border: 1px solid #28a745;
-}
-
-
-/* 버튼 스타일 */
-.button {
-    padding: 12px 25px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 16px;
-    font-weight: 600;
-    transition: background-color 0.2s, transform 0.1s, box-shadow 0.2s;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    min-width: 100px;
-}
-
-.button:hover:not(:disabled) {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-}
-
-.button:active {
-    transform: translateY(1px);
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-.button:disabled {
-    background-color: #cccccc;
-    color: #999999;
-    cursor: not-allowed;
-    opacity: 0.8;
-    box-shadow: none;
-}
-
-.primaryButton {
-    background-color: #5b5be2;
-    color: white;
-}
-
-.primaryButton:hover:not(:disabled) {
-    background-color: #4b4bcf;
-}
-
-.kakaoButton {
-    background-color: #FEE500;
-    color: #3C1E1E;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    padding: 12px 20px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 16px;
-    font-weight: 600;
-    transition: background-color 0.2s, transform 0.1s, box-shadow 0.2s;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    width: auto;
-    min-width: 150px;
-    max-width: 250px;
-}
-
-.kakaoButton:hover:not(:disabled) {
-    background-color: #f7df00;
-}
-
-.kakaoButtonIcon {
-    width: 22px;
-    height: 22px;
-    vertical-align: middle;
+  color: var(--profile-warning-color);
+  font-weight: 500;
 }
 
 .kakaoStatusWrapper {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    flex-grow: 1;
-    max-width: 350px;
+  display: flex;
+  align-items: center;
+  flex-grow: 1;
+  gap: 15px;
 }
 
 .kakaoConnectedEmail {
-    font-weight: 600;
-    color: #333;
-    flex-grow: 1;
+  flex-grow: 1;
+  font-size: 15px;
+  color: #555;
+  background-color: var(--profile-input-bg-readonly);
+  padding: 10px 15px;
+  border-radius: 8px;
+  border: 1px solid var(--profile-border-color);
 }
 
 .kakaoDisconnectButton {
-    background: none;
-    border: 1px solid #bbb;
-    color: #666;
-    padding: 8px 15px;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 0.95em;
-    transition: background-color 0.2s, color 0.2s, border-color 0.2s;
+  padding: 10px 20px;
+  background-color: #f44336;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 500;
+  transition: background-color 0.3s ease;
+  white-space: nowrap;
 }
 
 .kakaoDisconnectButton:hover {
-    background-color: #e0e0e0;
-    color: #333;
-    border-color: #999;
+  background-color: #d32f2f;
+}
+
+.socialLoginGroup {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-grow: 1;
+}
+
+.socialButton {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 1px solid #ccc;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--profile-shadow-button);
+  transition: all 0.2s ease-in-out;
+  flex-shrink: 0;
+}
+
+.socialButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
+}
+
+.socialButtonIcon {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.socialButtonImage {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+}
+
+.kakaoButton {
+  background-color: var(--profile-kakao-color);
+  border: none;
+}
+
+.kakaoButtonIcon {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+}
+
+.naverMaterialButton {
+  background-color: #fff;
+  border: 1px solid var(--profile-border-color);
+}
+
+.gsiMaterialButton {
+  background-color: #fff;
+  border: 1px solid var(--profile-border-color);
+}
+
+.gsiMaterialButton svg {
+  width: 24px;
+  height: 24px;
+}
+
+.button {
+  padding: 12px 25px;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  min-width: 120px;
+  text-align: center;
+}
+
+.primaryButton {
+  background-color: var(--profile-primary-color);
+  color: #fff;
+}
+
+.primaryButton:hover {
+  background-color: #45a049;
+  transform: translateY(-1px);
 }
 
 .bottomButtonGroup {
-    margin-top: 40px;
-    text-align: right;
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 30px;
+  gap: 15px;
 }
 
-/* 미디어 쿼리: 작은 화면 (모바일) 대응 */
-@media (max-width: 600px) {
-    .profileContainer {
-        padding: 25px 20px;
-        margin: 10px;
-        border-radius: 5px;
-        max-height: 95vh;
-        max-width: 100%;
-    }
+.loadingMessage, .errorMessage, .successMessage {
+  text-align: center;
+  margin-top: 20px;
+  padding: 10px;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 500;
+}
 
-    .pageTitle {
-        font-size: 24px;
-        margin-bottom: 25px;
-    }
+.loadingMessage {
+  background-color: #e0f7fa;
+  color: #00796b;
+}
 
-    .sectionTitle {
-        font-size: 18px;
-        margin-top: 30px;
-        margin-bottom: 15px;
-    }
+.errorMessage {
+  background-color: #ffe0e0;
+  color: var(--profile-error-color);
+}
 
-    .formGroup {
-        flex-direction: column;
-        align-items: flex-start;
-        margin-bottom: 15px;
-    }
-
-    .label {
-        width: 100%;
-        margin-bottom: 8px;
-        margin-right: 0;
-    }
-
-    .inputField,
-    .passwordFieldGroup,
-    .phoneNumberInputGroup,
-    .kakaoStatusWrapper {
-        width: 100%;
-        flex-grow: 0;
-        max-width: 100%;
-    }
-
-    .passwordFieldGroup .inputField {
-        padding-right: 40px;
-    }
-
-    .passwordToggleIcon {
-        right: 10px;
-    }
-
-    .phoneNumberInputGroup input {
-        width: calc(33.33% - 6px);
-    }
-
-    .password-feedback-container {
-        margin-left: 0;
-        width: 100%;
-        padding: 10px 15px;
-        box-sizing: border-box;
-        max-width: 100%;
-        align-self: flex-start;
-        margin-right: auto;
-    }
-
-    .password-feedback-container p {
-        font-size: 0.85em;
-        gap: 5px;
-    }
-
-    .password-feedback-container p .fas,
-    .password-feedback-container p .far {
-        font-size: 0.75em;
-        width: 16px;
-    }
-
-    .button {
-        width: 100%;
-        padding: 12px;
-        font-size: 15px;
-    }
-
-    .kakaoButton {
-        max-width: 100%;
-        width: 100%;
-    }
-
-    .bottomButtonGroup {
-        text-align: center;
-    }
+.successMessage {
+  background-color: #e8f5e9;
+  color: var(--profile-success-color);
+}
+.modal-content {
+  width: 600px; /* 모달 너비 */
+  max-width: 90%; /* 화면 크기에 따라 최대 너비 조정 */
+  margin: 20px auto; /* 화면 중앙에 위치 */
+  padding: 30px; /* 내부 패딩 */
+  background-color: #fff; /* 배경색 흰색 */
+  border-radius: 8px; /* 모서리 둥글게 */
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* 그림자 효과 */
 }

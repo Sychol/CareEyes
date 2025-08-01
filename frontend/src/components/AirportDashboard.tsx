@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,7 +14,11 @@ import profileMan1 from "@/assets/profile/man1.png";
 // ==========================
 // 타입/상수/유틸 - BEGIN
 // ==========================
-interface UserData { MEMBER_NAME: string; DEPARTMENT: string; }
+interface UserData { 
+  MEMBER_NAME: string; 
+  DEPARTMENT: string; 
+  MEMBER_ID?: string; // 로그인한 사용자의 ID (백엔드에서 받아올 예정)
+}
 type StatusType = "미처리" | "처리중" | "처리완료";
 interface DetectionItem { ITEM_TYPE: string; ITEM_COUNT: number; }
 interface DetectionEvent {
@@ -38,12 +42,13 @@ const STATUS_STYLEMAP = [
 
 const NOTIFICATION_TYPES = [
   { key: "general", label: "알림받기", bg: "bg-success", text: "text-success", icon: Bell },
-  { key: "emergency", label: "일시정지", bg: "bg-warning", text: "text-warning", icon: Bell },
-  { key: "maintenance", label: "작업중", bg: "bg-gray-200", text: "text-muted-foreground", icon: BellOff }
+  { key: "emergency", label: "일시정지", bg: "bg-warning", text: "text-warning", icon: BellOff }
 ];
 
 const API_URL = "http://223.130.130.196:8090/api/eventlist";
 const MEMBER_API_URL = "http://223.130.130.196:8090/api/member/workerlist";
+// 로그인한 사용자 정보를 가져오는 샘플 API (백엔드 개발팀과 협의 후 실제 주소로 변경)
+const USER_INFO_API_URL = "http://223.130.130.196:8090/api/member/user-info";
 
 // ========== 유틸 ==========
 const mapApiEvent = apiEvent => ({
@@ -68,7 +73,7 @@ const ItemTypeIcon = ({ type }: { type: string }) => {
     case "차량": case "vehicle": return <Car className="h-10 w-10 text-black" />;
     case "사람": case "person": return <User className="h-10 w-10 text-black" />;
     case "조류": case "bird": return <Bird className="h-10 w-10 text-black" />;
-    case "포유류": case "mammmal": return <Cat className="h-10 w-10 text-black" />;
+    case "포유류": case "mammal": return <Cat className="h-10 w-10 text-black" />;
     case "비행기": case "airplane": return <Plane className="h-10 w-10 text-black" />;
     default: return <XCircle className="h-10 w-10 text-black" />;
   }
@@ -76,7 +81,7 @@ const ItemTypeIcon = ({ type }: { type: string }) => {
 
 const StatusBadge = ({ manage, onClick }: { manage: StatusType; onClick: () => void; }) => (
   <div className="inline-block cursor-pointer" onClick={e => { e.stopPropagation(); onClick(); }}>
-    <Badge className={STATUS_BADGE[manage]}>{manage}</Badge>
+    <Badge className={`STATUS_BADGE[manage] px-1.5 py-1.5`}>{manage}</Badge>
   </div>
 );
 
@@ -129,37 +134,42 @@ const StatusChangePopup = ({
 // 타입/상수/유틸 - END
 // ==========================
 
-
-const TEST_LOGIN_NAME = "황상제";
-
 const AirportDashboard = () => {
   const { toast } = useToast();
+  const cctvSectionRef = useRef<HTMLDivElement>(null);
 
   const [userData, setUserData] = useState<UserData>(DEFAULT_USER);
   const [events, setEvents] = useState<DetectionEvent[]>([]);
-  const [selectedNotification, setSelectedNotification] = useState<'general' | 'emergency' | 'maintenance'>('general');
+  const [selectedNotification, setSelectedNotification] = useState<'general' | 'emergency'>('general');
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [selectedEvent, setSelectedEvent] = useState<DetectionEvent | null>(null);
   const [showSetting, setShowSetting] = useState(false);
   const [statusPopupTarget, setStatusPopupTarget] = useState<DetectionEvent | null>(null);
+  const [showPausePopup, setShowPausePopup] = useState(false);
 
-  // ⬇️ 유저 정보 - 테스트용 loginName 기준
+  // ⬇️ 로그인한 사용자 정보 가져오기
   useEffect(() => {
-    axios.get(MEMBER_API_URL)
+    // TODO: 백엔드 개발팀과 협의 후 실제 API 주소로 변경
+    // 현재는 샘플 API 호출로 구현
+    axios.get(USER_INFO_API_URL)
       .then(res => {
-        const list = Array.isArray(res.data) ? res.data : (res.data?.data || []);
-        const found = list.find((user: any) => user.memberName === TEST_LOGIN_NAME);
-        if (found && found.memberName) {
+        // 백엔드에서 받아올 예상 데이터 구조:
+        // { memberName: "사용자명", department: "부서명", memberId: "사용자ID" }
+        const userInfo = res.data;
+        if (userInfo && userInfo.memberName) {
           setUserData({
-            MEMBER_NAME: found.memberName,
-            DEPARTMENT: found.department,
+            MEMBER_NAME: userInfo.memberName,
+            DEPARTMENT: userInfo.department,
+            MEMBER_ID: userInfo.memberId // 백엔드에서 받아온 사용자 ID
           });
+          toast({ title: "로그인 성공", description: `${userInfo.memberName}님 환영합니다.` });
         } else {
           setUserData(DEFAULT_USER);
           toast({ title: "사용자 정보 없음", description: "기본 사용자로 표기합니다.", variant: "destructive" });
         }
       })
-      .catch(() => {
+      .catch((error) => {
+        console.error('사용자 정보 가져오기 실패:', error);
         setUserData(DEFAULT_USER);
         toast({ title: "유저 정보 불러오기 실패", description: "기본 사용자로 표기합니다.", variant: "destructive" });
       });
@@ -180,7 +190,15 @@ const AirportDashboard = () => {
       });
   }, [toast]);
 
-  const filteredEvents = filterStatus === "all" ? events : events.filter(ev => ev.MANAGE === filterStatus);
+  const filteredEvents = (filterStatus === "all" ? events : events.filter(ev => ev.MANAGE === filterStatus))
+    .sort((a, b) => {
+      // EVENT_DATE와 EVENT_TIME을 결합하여 날짜시간 문자열 생성
+      const dateTimeA = `${a.EVENT_DATE} ${a.EVENT_TIME}`;
+      const dateTimeB = `${b.EVENT_DATE} ${b.EVENT_TIME}`;
+      
+      // 내림차순 정렬 (최신순)
+      return new Date(dateTimeB).getTime() - new Date(dateTimeA).getTime();
+    });
 
   const handleStatusChange = async (event: DetectionEvent, num: number) => {
     try {
@@ -199,9 +217,50 @@ const AirportDashboard = () => {
     }
   };
 
+  // 이벤트 선택 시 하단 CCTV 영역으로 스크롤
+  const handleEventSelect = (event: DetectionEvent) => {
+    setSelectedEvent(event);
+    // 약간의 지연을 두어 상태 업데이트 후 스크롤 실행
+    setTimeout(() => {
+      cctvSectionRef.current?.scrollIntoView({ 
+        behavior: 'smooth', 
+        block: 'start' 
+      });
+    }, 100);
+  };
+
+  // 일시정지 시간 설정 함수
+  const handlePauseAlert = async (minutes: number) => {
+    try {
+      // 백엔드 API 요청 (샘플)
+      // TODO: 백엔드 개발팀과 협의 후 실제 API 주소로 변경
+      const response = await axios.post(`http://223.130.130.196:8090/api/member/pause-alert`, {
+        memberId: userData.MEMBER_ID, // 로그인한 사용자의 MEMBER_ID
+        alertState: 0, // 일시정지 상태 (0: 정지, 1: 활성화)
+        pauseMinutes: minutes // 일시정지 시간 (분)
+      });
+      
+      console.log('백엔드 응답:', response.data);
+      
+             toast({ 
+         title: "일시정지 설정 완료", 
+         description: `${minutes}분 동안 알림이 일시정지됩니다.` 
+       });
+       setShowPausePopup(false);
+       // 일시정지 설정 후 선택 상태 유지 (색상 변화 유지)
+    } catch (error) {
+      console.error('일시정지 설정 오류:', error);
+      toast({ 
+        title: "일시정지 설정 실패", 
+        description: "서버 또는 네트워크 오류가 발생했습니다.", 
+        variant: "destructive" 
+      });
+    }
+  };
+
   // =================== UI ===================
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 flex justify-center">
+    <div className="h-screen overflow-y-auto bg-gradient-to-br from-background via-background to-primary/5 flex justify-center">
       <div className="w-full max-w-[430px] min-h-[932px] p-4 space-y-6">
 
         {/* 프로필/환경설정 */}
@@ -257,43 +316,32 @@ const AirportDashboard = () => {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-3 gap-4">
-              {NOTIFICATION_TYPES.map(({ key, label, bg, text, icon: Icon }) => {
-                const selected = selectedNotification === key;
-                if (key === 'maintenance') {
-                  return (
-                    <div
-                      key={key}
-                      className={
-                        `flex flex-col items-center space-y-2 p-4 rounded-xl cursor-pointer transition-all 
-                         ${selected
-                          ? 'bg-gray-600 text-background border-2 border-gray-600'
-                          : 'bg-gray-200 border border-gray-200 hover:bg-gray-300'
-                        }`
-                      }
-                      onClick={() => setSelectedNotification('maintenance')}
-                    >
-                      <Icon className={`h-8 w-8 ${selected ? "text-background" : "text-muted-foreground"}`} />
-                      <span className="text-sm font-medium">작업중</span>
-                    </div>
-                  );
-                }
-                return (
-                  <div
-                    key={key}
-                    className={`flex flex-col items-center space-y-2 p-4 rounded-xl cursor-pointer transition-all
-                      ${selected
-                        ? `${bg} text-white border-2 border-[${bg.replace("bg-", "")}]`
-                        : `${bg}/10 border border-[${bg.replace("bg-", "")}]/20 hover:${bg}/20`
-                      }`}
-                    onClick={() => setSelectedNotification(key as any)}
-                  >
-                    <Icon className={`h-8 w-8 ${selected ? "text-white" : text}`} />
-                    <span className={`text-sm font-medium ${selected ? "text-white" : text}`}>{label}</span>
-                  </div>
-                );
-              })}
-            </div>
+                         <div className="grid grid-cols-2 gap-4">
+               {NOTIFICATION_TYPES.map(({ key, label, bg, text, icon: Icon }) => {
+                 const selected = selectedNotification === key;
+                 return (
+                   <div
+                     key={key}
+                     className={`flex flex-col items-center space-y-2 p-4 rounded-xl cursor-pointer transition-all
+                       ${selected
+                         ? `${bg} text-white border-2 border-[${bg.replace("bg-", "")}]`
+                         : `${bg}/10 border border-[${bg.replace("bg-", "")}]/20 hover:${bg}/20`
+                       }`}
+                                           onClick={() => {
+                        if (key === 'emergency') {
+                          setSelectedNotification('emergency');
+                          setShowPausePopup(true);
+                        } else {
+                          setSelectedNotification(key as any);
+                        }
+                      }}
+                   >
+                     <Icon className={`h-8 w-8 ${selected ? "text-white" : text}`} />
+                     <span className={`text-sm font-medium ${selected ? "text-white" : text}`}>{label}</span>
+                   </div>
+                 );
+               })}
+             </div>
           </CardContent>
         </Card>
 
@@ -322,18 +370,18 @@ const AirportDashboard = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-3 max-h-[504px] overflow-y-auto">
-              {filteredEvents.map(ev => {
+              {filteredEvents.map((ev, index) => {
                 const firstItemType = ev.ITEMS?.[0]?.ITEM_TYPE;
                 return (
                   <div
-                    key={ev.EVENT_ID}
+                    key={`${ev.EVENT_ID}-${firstItemType}-${index}`}
                     className={[
                       "flex flex-col space-y-2 p-4 rounded-xl border cursor-pointer transition-colors",
                       selectedEvent?.EVENT_ID === ev.EVENT_ID
                         ? "bg-primary/10 border-primary/30"
                         : "bg-background/50 border-border/50 hover:bg-accent/50"
                     ].join(" ")}
-                    onClick={() => setSelectedEvent(ev)}
+                    onClick={() => handleEventSelect(ev)}
                   >
                     <div className="flex items-center space-x-4">
                       <div className="flex-shrink-0">{firstItemType && <ItemTypeIcon type={firstItemType} />}</div>
@@ -356,17 +404,60 @@ const AirportDashboard = () => {
           </CardContent>
         </Card>
 
-        {/* 상태변경 팝업 */}
-        <StatusChangePopup
-          visible={!!statusPopupTarget}
-          targetEvent={statusPopupTarget}
-          currentStatusIdx={statusPopupTarget ? STATUS_ENUM.indexOf(statusPopupTarget.MANAGE) : 0}
-          onChange={num => statusPopupTarget && handleStatusChange(statusPopupTarget, num)}
-          onClose={() => setStatusPopupTarget(null)}
-        />
+                 {/* 상태변경 팝업 */}
+         <StatusChangePopup
+           visible={!!statusPopupTarget}
+           targetEvent={statusPopupTarget}
+           currentStatusIdx={statusPopupTarget ? STATUS_ENUM.indexOf(statusPopupTarget.MANAGE) : 0}
+           onChange={num => statusPopupTarget && handleStatusChange(statusPopupTarget, num)}
+           onClose={() => setStatusPopupTarget(null)}
+         />
+
+         {/* 일시정지 팝업 */}
+         {showPausePopup && (
+           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 transition-all">
+             <div className="bg-white rounded-xl shadow-2xl border-2 border-primary/60 p-6 min-w-[280px] transition-all duration-200">
+               <div className="flex items-center justify-between mb-4">
+                 <div className="font-bold text-lg text-black">일시정지 시간 선택</div>
+                 <button
+                   className="text-gray-400 hover:text-gray-800 text-xl"
+                   onClick={() => setShowPausePopup(false)}
+                   style={{ background: "none", border: "none", cursor: "pointer" }}
+                 >
+                   ×
+                 </button>
+               </div>
+               <div className="space-y-3">
+                 {[
+                   { label: "10분", minutes: 10 },
+                   { label: "30분", minutes: 30 },
+                   { label: "1시간", minutes: 60 },
+                   { label: "4시간", minutes: 240 },
+                   { label: "24시간", minutes: 1440 }
+                 ].map(({ label, minutes }) => (
+                   <button
+                     key={minutes}
+                     className="block w-full rounded-lg px-4 py-3 text-left border-2 transition-all duration-150 bg-white text-black border-gray-200 hover:bg-primary/10 hover:border-primary/30"
+                     onClick={() => handlePauseAlert(minutes)}
+                   >
+                     <div className="font-medium">{label}</div>
+                     <div className="text-sm text-gray-500">알림이 일시정지됩니다</div>
+                   </button>
+                 ))}
+               </div>
+               <button
+                 className="mt-4 w-full text-gray-400 hover:text-primary font-medium rounded-lg transition py-2"
+                 onClick={() => setShowPausePopup(false)}
+                 style={{ background: "none", border: "none" }}
+               >
+                 닫기
+               </button>
+             </div>
+           </div>
+         )}
 
         {/* CCTV 모니터링 및 상세 ITEMS */}
-        <Card className="shadow-soft border-0 bg-card/50 backdrop-blur-sm">
+        <Card ref={cctvSectionRef} className="shadow-soft border-0 bg-card/50 backdrop-blur-sm">
           <CardHeader className="pb-4">
             <CardTitle className="flex items-center space-x-2 text-lg">
               <Monitor className="h-5 w-5 text-primary" />
