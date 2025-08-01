@@ -103,7 +103,7 @@ const translateItemType = (itemType: string): string => {
   }
 };
 
-const API_URL = "http://223.130.130.196:8090/api/eventlist";
+const API_URL = "/api/eventlist";
 
 interface EventItem {
   eventId: number;

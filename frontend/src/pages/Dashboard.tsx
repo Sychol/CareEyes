@@ -49,11 +49,11 @@ export default function Dashboard() {
   });
 
   useEffect(() => {
-    axios.get("http://223.130.130.196:8090/api/eventlist")
+    axios.get("/api/eventlist")
       .then((res) => setAlertHistory(res.data))
       .catch((err) => console.error("❌ eventlist 에러:", err));
 
-    axios.get("http://223.130.130.196:8090/api/member/workerlist")
+    axios.get("/api/member/workerlist")
       .then((res) => setRecentAlerts(res.data))
       .catch((err) => console.error("❌ workerlist 에러:", err));
 
@@ -219,7 +219,7 @@ export default function Dashboard() {
             <div className="relative w-full h-[300px] rounded-lg overflow-hidden bg-gray-100">
               {selectedAlertImage ? (
                 <img
-                  src={`http://223.130.130.196:8090${selectedAlertImage.startsWith("/") ? selectedAlertImage : `/${selectedAlertImage}`}`}
+                  src={`${selectedAlertImage.startsWith("/") ? selectedAlertImage : `/${selectedAlertImage}`}`}
                   alt="이상물체 이미지"
                   className="w-full h-full object-cover rounded-md"
                 />

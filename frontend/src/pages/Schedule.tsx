@@ -37,7 +37,7 @@ export const Schedule = () => {
 
   useEffect(() => {
     axios
-      .get("http://223.130.130.196:8090/api/member/workerlist")
+      .get("/api/member/workerlist")
       .then((res) => {
         const workers: Worker[] = res.data;
 

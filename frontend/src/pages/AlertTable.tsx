@@ -52,7 +52,7 @@ export const AlertTable = () => {
 
   useEffect(() => {
     axios
-      .get("http://223.130.130.196:8090/api/member/workerlist")
+      .get("/api/member/workerlist")
       .then((res) => setAlerts(res.data))
       .catch((err) => console.error("작업자 경고 데이터 실패:", err));
   }, []);

@@ -33,7 +33,7 @@ export function AlertFilterPanel({ currentFilters, onApply, onClose }: AlertFilt
   );
 
   useEffect(() => {
-    axios.get("http://223.130.130.196:8090/api/eventlist")
+    axios.get("/api/eventlist")
       .then(res => {
         const data: { itemType: string; location: string }[] = res.data;
 
