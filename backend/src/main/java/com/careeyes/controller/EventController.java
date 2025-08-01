@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.careeyes.entity.Cctv;
 import com.careeyes.entity.DetectEvent;
 import com.careeyes.mapper.EventMapper;
 
@@ -29,11 +30,14 @@ public class EventController {
 		return ResponseEntity.ok(eventMapper.getEventList());
 	}
 	
-	// CCTV 목록 가져오기~ 하도록 해~
+	// CCTV 목록 가져오기
 	@GetMapping("/cctvlist")
+	public ResponseEntity<List<Cctv>> getCctvList(){
+		return ResponseEntity.ok(eventMapper.getCctvList());
+	}
 	
 	// 이상물체 작업 상태 변경
-	@PatchMapping("/api/event/{eventId}/status")
+	@PatchMapping("/event/{eventId}/status")
 	public ResponseEntity<?> updateEventStatus(
 	        @PathVariable("eventId") int eventId,
 	        @RequestBody Map<String, Integer> body

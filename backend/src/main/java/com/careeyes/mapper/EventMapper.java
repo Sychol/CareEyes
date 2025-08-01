@@ -5,6 +5,7 @@ import java.util.List;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
+import com.careeyes.entity.Cctv;
 import com.careeyes.entity.DetectEvent;
 
 @Mapper
@@ -15,6 +16,9 @@ public interface EventMapper {
 	
 	// 이상물체 작업 상태 변경
 	void updateManageState(@Param("eventId") int eventId, @Param("manage") int manage);
+	
+	// CCTV 리스트 가져오기
+	List<Cctv> getCctvList();
 	
 	// 안 씀. 
 	List<DetectEvent> getFilteredEvent(

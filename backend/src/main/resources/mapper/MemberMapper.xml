@@ -20,12 +20,12 @@
 	<insert id='join' parameterType="Members">
 		INSERT INTO MEMBERS (
 			MEMBER_ID, MEMBER_PW, MEMBER_NAME, EMAIL, PHONE,
-			MEMBER_ROLE, COMPANY, DEPARTMENT, ALERT_STATE,
-			SUBSCRIPTION_JSON
+			MEMBER_ROLE, COMPANY, DEPARTMENT, KAKAO_ID,
+			SUBSCRIPTION_JSON, ALERT_STATE
 		) VALUES (
 			#{memberId}, #{memberPw}, #{memberName}, #{email}, #{phone},
-			#{memberRole}, #{company}, #{department}, 1,
-			#{subscriptionJson}
+			#{memberRole}, #{company}, #{department}, #{kakaoId},
+			#{subscriptionJson}, 1
 		)
 	</insert>
 	
