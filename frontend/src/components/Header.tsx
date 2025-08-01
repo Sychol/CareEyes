@@ -1,6 +1,5 @@
-// 대시보드의 상단 헤더(Header) 컴포넌트 전체
 import { ChevronRight, User } from "lucide-react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom"; // ✅ useNavigate 추가
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -15,15 +14,23 @@ const pageNames: Record<string, string> = {
   "/": "Dashboard",
   "/cctv": "CCTV List", 
   "/alerts": "Alert History",
-  "/analytics": "데이터 분석",
-  "/users": "작업자 관리",
+  "/analytics": "Data Analytics",
+  "/worker": "Worker Management",
   "/profile": "Profile",
   "/settings": "Setting"
 };
 
 export function Header() {
   const location = useLocation();
+  const navigate = useNavigate(); // ✅ 네비게이터 선언
+
   const currentPageName = pageNames[location.pathname] || "Dashboard";
+
+  // ✅ 로그아웃 처리 함수
+  const handleSignOut = () => {
+    localStorage.clear();       // 저장된 유저 정보 초기화
+    navigate("/login");         // 로그인 페이지로 이동
+  };
 
   return (
     <div className="h-20 bg-[#5F69C7] flex items-center justify-between px-6 shadow-md">
@@ -41,7 +48,7 @@ export function Header() {
           <span className="mx-2">|</span>
           <span>관리자</span>
         </div>
-        
+
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="relative h-8 w-8 rounded-full">
@@ -53,13 +60,14 @@ export function Header() {
               </Avatar>
             </Button>
           </DropdownMenuTrigger>
-         <DropdownMenuContent className="w-48 bg-white shadow-md rounded-md" align="end" forceMount>
+
+          <DropdownMenuContent className="w-48 bg-white shadow-md rounded-md" align="end" forceMount>
             <DropdownMenuItem>
               <User className="mr-2 h-4 w-4" />
               <span>프로필</span>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={handleSignOut}> {/* ✅ 클릭 이벤트 연결 */}
               <span>Sign Out</span>
             </DropdownMenuItem>
           </DropdownMenuContent>

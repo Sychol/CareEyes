@@ -16,7 +16,7 @@ const navItems = [
   { title: "CCTV 목록", url: "/cctv", icon: Camera },
   { title: "알림 내역", url: "/alerts", icon: AlertTriangle },
   { title: "데이터 분석", url: "/analytics", icon: BarChart3 },
-  { title: "작업자 관리", url: "/users", icon: Users },
+  { title: "작업자 관리", url: "/worker", icon: Users },
 ];
 
 const accountItems = [
