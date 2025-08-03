@@ -50,7 +50,7 @@ export const CurrentWorkers = () => {
 
   useEffect(() => {
     axios
-      .get("http://223.130.130.196:8090/api/member/workerlist")
+      .get("/api/member/workerlist")
       .then((res) => setWorkers(res.data))
       .catch((err) => console.error("근무자 목록 불러오기 실패:", err));
   }, []);

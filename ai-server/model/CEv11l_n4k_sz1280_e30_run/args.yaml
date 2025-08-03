@@ -2,10 +2,10 @@ task: detect
 mode: train
 model: /content/drive/MyDrive/CareEyes/model_train/YOLOv11_base/yolo11l.pt
 data: /content/dataset/CareEyes.yaml
-epochs: 50
+epochs: 40
 time: null
 patience: 5
-batch: 8
+batch: 4
 imgsz: 1280
 save: true
 save_period: -1
