@@ -10,7 +10,6 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.careeyes.entity.Cctv;
@@ -50,15 +49,5 @@ public class EventController {
 	    eventMapper.updateManageState(eventId, manage);
 	    return ResponseEntity.ok("상태가 성공적으로 변경되었습니다.");
 	}
-	
-	// 현재 사용 안 하는 코드 . . .
-	@GetMapping("/filteredeventlist")
-	public List<DetectEvent> getAlertHistory(
-			@RequestParam(required = false) String type,
-			@RequestParam(required = false) String from,
-			@RequestParam(required = false) String to,
-			@RequestParam(required = false) Integer manage
-)   {
-		return eventMapper.getFilteredEvent(type, from, to, manage);
-	}
+
 }

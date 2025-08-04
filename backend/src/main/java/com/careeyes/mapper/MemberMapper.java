@@ -1,5 +1,6 @@
 package com.careeyes.mapper;
 
+import java.sql.Timestamp;
 import java.util.List;
 
 import org.apache.ibatis.annotations.Mapper;
@@ -29,4 +30,13 @@ public interface MemberMapper {
 		@Param("company") String company,
 		@Param("alertState") Integer alertState
 	);
+	
+	public void pauseAlert(@Param("memberId") String memberId,
+            	@Param("alertState") int alertState,
+            	@Param("expireTime") Timestamp expireTime);
+	
+	public List<String> findRestorables();
+	
+	public void updateAlertState(@Param("memberId") String memberId, @Param("alertState") int alertState);
+
 }
