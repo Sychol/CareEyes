@@ -1,4 +1,4 @@
-// src/components/Profile.tsx
+// 회원 정보 페이지 v1.0
 
 import React from 'react';
 import { useProfileManagement } from '../hooks/useProfileManagement';
