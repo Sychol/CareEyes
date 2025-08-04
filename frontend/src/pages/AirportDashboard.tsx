@@ -106,10 +106,10 @@ const NOTIFICATION_TYPES = [
   },
 ];
 
-const API_URL = "http://223.130.130.196:8090/api/eventlist";
-const MEMBER_API_URL = "http://223.130.130.196:8090/api/member/workerlist";
+const API_URL = "/api/eventlist";
+const MEMBER_API_URL = "/api/member/workerlist";
 // 로그인한 사용자 정보를 가져오는 샘플 API (백엔드 개발팀과 협의 후 실제 주소로 변경)
-const USER_INFO_API_URL = "http://223.130.130.196:8090/api/member/userinfo";
+const USER_INFO_API_URL = "/api/member/userinfo";
 
 // ========== 유틸 ==========
 const mapApiEvent = (apiEvent) => ({
@@ -386,7 +386,7 @@ const AirportDashboard = () => {
       // 백엔드 API 요청 (샘플)
       // TODO: 백엔드 개발팀과 협의 후 실제 API 주소로 변경
       const response = await axios.post(
-        `http://223.130.130.196:8090/api/member/pause-alert`,
+        `/api/member/pause-alert`,
         {
           memberId: userData.MEMBER_ID, // 로그인한 사용자의 MEMBER_ID
           alertState: 0, // 일시정지 상태 (0: 정지, 1: 활성화)

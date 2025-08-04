@@ -52,6 +52,9 @@ docker push sychol/careeyes-frontend:latest
 docker push sychol/careeyes-backend:latest
 docker push sychol/careeyes-aiserver:latest
 
+# 사용하지 않는 이미지 전체 삭제
+docker image prune -a
+
 ======== frontend docker 파일들 ========
 
 ### Dockerfile

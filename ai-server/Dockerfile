@@ -15,8 +15,14 @@ RUN git lfs pull || echo "⚠️ Git LFS 스킵"
 # 5. 앱 전용 패키지 설치
 RUN pip install -r requirements.txt
 
-# 6. Flask 포트 오픈
+# 6. Ultralytics 설정 디렉토리 생성 + 환경변수 등록
+RUN mkdir -p /app/.ultralytics
+ENV YOLO_CONFIG_DIR=/app/.ultralytics
+
+# 7. Flask 포트 오픈
 EXPOSE 5000
 
-# 7. 실행 명령
+# 8. 실행 명령
 CMD ["python", "app.py"]
+
+# docker build -f Dockerfile -t sychol/careeyes-aiserver:latest .

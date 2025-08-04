@@ -25,10 +25,12 @@ CONF_THRESHOLD = 0.3 # 신뢰도 임계값
 SPRING_PROXY = "http://10.0.20.6:8090/api/ai" # Spring 서버 프록시 URL
 
 # Naver Cloud Object Storage 설정
-BUCKET_NAME = "careeyes-bucket"
+BUCKET_NAME = "careeyes-bucket-my"
 ENDPOINT = "https://kr.object.ncloudstorage.com"
-NCLOUD_ACCESS_KEY = os.environ.get("NCLOUD_ACCESS_KEY")
-NCLOUD_SECRET_KEY = os.environ.get("NCLOUD_SECRET_KEY")
+#NCLOUD_ACCESS_KEY = os.environ.get("NCLOUD_ACCESS_KEY")
+#NCLOUD_SECRET_KEY = os.environ.get("NCLOUD_SECRET_KEY")
+NCLOUD_ACCESS_KEY = "ncp_iam_BPAMKR1bz8r94RmAF4WS"
+NCLOUD_SECRET_KEY = "ncp_iam_BPKMKRPcQJ7T6oQrquYxvr0cNxDEKiV6Yy"
 
 # 마지막 전송 시간 기록: { (cctv_id, class_name): timestamp }
 last_sent_time = {}
@@ -107,6 +109,7 @@ def get_stream_url(youtube_url):
                ]
     result = subprocess.run(command, capture_output=True, text=True)
     stream_url = result.stdout.strip()
+    #print(f"🔄 변환된 스트림 URL: {stream_url}")  # 디버깅용 출력
     if not stream_url:
         raise RuntimeError("❌ streamlink 결과가 비어 있어요! URL 또는 인터넷 상태 확인해주세요.")
     return stream_url
@@ -271,6 +274,8 @@ def upload_to_ncloud(image_stream, object_key):
             # region_name='kr-standard'
         )
         print("🔄 Ncloud S3 클라이언트 생성 완료")
+        file_url = f"{ENDPOINT}/{BUCKET_NAME}/{object_key}"
+        print(f"🔄 Ncloud 업로드 URL: {file_url}")
 
         # 이미지 스트림을 S3에 업로드
         image_stream.seek(0)  # 🔄 커서 초기화
@@ -281,7 +286,7 @@ def upload_to_ncloud(image_stream, object_key):
             ExtraArgs={'ACL': 'public-read'}  # 외부에서 접근 가능하도록 설정
         )
 
-        file_url = f"{ENDPOINT}/{BUCKET_NAME}/{object_key}"
+        
         print(f"🔄 업로드 완료! 파일 URL: {file_url}")
         return file_url
     
@@ -422,4 +427,4 @@ if __name__ == '__main__':
     threading.Thread(target=detect_loop, args=('https://www.youtube.com/watch?v=MjD3gnNFYUo', 201, DELAY, 'ncloud'), daemon=True).start()
 
     # Flask 서버 실행
-    app.run(port=5000)
+    app.run(host='0.0.0.0', port=5000)

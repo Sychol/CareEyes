@@ -1,6 +1,12 @@
-flask
+# requirements.txt 예시
+--extra-index-url https://download.pytorch.org/whl/cpu
+
+numpy<2
+torch==2.2.0+cpu
+torchvision
 opencv-python-headless
-ultralytics==8.0.177
-boto3
-python-dotenv
+ultralytics
+flask
 requests
+boto3
+streamlink
