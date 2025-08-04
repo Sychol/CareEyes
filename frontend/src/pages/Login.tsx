@@ -1,6 +1,8 @@
 import React, { useState, useEffect, FormEvent, useCallback } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import axios, { AxiosError } from 'axios';
+import { useContext } from "react";
+import { UserContext } from "@/App";
 
 // CSS 파일 임포트
 import '../styles/Login.css';
@@ -31,6 +33,8 @@ const Login = () => {
   const [successMessage, setSuccessMessage] = useState('');
 
   const navigate = useNavigate();
+
+  const { setUser } = useContext(UserContext);
 
   // 카카오 로그인 URL 불러오기
   useEffect(() => {
@@ -93,10 +97,15 @@ const Login = () => {
     try {
       const response = await axios.post('/api/member/login', { memberId, memberPw }, { withCredentials: true });
       console.log('Login successful:', response.data);
-
-      setSuccessMessage('로그인 성공!')
-      // 실제 애플리케이션에서는 로그인 성공 후 대시보드 등으로 리다이렉트
-      navigate('/dashboard');
+      if (response.data.memberRole === 'ADMIN') {
+        setUser(response.data); 
+        navigate('/');
+      } else if (response.data.memberRole === 'WORKER') {
+        setUser(response.data); 
+        navigate('/airport');
+      } else {
+        setErrorMessage('정의되지 않은 역할입니다.');
+      }
     } catch (error) {
       if (axios.isAxiosError(error)) {
         setErrorMessage(error.response?.data?.message || '로그인 실패: 아이디 또는 비밀번호를 다시 확인해주세요.');
