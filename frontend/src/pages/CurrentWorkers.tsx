@@ -60,10 +60,6 @@ export const CurrentWorkers = () => {
       <div className="p-6">
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-lg font-semibold text-foreground">현재 근무자</h3>
-          <Button variant="outline" size="sm" className="h-8">
-            <Filter className="h-3 w-3 mr-1" />
-            전체
-          </Button>
         </div>
 
         <div className="space-y-4">

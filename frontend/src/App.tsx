@@ -13,10 +13,10 @@ import CCTVList from "./pages/CCTVList";
 import AlertHistory from "./pages/AlertHistory";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
-import AirportDashboard from "./components/AirportDashboard";
-import LogIn from "./tests/Login";
-import Join from "./tests/Register";
-import KakaoCallback from "./tests/KakaoCallback";
+import AirportDashboard from "./pages/AirportDashboard";
+import LogIn from "./pages/Login"; // 소문자 확인
+import Join from "./pages/Register";
+import KakaoCallback from "./pages/KakaoCallback";
 import WorkPage from "./pages/WorkPage";
 import Analytics from "./pages/Analytics"
 import Profile from "./tests/Profile"; 

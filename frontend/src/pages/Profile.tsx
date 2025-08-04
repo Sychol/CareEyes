@@ -1,4 +1,4 @@
-// 회원 정보 페이지 v1.2
+// 회원 정보 페이지 v1.0
 
 import React from 'react';
 import { useProfileManagement } from '../hooks/useProfileManagement';
@@ -95,7 +95,7 @@ const Profile = () => {
                 <h1 className="text-3xl sm:text-4xl font-extrabold text-center text-gray-800 mb-8">회원정보</h1>
                 <form onSubmit={handleSubmit} className="space-y-6">
                     {/* 사용자 정보 섹션 */}
-
+                    
                     <section className="space-y-4">
                         <h2 className="text-2xl font-bold text-gray-700">개인 정보</h2>
 
