@@ -374,13 +374,14 @@ def get_image():
         return abort(400, "path 파라미터가 필요해요!")
 
     # 보안상 경로 이스케이프 방지
-    safe_path = os.path.join(IMAGE_SAVE_DIR, os.path.basename(db_save_path))
+    safe_path = os.path.join(IMAGE_SAVE_DIR, db_save_path)
+    print(f"🔄 요청된 이미지 경로: {safe_path}")
 
     if not safe_path.startswith(IMAGE_SAVE_DIR):
-        return abort(403, "허용되지 않은 경로 요청!")
-    
+        return abort(403, f"허용되지 않은 경로 요청! : {safe_path}")
+
     if not os.path.isfile(safe_path):
-        return abort(404, "이미지를 찾을 수 없어요!")
+        return abort(404, f"이미지를 찾을 수 없어요! : {safe_path}")
 
     return send_file(safe_path, mimetype="image/jpeg")
 
