@@ -44,7 +44,7 @@ frame_lock = threading.Lock()
 
 
 # 💡 YOLO 모델 로드
-model = YOLO("./model/CEv11l_n4k_sz1280_e50_run/weights/best.pt")
+model = YOLO("./model/best.pt")
 model.to("cuda" if torch.cuda.is_available() else "cpu")
 
 # 💡 전송 여부 판단(마지막 전송 시간 기준)
