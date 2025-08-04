@@ -88,14 +88,14 @@ const Profile = () => {
                 {/* 로고 또는 프로필 공간 */}
                 <div className="flex justify-center mb-6">
                     <div className="w-24 h-24 rounded-full bg-gray-200 flex items-center justify-center text-gray-500">
-                        {/* 여기에 로고 또는 프로필 이미지를 추가할 수 있습니다. */}
-                        {/* <img src="/path/to/logo.png" alt="로고" className="w-full h-full object-cover rounded-full" /> */}
+                        {/* 필요시 로고 대신 프로필 사진 삽입 가능 */}
                         <img src={CareEyesLogo} alt="CareEyes 로고" className="w-full h-full object-cover rounded-full" />
                     </div>
                 </div>
                 <h1 className="text-3xl sm:text-4xl font-extrabold text-center text-gray-800 mb-8">회원정보</h1>
                 <form onSubmit={handleSubmit} className="space-y-6">
                     {/* 사용자 정보 섹션 */}
+                    
                     <section className="space-y-4">
                         <h2 className="text-2xl font-bold text-gray-700">개인 정보</h2>
 
