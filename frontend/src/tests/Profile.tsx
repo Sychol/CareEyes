@@ -83,7 +83,8 @@ const Profile = () => {
 
     return (
         <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4 sm:p-6 lg:p-8 font-inter">
-            <div className="bg-white rounded-2xl shadow-lg w-full max-w-2xl p-6 sm:p-8 lg:p-10 max-h-[calc(100vh-5rem)] overflow-y-auto custom-scroll-hidden">
+            <div className="bg-white rounded-2xl shadow-lg w-full max-w-2xl p-6 sm:p-8 lg:p-10 max-h-[calc(100vh-5rem)] overflow-y-auto
+                        scrollbar-hide">
                 {/* 로고 또는 프로필 공간 */}
                 <div className="flex justify-center mb-6">
                     <div className="w-24 h-24 rounded-full bg-gray-200 flex items-center justify-center text-gray-500">
@@ -92,24 +93,24 @@ const Profile = () => {
                         <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                     </div>
                 </div>
-                <h1 className="text-3xl sm:text-4xl font-extrabold text-center text-gray-800 mb-8">회원정보 수정</h1>
+                <h1 className="text-3xl sm:text-4xl font-extrabold text-center text-gray-800 mb-8">회원정보</h1>
                 <form onSubmit={handleSubmit} className="space-y-6">
                     {/* 사용자 정보 섹션 */}
                     <section className="space-y-4">
                         <h2 className="text-2xl font-bold text-gray-700">개인 정보</h2>
 
-                        {/* 멤버 ID (읽기 전용) */}
-                        <div>
-                            <label htmlFor="memberId" className="block text-sm font-medium text-gray-600 mb-1">ID</label>
-                            <input
-                                id="memberId"
-                                type="text"
-                                value={profile.memberId}
-                                className="w-full p-3 border border-gray-300 rounded-lg bg-gray-100 cursor-not-allowed" // 읽기 전용 스타일
-                                title="회원 ID"
-                                disabled // 수정 불가능하게 설정
-                            />
-                        </div>
+                     {/* 멤버 ID (읽기 전용) */}
+<div>
+    <label htmlFor="memberId" className="block text-sm font-medium text-gray-600 mb-1">ID</label>
+    <input
+        id="memberId"
+        type="text"
+        value={profile.memberId}
+        className="w-full p-3 border border-gray-300 rounded-lg bg-gray-100 cursor-not-allowed" // 읽기 전용 스타일
+        title="회원 ID"
+        disabled // 수정 불가능하게 설정
+    />
+</div>
 
                         {/* 회원 이름 (읽기 전용) */}
                         <div>
@@ -131,7 +132,9 @@ const Profile = () => {
                                 type="email"
                                 value={profile.email}
                                 onChange={handleEmailChange}
-                                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200"
+                                className="w-full p-3 border border-gray-300 rounded-lg 
+               focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 
+               transition-colors duration-200"
                                 placeholder="이메일 주소"
                                 required
                                 title="이메일 주소"
@@ -145,7 +148,7 @@ const Profile = () => {
                                     type="text"
                                     value={phonePart1}
                                     onChange={(e) => handlePhonePartChange(1, e.target.value)}
-                                    className="w-1/3 p-3 text-center border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 transition-colors duration-200"
+                                    className="w-1/3 p-3 text-center border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-colors duration-200"
                                     maxLength={3}
                                     aria-label="전화번호 첫째 자리"
                                     title="전화번호 첫째 자리"
@@ -155,7 +158,7 @@ const Profile = () => {
                                     type="text"
                                     value={phonePart2}
                                     onChange={(e) => handlePhonePartChange(2, e.target.value)}
-                                    className="w-1/3 p-3 text-center border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 transition-colors duration-200"
+                                    className="w-1/3 p-3 text-center border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-colors duration-200"
                                     maxLength={4}
                                     aria-label="전화번호 둘째 자리"
                                     title="전화번호 둘째 자리"
@@ -165,7 +168,7 @@ const Profile = () => {
                                     type="text"
                                     value={phonePart3}
                                     onChange={(e) => handlePhonePartChange(3, e.target.value)}
-                                    className="w-1/3 p-3 text-center border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 transition-colors duration-200"
+                                    className="w-1/3 p-3 text-center border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-colors duration-200"
                                     maxLength={4}
                                     aria-label="전화번호 셋째 자리"
                                     title="전화번호 셋째 자리"
@@ -214,7 +217,9 @@ const Profile = () => {
                                     type="password"
                                     value={currentPassword}
                                     onChange={handleCurrentPasswordChange}
-                                    className="w-full p-3 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 transition-colors duration-200"
+                                    className="w-full p-3 pr-10 border border-gray-300 rounded-lg 
+                           focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 
+                           transition-colors duration-200"
                                     placeholder="현재 비밀번호를 입력해주세요"
                                     title="현재 비밀번호"
                                 />
@@ -243,7 +248,9 @@ const Profile = () => {
                                     onChange={handleNewPasswordChange}
                                     onFocus={handleNewPasswordFocus}
                                     onBlur={handleNewPasswordBlur}
-                                    className="w-full p-3 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 transition-colors duration-200"
+                                     className="w-full p-3 pr-10 border border-gray-300 rounded-lg 
+                           focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 
+                           transition-colors duration-200"
                                     placeholder="8자 이상, 영문/숫자/특수문자 중 2가지 이상"
                                     title="새 비밀번호"
                                 />
@@ -287,7 +294,9 @@ const Profile = () => {
                                     onChange={handleConfirmNewPasswordChange}
                                     onFocus={handleConfirmNewPasswordFocus}
                                     onBlur={handleConfirmNewPasswordBlur}
-                                    className="w-full p-3 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 transition-colors duration-200"
+                                     className="w-full p-3 pr-10 border border-gray-300 rounded-lg 
+                           focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 
+                           transition-colors duration-200"
                                     placeholder="새 비밀번호를 다시 입력해주세요"
                                     title="새 비밀번호 확인"
                                 />

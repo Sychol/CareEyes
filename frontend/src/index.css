@@ -35,20 +35,6 @@
     );
   }
 
-  /* 🚀 스크롤바 숨김 CSS (모든 브라우저 호환) */
-/* `custom-scroll-hidden` 클래스는 스크롤바를 숨기지만, 스크롤 기능 자체는 유지합니다. */
-.custom-scroll-hidden {
-  /* 웹킷(Chrome, Safari) 기반 브라우저 */
-  &::-webkit-scrollbar {
-    display: none; /* 스크롤바 자체를 숨김 */
-    width: 0; /* 너비도 0으로 설정하여 공간 차지 방지 */
-    height: 0; /* 높이도 0으로 설정 */
-  }
-
-  /* Firefox 브라우저 */
-  scrollbar-width: none; /* Firefox에서 스크롤바 숨기기 */
-  -ms-overflow-style: none; /* IE 및 Edge에서 스크롤바 숨기기 */
-}
   /* ✅ 배경색 적용 (이게 없으면 전부 흰색 도배됨) */
   body {
     @apply bg-background text-foreground;

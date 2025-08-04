@@ -300,6 +300,7 @@ export const useProfileManagement = () => {
 
         try {
             const updatedData = {
+                memberId: profile.memberId, // memberId 추가
                 email: profile.email,
                 phone: fullPhoneNumber,
                 company: profile.company, // 소속 추가

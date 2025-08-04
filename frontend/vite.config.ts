@@ -21,14 +21,20 @@ export default defineConfig(({ mode }) => ({
     },
   },
   server: {
+    hmr: {
+      overlay: false,
+    },
     proxy: {
       '/api': {
-        target: process.env.VITE_BACKEND_SERVER || 'http://223.130.130.196:8090/', // 백엔드 주소
+        target: process.env.VITE_BACKEND_SERVER || 'http://223.130.130.196:8090',
         changeOrigin: true,
+        secure: false, // SSL 인증서 검증 비활성화 (개발 환경용)
+        rewrite: (path) => path, // 경로 재작성이 필요한 경우 사용
       },
       '/oauth': {
-        target: process.env.VITE_BACKEND_SERVER || 'http://223.130.130.196:8090/',
+        target: process.env.VITE_BACKEND_SERVER || 'http://223.130.130.196:8090',
         changeOrigin: true,
+        secure: false,
       }
     }
   }

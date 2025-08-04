@@ -19,6 +19,7 @@ import Join from "./tests/Register";
 import KakaoCallback from "./tests/KakaoCallback";
 import WorkPage from "./pages/WorkPage";
 import Analytics from "./pages/Analytics"
+import Profile from "./tests/Profile"; 
 
 
 const queryClient = new QueryClient();
@@ -45,6 +46,7 @@ const App = () => (
               <Route path="/worker" element={<WorkPage />} />
               <Route path="/analytics" element={<Analytics />} />
               <Route path="*" element={<NotFound />} />
+              
             </Route>
 
             {/* ❌ Layout 없이 뜨는 페이지들 */}
@@ -53,6 +55,7 @@ const App = () => (
             <Route path="/login" element={<LogIn />} />
             <Route path="/join" element={<Join />} />
             <Route path="/kakao/callback" element={<KakaoCallback />} />
+            <Route path="/profile" element={<Profile />} />
           </Routes>
         </BrowserRouter>
       </TooltipProvider>
