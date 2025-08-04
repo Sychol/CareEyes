@@ -51,6 +51,7 @@ public class MemberController {
 		} // 에러 메시지 + 401 보내기
 		
 		session.setAttribute("loginMember", member);
+		System.out.println("세션 저장 완료: " + member.getMemberId());
 		
 		return ResponseEntity.ok(Map.of(
 				"memberId", member.getMemberId(),
@@ -60,6 +61,26 @@ public class MemberController {
 		// 로그인 성공하면 id / role 전달
 	}
 	
+	// 로그인 유저 정보 
+	@GetMapping("/userinfo")
+	public ResponseEntity<?> getLoginMember(HttpSession session) {
+	    Members loginMember = (Members) session.getAttribute("loginMember");
+
+	    if (loginMember == null) {
+	        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+	                .body(Map.of("message", "로그인 정보가 없습니다."));
+	    }
+
+	    return ResponseEntity.ok(Map.of(
+	        "memberId", loginMember.getMemberId(),
+	        "memberName", loginMember.getMemberName(),
+	        "memberRole", loginMember.getMemberRole(),
+	        "department", loginMember.getDepartment(),
+	        "email", loginMember.getEmail()
+	    ));
+	}
+	
+	// 카카오 로그인
 	@PostMapping("/kakao-login")
     public ResponseEntity<?> kakaoLogin(@RequestBody Map<String, Object> request) {
         Long kakaoId = Long.valueOf(request.get("kakaoId").toString());
