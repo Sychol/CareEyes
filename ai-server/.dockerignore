@@ -26,9 +26,9 @@ docker-compose.override.yml
 dist/
 build/
 
-# 모델 체크포인트 등
-*.pt
-*.pth
-
 # 탐지 결과 이미지
 detect_images/
+
+# 모델 관련 디렉토리
+model/
+!model/best.pt
