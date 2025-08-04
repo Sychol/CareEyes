@@ -1,4 +1,4 @@
-from flask import Flask, Response, request, jsonify
+from flask import Flask, Response, request, jsonify, send_file, abort
 import cv2, torch, subprocess, shutil, time, requests, os, atexit, threading, boto3, io
 from ultralytics import YOLO
 from collections import Counter
@@ -23,6 +23,8 @@ FPS = 30 # youtube_url의 FPS
 DELAY = 1 # 프레임 간 딜레이 (초 단위)
 CONF_THRESHOLD = 0.3 # 신뢰도 임계값
 SPRING_PROXY = "http://10.0.20.6:8090/api/ai" # Spring 서버 프록시 URL
+
+IMAGE_SAVE_DIR = "/mnt/images/careeyes" # 이미지 저장 디렉토리
 
 # Naver Cloud Object Storage 설정
 BUCKET_NAME = "careeyes-bucket-my"
@@ -237,7 +239,7 @@ def save_detection_image(annotated_img, object_counts, cctv_id, date_str, time_s
     # 로컬에 저장
     elif save_type == "local":
         # 저장 디렉토리 생성
-        save_dir = f"./detect_images/{cctv_id}/{date_str}"
+        save_dir = f"{IMAGE_SAVE_DIR}/{cctv_id}/{date_str}"
         if not os.path.exists(save_dir):
             os.makedirs(save_dir, exist_ok=True)
 
@@ -246,12 +248,15 @@ def save_detection_image(annotated_img, object_counts, cctv_id, date_str, time_s
         cv2.imwrite(save_path, annotated_img)
         print(f"🔍 탐지 완료! {object_counts} → 저장: {save_path}")
 
+        # DB에 저장할 경로
+        db_save_path = f"{cctv_id}/{date_str}/{time_str}.jpg"
+
     # 저장하지 않음
     else:
         print(f"⚠️ 알 수 없는 저장 방식: {save_type} → 저장 생략")
-        save_path = None
+        db_save_path = None
 
-    return save_path
+    return db_save_path
 
 # 💡 Ncloud에 이미지 업로드
 def upload_to_ncloud(image_stream, object_key):
@@ -359,8 +364,28 @@ def video_feed():
     return Response(generate(), # 비디오 스트림 생성기 호출
                     mimetype='multipart/x-mixed-replace; boundary=frame') # 멀티파트 스트림 반환
 
+# 💡 이미지 가져오기 엔드포인트
+@app.route("/get_image")
+def get_image():
+    # 클라이언트가 ?path=cctvid/date/time.jpg 로 요청하는 방식
+    db_save_path = request.args.get("path")
+
+    if not db_save_path:
+        return abort(400, "path 파라미터가 필요해요!")
+
+    # 보안상 경로 이스케이프 방지
+    safe_path = os.path.join(IMAGE_SAVE_DIR, os.path.basename(db_save_path))
+
+    if not safe_path.startswith(IMAGE_SAVE_DIR):
+        return abort(403, "허용되지 않은 경로 요청!")
+    
+    if not os.path.isfile(safe_path):
+        return abort(404, "이미지를 찾을 수 없어요!")
+
+    return send_file(safe_path, mimetype="image/jpeg")
+
 # 💡 홈 페이지
-@app.route('/')
+@app.route('/main')
 def index():
     return '''
         <html>
@@ -423,8 +448,8 @@ def detect_loop(url, cctv_id='unknown', delay=DELAY, save_type="ncloud"):
 # 💡 서버 실행
 if __name__ == '__main__':
     # 자동 감지 루프 시작
-    threading.Thread(target=detect_loop, args=('https://www.youtube.com/watch?v=91PfFoqvuUk', 101, DELAY, 'ncloud'), daemon=True).start()
-    threading.Thread(target=detect_loop, args=('https://www.youtube.com/watch?v=MjD3gnNFYUo', 201, DELAY, 'ncloud'), daemon=True).start()
+    threading.Thread(target=detect_loop, args=('https://www.youtube.com/watch?v=91PfFoqvuUk', 101, DELAY, 'local'), daemon=True).start()
+    threading.Thread(target=detect_loop, args=('https://www.youtube.com/watch?v=MjD3gnNFYUo', 201, DELAY, 'local'), daemon=True).start()
 
     # Flask 서버 실행
     app.run(host='0.0.0.0', port=5000)
