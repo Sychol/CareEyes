@@ -7,7 +7,7 @@ import { useProfileManagement } from '../hooks/useProfileManagement';
 import KakaoLogo from '../assets/profile/kakao.png';
 import NaverLogo from '../assets/profile/naver.png';
 import GoogleLogo from '../assets/profile/google.png';
-
+import CareEyesLogo from '../assets/logo/CareEyes_Logo.png'
 /**
  * @function Profile
  * @description 사용자 프로필 정보를 표시하고 수정하는 페이지 컴포넌트입니다.
@@ -90,7 +90,7 @@ const Profile = () => {
                     <div className="w-24 h-24 rounded-full bg-gray-200 flex items-center justify-center text-gray-500">
                         {/* 여기에 로고 또는 프로필 이미지를 추가할 수 있습니다. */}
                         {/* <img src="/path/to/logo.png" alt="로고" className="w-full h-full object-cover rounded-full" /> */}
-                        <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        <img src={CareEyesLogo} alt="CareEyes 로고" className="w-full h-full object-cover rounded-full" />
                     </div>
                 </div>
                 <h1 className="text-3xl sm:text-4xl font-extrabold text-center text-gray-800 mb-8">회원정보</h1>
