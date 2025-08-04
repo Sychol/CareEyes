@@ -16,8 +16,8 @@ public class CorsConfig {
         CorsConfiguration config = new CorsConfiguration();
 
         // 🔓 클라이언트 주소 허용 (React 개발 서버 주소)
-        config.setAllowedOrigins(List.of("http://localhost:5174"));
-        
+        config.setAllowedOriginPatterns(List.of("http://localhost:5174", "http://49.50.134.171", "https://localhost:5173"));
+
         // 🔄 요청 메서드 허용
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         
