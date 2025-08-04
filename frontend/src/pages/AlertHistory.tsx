@@ -42,7 +42,7 @@ export default function AlertHistory() {
 
   useEffect(() => {
     const fetchAlerts = () => {
-      fetch("http://223.130.130.196:8090/api/eventlist")
+      fetch("/api/eventlist")
         .then((res) => res.json())
         .then((data) => {
           console.log("✅ eventlist 갱신", data);

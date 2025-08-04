@@ -1,3 +1,4 @@
 ai-server/detect_images
 *.env
 *.pem
+docker-compose.override.yml

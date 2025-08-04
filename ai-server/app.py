@@ -4,12 +4,8 @@ from ultralytics import YOLO
 from collections import Counter
 from datetime import datetime
 from botocore.client import Config
-from dotenv import load_dotenv
-
 
 app = Flask(__name__)
-
-load_dotenv()  # .env 파일에서 환경 변수 로드
 
 # 💡 설정
 # 객체 감지 후 전송 지연 시간 (초 단위)
@@ -31,8 +27,8 @@ SPRING_PROXY = "http://10.0.20.6:8090/api/ai" # Spring 서버 프록시 URL
 # Naver Cloud Object Storage 설정
 BUCKET_NAME = "careeyes-bucket"
 ENDPOINT = "https://kr.object.ncloudstorage.com"
-NCLOUD_ACCESS_KEY = os.getenv("NCLOUD_ACCESS_KEY")
-NCLOUD_SECRET_KEY = os.getenv("NCLOUD_SECRET_KEY")
+NCLOUD_ACCESS_KEY = os.environ.get("NCLOUD_ACCESS_KEY")
+NCLOUD_SECRET_KEY = os.environ.get("NCLOUD_SECRET_KEY")
 
 # 마지막 전송 시간 기록: { (cctv_id, class_name): timestamp }
 last_sent_time = {}
@@ -48,7 +44,7 @@ frame_lock = threading.Lock()
 
 
 # 💡 YOLO 모델 로드
-model = YOLO("./model/CEv11l_n20k_sz960_e20_run/weights/best.pt")
+model = YOLO("./model/best.pt")
 model.to("cuda" if torch.cuda.is_available() else "cpu")
 
 # 💡 전송 여부 판단(마지막 전송 시간 기준)

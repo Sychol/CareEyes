@@ -80,7 +80,7 @@ export default function Dashboard() {
   // 데이터 fetch 함수 분리
   const fetchData = () => {
     axios
-      .get("http://223.130.130.196:8090/api/eventlist")
+      .get("/api/eventlist")
       .then((res) => {
         const uniqueAlerts = res.data.filter(
           (item: AlertEvent, index: number, self: AlertEvent[]) =>
@@ -91,7 +91,7 @@ export default function Dashboard() {
       .catch((err) => console.error("❌ eventlist 에러:", err));
 
     axios
-      .get("http://223.130.130.196:8090/api/member/workerlist")
+      .get("/api/member/workerlist")
       .then((res) => setRecentAlerts(res.data))
       .catch((err) => console.error("❌ workerlist 에러:", err));
 
@@ -290,7 +290,7 @@ export default function Dashboard() {
             <div className="relative w-full h-[300px] rounded-lg overflow-hidden bg-gray-100">
               {selectedAlertImage ? (
                 <img
-                  src={`http://223.130.130.196:8090${
+                  src={`/api/image${
                     selectedAlertImage.startsWith("/")
                       ? selectedAlertImage
                       : `/${selectedAlertImage}`

@@ -1,5 +1,7 @@
 package com.careeyes.controller;
 
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -31,7 +33,6 @@ public class MemberController {
 	        return ResponseEntity.status(HttpStatus.CONFLICT)
 	            .body(Map.of("success", false, "message", "중복된 ID, 이메일 또는 전화번호입니다."));
 	    }
-
 	    memberMapper.join(member);
 	    return ResponseEntity.ok(Map.of("success", true));
 	}
@@ -59,28 +60,22 @@ public class MemberController {
 		// 로그인 성공하면 id / role 전달
 	}
 	
-//	@PostMapping("/login")
-//	public ResponseEntity<?> login(@RequestBody Map<String, String> request){
-//	    String memberId = request.get("memberId");
-//	    String memberPw = request.get("memberPw");
-//
-//	    Members member = memberMapper.findById(memberId);
-//
-//	    if (member == null) {
-//	        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-//	                .body(Map.of("message", "존재하지 않는 아이디입니다."));
-//	    }
-//
-//	    if (!member.getMemberPw().equals(memberPw)) {
-//	        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-//	                .body(Map.of("message", "비밀번호가 일치하지 않습니다."));
-//	    }
-//
-//	    return ResponseEntity.ok(Map.of(
-//	            "memberId", member.getMemberId(),
-//	            "memberRole", member.getMemberRole()
-//	    ));
-//	}
+	@PostMapping("/kakao-login")
+    public ResponseEntity<?> kakaoLogin(@RequestBody Map<String, Object> request) {
+        Long kakaoId = Long.valueOf(request.get("kakaoId").toString());
+
+        Members member = memberMapper.findByKakaoId(kakaoId);
+        if (member == null) {
+            // 새 사용자 → 프론트에서 회원가입 유도
+            return ResponseEntity.ok(Map.of("status", "NEW_USER"));
+        }
+
+        // 기존 사용자 → 로그인 처리
+        return ResponseEntity.ok(Map.of(
+            "status", "EXISTING_USER",
+            "member", member
+        ));
+    }
 	
 	// 중복검사
 	@PostMapping("/duplicate")
@@ -118,8 +113,26 @@ public class MemberController {
 	    return ResponseEntity.ok("카카오 계정 연동 완료");
 	}
 	
+	// 작업자 리스트 받아오기
 	@GetMapping("/workerlist")
 	public ResponseEntity<List<Members>> getWorkerList() {
 	    return ResponseEntity.ok(memberMapper.getWorkerList());
+	}
+	
+	
+	// 알림 일시정지
+	@PostMapping("/pause-alert")
+	public ResponseEntity<?> pauseAlert(@RequestBody Map<String, Object> body) {
+	    String memberId = (String) body.get("memberId");
+	    Integer pauseMinutes = (Integer) body.get("pauseMinutes");
+
+	    if (memberId == null || pauseMinutes == null) {
+	        return ResponseEntity.badRequest().body("잘못된 요청입니다.");
+	    }
+
+	    LocalDateTime expireTime = LocalDateTime.now().plusMinutes(pauseMinutes); // 지금부터 + 설정 분
+	    memberMapper.pauseAlert(memberId, 0, Timestamp.valueOf(expireTime));  // alertState 0으로 설정
+
+	    return ResponseEntity.ok(Map.of("message", "알림이 " + pauseMinutes + "분간 일시정지 됩니다."));
 	}
 }

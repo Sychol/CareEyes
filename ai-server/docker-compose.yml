@@ -1,0 +1,12 @@
+# aiserver/docker-compose.yml
+version: '3.8'
+services:
+  careeyes-ai:
+    container_name: careeyes-ai-container
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: sychol/careeyes-aiserver:latest
+    ports:
+      - "5000:5000"
+    restart: always

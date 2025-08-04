@@ -15,6 +15,7 @@ import NotFound from "./pages/NotFound";
 import AirportDashboard from "./pages/AirportDashboard";
 import LogIn from "./pages/Login"; // 소문자 확인
 import Join from "./pages/Register";
+import KakaoCallback from "./pages/KakaoCallback";
 import WorkPage from "./pages/WorkPage";
 import Analytics from "./pages/Analytics"
 
@@ -50,6 +51,7 @@ const App = () => (
             <Route path="/airport" element={<AirportDashboard />} />
             <Route path="/login" element={<LogIn />} />
             <Route path="/join" element={<Join />} />
+            <Route path="/kakao/callback" element={<KakaoCallback />} />
           </Routes>
         </BrowserRouter>
       </TooltipProvider>
