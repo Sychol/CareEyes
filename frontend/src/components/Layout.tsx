@@ -1,15 +1,18 @@
 // CareEyes 전체 페이지의 기본 레이아웃 컴포넌트
+import { useState } from "react";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { Header } from "@/components/Header";
 import { Outlet } from "react-router-dom";
 
 export function Layout() {
+  const [isCollapsed, setIsCollapsed] = useState(false); // ✅ 사이드바 상태
+
   return (
     <SidebarProvider>
-      <div className="flex h-screen w-full overflow-hidden bg-white"> {/* ✅ 고정 높이 + overflow-hidden */}
+      <div className="flex h-screen w-full overflow-hidden bg-white">
         {/* 좌측 사이드바 */}
-        <AppSidebar />
+        <AppSidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
 
         {/* 우측 본문 */}
         <div className="flex-1 flex flex-col">
@@ -17,7 +20,7 @@ export function Layout() {
           <Header />
 
           {/* 자식 라우트가 출력될 메인 영역 */}
-          <main className="flex-1 overflow-y-auto bg-muted px-6 py-4"> {/* ✅ 여기 overflow-y-auto */}
+          <main className="flex-1 overflow-y-auto bg-muted px-6 py-4">
             <Outlet />
           </main>
         </div>

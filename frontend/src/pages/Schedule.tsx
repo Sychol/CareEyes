@@ -72,10 +72,7 @@ export const Schedule = () => {
 
           <Popover>
             <PopoverTrigger asChild>
-              <Button variant="outline" size="sm" className="h-8">
-                <Filter className="h-3 w-3 mr-1" />
-                필터
-              </Button>
+              
             </PopoverTrigger>
             <PopoverContent className="w-40 p-3 space-y-2">
               {allCategories.map((category) => (
