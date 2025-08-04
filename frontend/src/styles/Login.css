@@ -125,6 +125,12 @@ html, body, #root {
     background-color: #ffffff;
     transition: border-color 0.2s ease, box-shadow 0.2s ease;
     box-sizing: border-box;
+    text-align: center;
+}
+
+.input-field[type="password"]::placeholder {
+    text-align: center; /* 플레이스홀더 글자를 중앙으로 정렬 */
+    text-indent: 35px;
 }
 
 .input-field:focus {
