@@ -1,0 +1,34 @@
+# VSCode나 IDE 관련
+.vscode/
+.idea/
+
+# Python 캐시
+__pycache__/
+*.pyc
+
+# Git 관련
+.git
+.gitignore
+
+# Docker ignore 자체도 제외 (필요 없으니까)
+.dockerignore
+
+# 환경 파일 (복사하고 싶으면 이건 빼세요!)
+.env
+docker-compose.override.yml
+
+# 로그/임시 파일
+*.log
+*.bak
+*.swp
+
+# 빌드 아티팩트 (혹시 추론 모델 만들 때 생성되면?)
+dist/
+build/
+
+# 모델 체크포인트 등
+*.pt
+*.pth
+
+# 탐지 결과 이미지
+detect_images/
