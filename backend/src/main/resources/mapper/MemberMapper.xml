@@ -88,5 +88,13 @@
 	    WHERE MEMBER_ID = #{memberId}
 	</update>
 	
+	<!-- 알림 켜져있는 멤버 찾기 -->
+    <select id="findMembersToNotify" resultType="Members">
+        SELECT *
+        FROM MEMBERS
+        WHERE MEMBER_ROLE = 'MEMBER'
+          AND ALERT_STATE = 1
+    </select>
+	
 	
 </mapper>

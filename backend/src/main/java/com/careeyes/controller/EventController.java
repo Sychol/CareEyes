@@ -8,20 +8,34 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.careeyes.Service.EventService;
 import com.careeyes.entity.Cctv;
 import com.careeyes.entity.DetectEvent;
 import com.careeyes.mapper.EventMapper;
 
+import lombok.RequiredArgsConstructor;
+
 @RestController
 @RequestMapping("/api")
+@RequiredArgsConstructor
 public class EventController {
 
 	@Autowired
 	private EventMapper eventMapper;
+	
+	private final EventService eventService;
+	
+	// 알림 문자 메시지 보내기
+    @PostMapping("/sendalert")
+    public ResponseEntity<String> receiveDetection(@RequestBody DetectEvent event) {
+        eventService.processDetection(event);
+        return ResponseEntity.ok("이상 객체 알림 전송 완료");
+    }
 	
 	// 알림 내역 가져오기
 	@GetMapping("/eventlist")
@@ -49,5 +63,7 @@ public class EventController {
 	    eventMapper.updateManageState(eventId, manage);
 	    return ResponseEntity.ok("상태가 성공적으로 변경되었습니다.");
 	}
+	
+	
 
 }

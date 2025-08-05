@@ -38,5 +38,7 @@ public interface MemberMapper {
 	public List<String> findRestorables();
 	
 	public void updateAlertState(@Param("memberId") String memberId, @Param("alertState") int alertState);
+	
+	public List<Members> findMembersToNotify();
 
 }
