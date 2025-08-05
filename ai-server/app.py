@@ -306,22 +306,32 @@ def send_to_spring(object_counts, save_path, date_str, time_str, cctv_id='unknow
     return : 상태 코드, 응답 메시지
     """
     time_str = time_str.replace("-", ":")  # 시간 형식 변경 (예: 12-30-45 → 12:30:45)
-    payload = {
+    event_payload = {
         "eventDate": date_str,
         "eventTime": time_str,
         "cctvId": cctv_id,
         "imgPath": save_path,
         "objects": object_counts
     }
+    msg_payload = {
+        "cctvId": cctv_id,
+        "eventDate": date_str,
+        "eventTime": time_str,
+        "objects": object_counts
+    }
     headers = {"Content-Type": "application/json"} # JSON 헤더 설정
-    url = f"{SPRING_PROXY}/detect"  # Spring 서버 URL
-    print(f"📤 Spring 서버로 전송: {payload}") # 전송 내용 출력
-    print(f"📤 요청 URL: {url}") # 요청 URL 출력
+    event_url = f"{SPRING_PROXY}/detect"  # Spring 이벤트 URL
+    msg_url = f"{SPRING_PROXY}/sendalert"  # Spring 메시지 URL
+    print(f"📤 Spring 서버 /detect로 전송: {event_payload}") # 전송 내용 출력
+    print(f"📤 Spring 서버 /sendalert로 전송: {msg_payload}") # 전송 내용 출력
+    print(f"📤 요청 /detect URL: {event_url}") # 요청 URL 출력
+    print(f"📤 요청 /sendalert URL: {msg_url}") # 요청 URL 출력
 
     # POST 요청으로 Spring 서버에 전송
     try:
-        res = requests.post(url, json=payload, headers=headers) # Spring 서버로 POST 요청
-        return res.status_code, res.text # 상태 코드와 응답 텍스트 반환
+        event_res = requests.post(event_url, json=event_payload, headers=headers) # Spring 서버로 POST 요청
+        msg_res = requests.post(msg_url, json=msg_payload, headers=headers) # Spring 서버로 POST 요청
+        return event_res.status_code, event_res.text, msg_res.status_code, msg_res.text # 상태 코드와 응답 텍스트 반환
     except Exception as e:
         print(f"❌ Spring 전송 실패: {e}")
         return 500, str(e)
@@ -392,8 +402,8 @@ def index():
         <html>
             <body>
                 <h1>YOLOv11 실시간 감지 스트리밍</h1>
-                <img src="/video_feed?url=https://www.youtube.com/watch?v=91PfFoqvuUk&cctv_id=101" width="1000" />
-                <img src="/video_feed?url=https://www.youtube.com/watch?v=MjD3gnNFYUo&cctv_id=201" width="1000" />
+                <img src="/ai/video_feed?url=https://www.youtube.com/watch?v=91PfFoqvuUk&cctv_id=101" width="1000" />
+                <img src="/ai/video_feed?url=https://www.youtube.com/watch?v=MjD3gnNFYUo&cctv_id=201" width="1000" />
             </body>
         </html>
     '''
