@@ -22,7 +22,7 @@ SAVE_CLASSES = {
 FPS = 30 # youtube_url의 FPS
 DELAY = 1 # 프레임 간 딜레이 (초 단위)
 CONF_THRESHOLD = 0.3 # 신뢰도 임계값
-SPRING_PROXY = "http://10.0.20.6:8090/api/ai" # Spring 서버 프록시 URL
+SPRING_PROXY = "http://10.0.20.6:8090/api" # Spring 서버 프록시 URL
 
 IMAGE_SAVE_DIR = "/app/images" # 이미지 저장 디렉토리
 
