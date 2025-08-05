@@ -26,21 +26,21 @@ public class EventService {
         Map<String, String> nameMap = Map.of(
                 "bird", "새",
                 "person", "사람",
-                "car", "차량",
+                "vehicle", "차량",
                 "mammal", "개"
             );
 
         Map<String, String> unitMap = Map.of(
                 "bird", "마리",
                 "person", "명",
-                "car", "대",
+                "vehicle", "대",
                 "mammal", "마리"
             );
 
         Map<String, String> emojiMap = Map.of(
                 "bird", "🐦",
                 "person", "👤",
-                "car", "🚗",
+                "vehicle", "🚗",
                 "mammal", "🐕"
             );
         

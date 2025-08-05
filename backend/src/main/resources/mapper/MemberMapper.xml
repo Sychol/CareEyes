@@ -92,7 +92,7 @@
     <select id="findMembersToNotify" resultType="Members">
         SELECT *
         FROM MEMBERS
-        WHERE MEMBER_ROLE = 'MEMBER'
+        WHERE MEMBER_ROLE = 'WORKER'
           AND ALERT_STATE = 1
     </select>
 	

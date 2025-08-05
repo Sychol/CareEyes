@@ -51,7 +51,8 @@ public class SolapiService {
         HttpEntity<String> request = new HttpEntity<>(bodyJson, headers);
 
         ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, request, String.class);
-
+        System.out.println("📨 문자 전송 응답: " + response.getStatusCode());
+        System.out.println("📨 전송 결과: " + response.getBody());
         if (!response.getStatusCode().is2xxSuccessful()) {
             throw new RuntimeException("문자 전송 실패: " + response.getBody());
         }
