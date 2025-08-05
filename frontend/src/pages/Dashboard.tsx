@@ -148,24 +148,47 @@ export default function Dashboard() {
     const clicked = cctvs.find((c) => c.id === id);
     if (!clicked) return;
 
-    const matchedAlert = alertHistory.find(
-      (alert) => alert.cctvId === clicked.id && alert.location === clicked.location
-    );
+    // EAST-101 처리
+    if (clicked.id === 101 && clicked.location === "EAST") {
+      const latestEast101 = alertHistory
+        .filter((alert) => alert.cctvId === 101 && alert.location === "EAST")
+        .sort(
+          (a, b) =>
+            new Date(`${b.eventDate}T${b.eventTime}`).getTime() -
+            new Date(`${a.eventDate}T${a.eventTime}`).getTime()
+        )[0];
 
-    if (matchedAlert) {
-      setSelectedAlertImage(matchedAlert.imgPath);
-    } else if (alertHistory.length > 0) {
-      setSelectedAlertImage(alertHistory[0].imgPath);
+      setSelectedAlertImage(latestEast101?.imgPath || "/dummy/dummy-image.jpg"); // 수정해야함
+      setActiveCctvs({ EAST: 101, WEST: null });
+      setHighlightedCctvId(101);
+      return;
     }
 
-    setActiveCctvs((prev) => ({
-      ...prev,
-      [clicked.location]: id,
-      [clicked.location === "EAST" ? "WEST" : "EAST"]: null,
-    }));
+    // WEST-201 처리
+    if (clicked.id === 201 && clicked.location === "WEST") {
+      const latestWest201 = alertHistory
+        .filter((alert) => alert.cctvId === 201 && alert.location === "WEST")
+        .sort(
+          (a, b) =>
+            new Date(`${b.eventDate}T${b.eventTime}`).getTime() -
+            new Date(`${a.eventDate}T${a.eventTime}`).getTime()
+        )[0];
 
-    setHighlightedCctvId(id);
+      setSelectedAlertImage(latestWest201?.imgPath || "/dummy/dummy-image.jpg");
+      setActiveCctvs({ EAST: null, WEST: 201 });
+      setHighlightedCctvId(201);
+      return;
+    }
+
+    // 그 외 → 더미 이미지 직접 경로 입력
+    setSelectedAlertImage("/dummy/dummy-image.jpg");
+    setActiveCctvs({
+      EAST: clicked.location === "EAST" ? clicked.id : null,
+      WEST: clicked.location === "WEST" ? clicked.id : null,
+    });
+    setHighlightedCctvId(clicked.id);
   };
+
 
   const filteredAlerts = alertHistory
     .filter((alert) => {
@@ -244,10 +267,10 @@ export default function Dashboard() {
                   statusText === "처리완료"
                     ? "border-green-500"
                     : statusText === "처리중"
-                    ? "border-yellow-400"
-                    : statusText === "미처리"
-                    ? "border-red-500"
-                    : "border-black";
+                      ? "border-yellow-400"
+                      : statusText === "미처리"
+                        ? "border-red-500"
+                        : "border-black";
 
                 return (
                   <div
@@ -262,16 +285,14 @@ export default function Dashboard() {
                     )}
                     <button
                       onClick={() => handleCctvClick(cctv.id)}
-                      className={`w-10 h-10 p-1 rounded-full border-4 flex items-center justify-center ${statusBorderColor} ${
-                        isSelected ? "ring-4 ring-black/30" : ""
-                      } bg-white`}
+                      className={`w-10 h-10 p-1 rounded-full border-4 flex items-center justify-center ${statusBorderColor} ${isSelected ? "ring-4 ring-black/30" : ""
+                        } bg-white`}
                     >
                       <img
                         src={newCctvIcon}
                         alt="CCTV"
-                        className={`w-full h-full object-contain rounded-full p-0.5 ${
-                          cctv.location === "EAST" ? "scale-x-[-1]" : ""
-                        }`}
+                        className={`w-full h-full object-contain rounded-full p-0.5 ${cctv.location === "EAST" ? "scale-x-[-1]" : ""
+                          }`}
                       />
                     </button>
                   </div>
@@ -290,14 +311,11 @@ export default function Dashboard() {
             <div className="relative w-full h-[300px] rounded-lg overflow-hidden bg-gray-100">
               {selectedAlertImage ? (
                 <img
-                  src={`/api/image${
-                    selectedAlertImage.startsWith("/")
-                      ? selectedAlertImage
-                      : `/${selectedAlertImage}`
-                  }`}
+                  src={`/ai/get_image?path=${encodeURIComponent(selectedAlertImage)}`}
                   alt="이상물체 이미지"
                   className="w-full h-full object-cover rounded-md"
                 />
+
               ) : (
                 <div className="flex items-center justify-center h-full text-muted-foreground">
                   알림을 선택하면 이미지가 표시됩니다
@@ -323,11 +341,10 @@ export default function Dashboard() {
                   return (
                     <button
                       key={label}
-                      className={`px-3 py-1 rounded-full text-sm border transition ${
-                        isSelected
-                          ? "bg-blue-600 text-white"
-                          : "bg-white text-gray-800 border-gray-300"
-                      }`}
+                      className={`px-3 py-1 rounded-full text-sm border transition ${isSelected
+                        ? "bg-blue-600 text-white"
+                        : "bg-white text-gray-800 border-gray-300"
+                        }`}
                       onClick={() => {
                         setFilters({
                           ...filters,
@@ -358,19 +375,23 @@ export default function Dashboard() {
                   className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:shadow transition cursor-pointer"
                   onClick={() => {
                     setSelectedAlertImage(alert.imgPath);
-                    const targetCctvs = cctvs.filter(
-                      (c) => c.location === alert.location
+
+                    const matchedCctv = cctvs.find(
+                      (cctv) =>
+                        String(cctv.id) === String(alert.cctvId) &&
+                        cctv.location === alert.location
                     );
-                    if (targetCctvs.length > 0) {
-                      const randomCctv =
-                        targetCctvs[Math.floor(Math.random() * targetCctvs.length)];
+
+
+                    if (matchedCctv) {
                       setActiveCctvs({
-                        EAST: alert.location === "EAST" ? randomCctv.id : null,
-                        WEST: alert.location === "WEST" ? randomCctv.id : null,
+                        EAST: alert.location === "EAST" ? matchedCctv.id : null,
+                        WEST: alert.location === "WEST" ? matchedCctv.id : null,
                       });
-                      setHighlightedCctvId(randomCctv.id);
+                      setHighlightedCctvId(matchedCctv.id);
                     }
                   }}
+
                 >
                   <div className="flex items-center gap-3">
                     <ItemTypeIcon type={alert.itemType} />
@@ -380,7 +401,7 @@ export default function Dashboard() {
                         <span>{alert.itemCount}</span>
                       </div>
                       <div className="text-xs text-muted-foreground mt-1">
-                        위치: <span className="text-blue-600 font-medium">{alert.location}</span> ·
+                        위치: <span className="text-blue-600 font-medium">{`${alert.location}-CCTV ${alert.cctvId}`}</span> ·
                         일시: {alert.eventDate} {alert.eventTime}
                       </div>
                     </div>

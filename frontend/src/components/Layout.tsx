@@ -1,30 +1,40 @@
-// CareEyes 전체 페이지의 기본 레이아웃 컴포넌트
-import { useState } from "react";
-import { SidebarProvider } from "@/components/ui/sidebar";
+import { SidebarProvider, useSidebar } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { Header } from "@/components/Header";
 import { Outlet } from "react-router-dom";
+import { useEffect } from "react";
 
-export function Layout() {
-  const [isCollapsed, setIsCollapsed] = useState(false); // ✅ 사이드바 상태
+function MainLayout() {
+  const { state, toggleSidebar } = useSidebar();
+  const isCollapsed = state === "collapsed";
 
   return (
-    <SidebarProvider>
-      <div className="flex h-screen w-full overflow-hidden bg-white">
-        {/* 좌측 사이드바 */}
-        <AppSidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
-
-        {/* 우측 본문 */}
-        <div className="flex-1 flex flex-col">
-          {/* 상단 헤더 */}
-          <Header />
-
-          {/* 자식 라우트가 출력될 메인 영역 */}
-          <main className="flex-1 overflow-y-auto bg-muted px-6 py-4">
-            <Outlet />
-          </main>
-        </div>
+    <div className="flex w-full h-screen overflow-hidden bg-white relative">
+      {/* ✅ 사이드바 */}
+      <div
+        className={`h-full transition-all duration-300 ${isCollapsed ? "w-16" : "w-64"
+          }`}
+      >
+        <AppSidebar />
       </div>
+
+
+
+      {/* ✅ 본문 */}
+      <div className="flex flex-col flex-1 bg-muted">
+        <Header />
+        <main className="flex-1 overflow-y-auto px-6 py-4">
+          <Outlet />
+        </main>
+      </div>
+    </div>
+  );
+}
+
+export function Layout() {
+  return (
+    <SidebarProvider>
+      <MainLayout />
     </SidebarProvider>
   );
 }

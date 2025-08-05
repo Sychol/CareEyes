@@ -133,11 +133,10 @@ export default function AlertHistory() {
               <div
                 key={`${alert.eventId}-${index}`}
                 onClick={() => setSelectedAlertId(alert.eventId)}
-                className={`flex items-center justify-between p-3 rounded-lg transition cursor-pointer hover:bg-gray-100 ${
-                  selectedAlertId === alert.eventId
+                className={`flex items-center justify-between p-3 rounded-lg transition cursor-pointer hover:bg-gray-100 ${selectedAlertId === alert.eventId
                     ? "bg-blue-100 border border-blue-500"
                     : "bg-gray-50"
-                }`}
+                  }`}
               >
                 <div className="flex gap-3">
                   <div className="text-2xl">📦</div>
@@ -187,12 +186,15 @@ export default function AlertHistory() {
           <CardTitle>실시간 CCTV 영상</CardTitle>
         </CardHeader>
         <CardContent className="flex items-center justify-center">
-          <iframe
-            className="w-full h-[360px] rounded-md"
-            src="https://www.youtube.com/embed/MjD3gnNFYUo?autoplay=1&mute=1"
-            allow="autoplay; encrypted-media"
-            allowFullScreen
-          ></iframe>
+          <div className="relative w-full pb-[56.25%]"> {/* 16:9 비율 */}
+  <iframe
+    src="/ai/video_feed?url=https://www.youtube.com/watch?v=91PFoqvuUk&cctv_id=101"
+    className="absolute top-0 left-0 w-full h-full rounded-md"
+    allow="autoplay; encrypted-media"
+    allowFullScreen
+  />
+</div>
+
         </CardContent>
       </Card>
 
