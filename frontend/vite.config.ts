@@ -35,6 +35,11 @@ export default defineConfig(({ mode }) => ({
         target: process.env.VITE_BACKEND_SERVER || 'http://223.130.130.196:8090',
         changeOrigin: true,
         secure: false,
+      },
+      '/ai': {
+        target: process.env.VITE_BACKEND_SERVER || 'http://223.130.138.9:5000',
+        changeOrigin: true,
+        secure: false,
       }
     }
   }

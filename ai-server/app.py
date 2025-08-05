@@ -9,7 +9,7 @@ app = Flask(__name__)
 
 # 💡 설정
 # 객체 감지 후 전송 지연 시간 (초 단위)
-SUPPRESSION_SECONDS = 300  # 5분
+SUPPRESSION_SECONDS = 600  # 10분
 
 # 저장할 클래스
 SAVE_CLASSES = {
@@ -327,7 +327,7 @@ def send_to_spring(object_counts, save_path, date_str, time_str, cctv_id='unknow
         return 500, str(e)
 
 # 💡 비디오 피드 엔드포인트
-@app.route('/video_feed')
+@app.route('/ai/video_feed')
 def video_feed():
     youtube_url = request.args.get('url') # URL 파라미터에서 YouTube URL 가져오기(예: /video_feed?url=https://...)
     cctv_id = request.args.get('cctv_id')  # URL 파라미터에서 CCTV ID 가져오기
@@ -365,7 +365,7 @@ def video_feed():
                     mimetype='multipart/x-mixed-replace; boundary=frame') # 멀티파트 스트림 반환
 
 # 💡 이미지 가져오기 엔드포인트
-@app.route("/get_image")
+@app.route("/ai/get_image")
 def get_image():
     # 클라이언트가 ?path=cctvid/date/time.jpg 로 요청하는 방식
     db_save_path = request.args.get("path")
@@ -385,8 +385,8 @@ def get_image():
 
     return send_file(safe_path, mimetype="image/jpeg")
 
-# 💡 홈 페이지
-@app.route('/main')
+# 💡 루프 확인 페이지
+@app.route('/ai/test')
 def index():
     return '''
         <html>
