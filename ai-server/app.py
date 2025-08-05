@@ -447,8 +447,9 @@ def detect_loop(url, cctv_id='unknown', delay=DELAY, save_type="ncloud"):
 
             # 유효 객체가 있다면 전송
             if filtered_counts and save_path:
-                status, msg = send_to_spring(filtered_counts, save_path, date_str, time_str, cctv_id)
-                print(f"📡 Spring 응답: {status}, {msg}")
+                event_status, event_msg, msg_status, msg_msg = send_to_spring(filtered_counts, save_path, date_str, time_str, cctv_id)
+                print(f"📡 Spring /detect 응답: {event_status}, {event_msg}")
+                print(f"📡 Spring /sendalert 응답: {msg_status}, {msg_msg}")
             elif filtered_counts and not save_path:
                 print(f"⚠️ 객체는 탐지됐지만 이미지 저장은 생략됨 → 전송 안 함")
 
