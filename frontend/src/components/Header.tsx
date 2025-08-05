@@ -33,7 +33,7 @@ export function Header() {
   };
 
   return (
-    <div className="h-20 bg-[#5F69C7] flex items-center justify-between px-6 shadow-md">
+    <div className="h-16 bg-[#5F69C7] flex items-center justify-between px-6 shadow-md">
       {/* Breadcrumb */}
       <div className="flex items-center text-white/90">
         <span className="text-sm">Pages</span>
