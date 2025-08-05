@@ -13,10 +13,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.careeyes.Service.EventService;
 import com.careeyes.entity.Cctv;
 import com.careeyes.entity.DetectEvent;
 import com.careeyes.mapper.EventMapper;
+import com.careeyes.service.EventService;
 
 import lombok.RequiredArgsConstructor;
 

@@ -1,15 +1,15 @@
-package com.careeyes.Service;
+package com.careeyes.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.annotation.PostConstruct;
+import net.nurigo.sdk.NurigoApp;
+import net.nurigo.sdk.message.model.Message;
+import net.nurigo.sdk.message.service.DefaultMessageService;
+
+import java.util.List;
+import java.util.ArrayList;
+
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.*;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
-
-import javax.crypto.Mac;
-import javax.crypto.spec.SecretKeySpec;
-import java.nio.charset.StandardCharsets;
-import java.util.*;
 
 @Service
 public class SolapiService {
@@ -20,51 +20,50 @@ public class SolapiService {
     @Value("${solapi.apiSecret}")
     private String apiSecret;
 
-    private final RestTemplate restTemplate = new RestTemplate();
+    private DefaultMessageService messageService;
+    
+    @PostConstruct
+    public void init() {
+        // Solapi SDK 초기화
+        this.messageService = NurigoApp.INSTANCE.initialize(
+                apiKey,
+                apiSecret,
+                "https://api.solapi.com"
+        );
+    }
 
-    public void sendSMS(String to, String text) throws Exception {
-        String url = "https://api.solapi.com/messages/v4/send-many";
+    public void sendSMS(String to, String text) {
+        Message message = new Message();
+        message.setFrom("01034583625"); // 인증된 발신번호
+        message.setTo(to);              // 수신번호
+        message.setText(text);          // 문자 내용
 
-        String salt = UUID.randomUUID().toString(); // 요청마다 다른 UUID 생성 (보안용)
-        String date = String.valueOf(System.currentTimeMillis());
-
-        Map<String, Object> message = new HashMap<>();
-        message.put("to", to);
-        message.put("from", "01034583625"); // 등록된 발신번호로 교체
-        message.put("text", text);
-        message.put("type", "SMS");
-
-        Map<String, Object> bodyMap = new HashMap<>();
-        bodyMap.put("messages", List.of(message));
-
-        ObjectMapper objectMapper = new ObjectMapper();
-        String bodyJson = objectMapper.writeValueAsString(bodyMap);
-
-        String signature = makeSignature("POST", "/messages/v4/send-many", date, salt, apiSecret);
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.set("Authorization", String.format(
-                "HMAC-SHA256 apiKey=%s, date=%s, salt=%s, signature=%s",
-                apiKey, date, salt, signature));
-
-        HttpEntity<String> request = new HttpEntity<>(bodyJson, headers);
-
-        ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, request, String.class);
-        System.out.println("📨 문자 전송 응답: " + response.getStatusCode());
-        System.out.println("📨 전송 결과: " + response.getBody());
-        if (!response.getStatusCode().is2xxSuccessful()) {
-            throw new RuntimeException("문자 전송 실패: " + response.getBody());
+        try {
+            messageService.send(message);
+            System.out.println("✅ 문자 전송 성공: " + to);
+        } catch (Exception e) {
+            System.err.println("❌ 문자 전송 실패: " + e.getMessage());
+            e.printStackTrace();
         }
     }
     
-    // SOLAPI -> 각 요청마다 HMAC-SHA256 서명 요구 -> 그거 만드는 메서드
-    private String makeSignature(String method, String url, String date, String salt, String secret) throws Exception {
-        String message = method + " " + url + "\n" + date + salt;
+    public void sendBulkSMS(List<String> phoneNumbers, String text) {
+        List<Message> messages = new ArrayList<>();
 
-        Mac hasher = Mac.getInstance("HmacSHA256");
-        hasher.init(new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8), "HmacSHA256"));
-        byte[] hash = hasher.doFinal(message.getBytes(StandardCharsets.UTF_8));
-        return Base64.getEncoder().encodeToString(hash);
+        for (String to : phoneNumbers) {
+            Message message = new Message();
+            message.setFrom("01034583625"); // 발신번호
+            message.setTo(to);
+            message.setText(text);
+            messages.add(message);
+        }
+
+        try {
+            messageService.send(messages);  // <-- 핵심!
+            System.out.println("✅ 다중 문자 전송 성공 (" + messages.size() + "건)");
+        } catch (Exception e) {
+            System.err.println("❌ 다중 문자 전송 실패: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 }
