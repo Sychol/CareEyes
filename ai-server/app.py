@@ -4,6 +4,7 @@ from ultralytics import YOLO
 from collections import Counter
 from datetime import datetime
 from botocore.client import Config
+from zoneinfo import ZoneInfo
 
 app = Flask(__name__)
 
@@ -192,7 +193,7 @@ def process_youtube_frame(youtube_url, save_result=False, cctv_id='unknown', del
     annotated_img = results.plot() # 결과 이미지에 박스 그리기
 
     # 현재 시간 및 날짜 문자열 생성
-    now = datetime.now()
+    now = datetime.now(ZoneInfo("Asia/Seoul"))
     date_str = now.strftime("%Y-%m-%d")
     time_str = now.strftime("%H-%M-%S")
     save_path = None
