@@ -24,6 +24,7 @@ import Join from "./pages/Register";
 import KakaoCallback from "./pages/KakaoCallback";
 import WorkPage from "./pages/WorkPage";
 import Analytics from "./pages/Analytics"
+import Profile from "./pages/Profile";
 
 const queryClient = new QueryClient();
 
@@ -87,6 +88,7 @@ const App = () => {
               <Route path="/login" element={<LogIn />} />
               <Route path="/join" element={<Join />} />
               <Route path="/kakao/callback" element={<KakaoCallback />} />
+              <Route path="/profile" element={<Profile />} />
             </Routes>
           </BrowserRouter>
           </UserContext.Provider>

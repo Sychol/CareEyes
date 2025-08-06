@@ -151,8 +151,9 @@ const Login = () => {
 
   return (
     // 로그인 페이지 전체 컨테이너
+     <div className="scroll-container">
     <div className="login-container">
-      <div className="login-right-panel">
+      <div className="login-panel">
         <div className="login-form">
           {/* 로고 섹션 */}
           <div className="logo-section">
@@ -283,6 +284,7 @@ const Login = () => {
           </div>
         </div>
       </div>
+    </div>
     </div>
   );
 };
