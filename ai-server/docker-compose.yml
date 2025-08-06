@@ -12,3 +12,5 @@ services:
     ports:
       - "5000:5000"
     restart: always
+
+#    runtime: nvidia  # GPU 사용

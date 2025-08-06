@@ -58,8 +58,14 @@ export function Header() {
 
   // ✅ 로그아웃
   const handleSignOut = () => {
-    localStorage.clear();
-    navigate("/login");
+    axios.post('/api/member/logout', {}, { withCredentials: true })
+      .then(() => {
+        console.log("로그아웃 성공");
+        navigate('/login'); // 로그인 페이지로 이동
+      })
+      .catch((error) => {
+        console.error("로그아웃 실패:", error);
+      });
   };
 
   return (

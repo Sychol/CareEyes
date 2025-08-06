@@ -46,7 +46,7 @@
 	</select>
 	
 	<!-- 소셜 로그인(카카오) -->
-	<select id="findByKakaoId" resultType="Members">
+	<select id="findByKakaoId" resultMap="memberResultMap">
 		SELECT *
 		FROM MEMBERS
 		WHERE KAKAO_ID = #{kakaoId}

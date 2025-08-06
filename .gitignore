@@ -1,4 +1,13 @@
 ai-server/detect_images
+ai-server/predict
+ai-server/runs
+
+__pycache__/
+*.pyc
+
+*.ipynb
 *.env
 *.pem
 docker-compose.override.yml
+
+ai-server/model/YOLOv11_base

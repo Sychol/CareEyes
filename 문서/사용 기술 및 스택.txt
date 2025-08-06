@@ -1,0 +1,22 @@
+1. Frontend
+- 사용 언어 : HTML, CSS, TypeScript
+- Framework : React (vite)
+
+2. Backend
+- 사용 언어 : Java JDK 21
+- Framework : Spring Boot
+
+3. AI Server
+- 사용 언어 : Python 3.10
+- AI 모델 : YOLOv11 (fine-tuned)
+
+4. Database
+- RDBMS : MySQL
+
+5. Server
+- Cloud : Naver Cloud Platform
+- OS : Ubuntu 24.04
+- Web Server : Nginx
+- WAS Server : Tomcat
+- AI Server : Flask
+- 컨테이너 : Docker

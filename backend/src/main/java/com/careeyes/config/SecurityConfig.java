@@ -82,6 +82,7 @@ public class SecurityConfig {
 //					.requestMatchers("/join", "/join-process").permitAll()
 					.requestMatchers("/api/**").permitAll()
 					.requestMatchers("/oauth/**").permitAll()
+					.requestMatchers("/kakao/**").permitAll()
 					// 특정 권한에 따라서 부여되는 페이지 접근 권한
 					.requestMatchers("/admin").hasRole("관리자")
 					.requestMatchers("/user").hasRole("사용자")

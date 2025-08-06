@@ -84,13 +84,13 @@ const App = () => {
                   </ProtectedRoute>
                 }>
                 </Route>
-                {/* ❌ Layout 없이 뜨는 페이지들 */}
-                <Route path="/login" element={<LogIn />} />
-                <Route path="/join" element={<Join />} />
-                <Route path="/kakao/callback" element={<KakaoCallback />} />
-                <Route path="/profile" element={<Profile />} />
-              </Routes>
-            </BrowserRouter>
+              {/* ❌ Layout 없이 뜨는 페이지들 */}
+              <Route path="/login" element={<LogIn />} />
+              <Route path="/join" element={<Join />} />
+              <Route path="/kakao/callback" element={<KakaoCallback />} />
+              <Route path="/profile" element={<Profile />} />
+            </Routes>
+          </BrowserRouter>
           </UserContext.Provider>
         </TooltipProvider>
       </ThemeProvider>

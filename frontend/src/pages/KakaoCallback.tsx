@@ -48,8 +48,20 @@ const KakaoCallback = () => {
           alert('회원가입이 필요합니다.');
           navigate('/join', { state: { kakaoId } });
         } else {
+          const member = serverRes.data.member;
           sessionStorage.setItem('loginMember', JSON.stringify(serverRes.data.member));
-          navigate('/dashboard');
+          switch (member.memberRole) {
+            case 'ADMIN':
+              navigate('/');
+              break;
+            case 'WORKER':
+              navigate('/airport');
+              break;
+            default:
+              alert('알 수 없는 사용자 권한입니다.');
+              navigate('/login');
+              break;
+          }
         }
       } catch (error) {
         console.error('카카오 로그인 처리 실패:', error);

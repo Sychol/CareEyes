@@ -1,4 +1,4 @@
-package com.careeyes.Service;
+package com.careeyes.service;
 
 import java.util.List;
 import java.util.Map;
@@ -19,30 +19,19 @@ public class EventService {
     private final SolapiService solapiService;
 
     public void processDetection(DetectEvent event) {
-        // 이벤트 저장 로직은 생략 (DB 저장 시 추가)
+        System.out.println("📥 감지 이벤트 수신됨");
+        System.out.println("📅 날짜: " + event.getEventDate());
+        System.out.println("🕒 시간: " + event.getEventTime());
+        System.out.println("📷 CCTV ID: " + event.getCctvId());
+        System.out.println("🧾 감지된 객체: " + event.getObjects());
         
         List<Members> members = memberMapper.findMembersToNotify();
+        System.out.println("📇 알림 대상자 수: " + members.size());
         
-        Map<String, String> nameMap = Map.of(
-                "bird", "새",
-                "person", "사람",
-                "vehicle", "차량",
-                "mammal", "개"
-            );
+        Map<String, String> nameMap = Map.of("bird", "새", "person", "사람", "vehicle", "차량", "mammal", "개");
+        Map<String, String> unitMap = Map.of("bird", "마리", "person", "명", "vehicle", "대", "mammal", "마리");
+        Map<String, String> emojiMap = Map.of("bird", "🐦", "person", "👤", "vehicle", "🚗", "mammal", "🐕");
 
-        Map<String, String> unitMap = Map.of(
-                "bird", "마리",
-                "person", "명",
-                "vehicle", "대",
-                "mammal", "마리"
-            );
-
-        Map<String, String> emojiMap = Map.of(
-                "bird", "🐦",
-                "person", "👤",
-                "vehicle", "🚗",
-                "mammal", "🐕"
-            );
         
         StringBuilder objectSummary = new StringBuilder();
         int totalCount = 0;
@@ -76,13 +65,20 @@ public class EventService {
 			    event.getEventTime(),
 			    objectSummary.toString()
 			);
+		
+	    System.out.println("📨 전송할 메시지:\n" + message);
+		
+	    List<String> phoneList = members.stream()
+	            .map(Members::getPhone)
+	            .toList();
+	    
+	    System.out.println("📤 전송 대상 번호 목록: " + phoneList);
 
-        for (Members member : members) {
-            try {
-                solapiService.sendSMS(member.getPhone(), message);
-            } catch (Exception e) {
-            	System.out.println("문자 전송 실패: " + member.getPhone() + " -> " + e.getMessage());
-            }
+        try {
+                solapiService.sendBulkSMS(phoneList, message);
+        } catch (Exception e) {
+                System.err.println("❌ 문자 다중 전송 실패: " + e.getMessage());
+                e.printStackTrace();
         }
     }
 }

@@ -5,51 +5,116 @@ html, body, #root {
     margin: 0;
     padding: 0;
     height: 100%;
+    overflow-y: scroll; /* 스크롤바가 필요할 때만 표시 */
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif; /* 폰트 설정 */
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     background-color: #f0f2f5; /* 전체 배경색 */
 }
+/* 스크롤 컨테이너 */
+.scroll-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh; /* 뷰포트 높이 전체를 채움 */
+  width: 100%;
+  box-sizing: border-box;
+  overflow-y: scroll; /* 항상 스크롤 가능하도록 설정 */
+  -ms-overflow-style: none; /* IE 및 Edge에서 스크롤바 숨김 */
+  scrollbar-width: none; /* Firefox에서 스크롤바 숨김 */
+}
 
-/* 전체 화면을 채우는 로그인 컨테이너 */
+/* 웹킷 기반 브라우저(Chrome, Safari)용 스크롤바 숨기기 */
+.scroll-container::-webkit-scrollbar {
+    display: none;
+}
+/* 스크롤 컨테이너 */
+.scroll-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh; /* 뷰포트 높이 전체를 채움 */
+  width: 100%;
+  box-sizing: border-box;
+  overflow-y: scroll; /* 항상 스크롤 가능하도록 설정 */
+  -ms-overflow-style: none; /* IE 및 Edge에서 스크롤바 숨김 */
+  scrollbar-width: none; /* Firefox에서 스크롤바 숨김 */
+}
+
+/* 웹킷 기반 브라우저(Chrome, Safari)용 스크롤바 숨기기 */
+.scroll-container::-webkit-scrollbar {
+  display: none; /* 스크롤바 숨김 */
+}
+
+/* 로그인 컨테이너 */
 .login-container {
-    min-height: 100vh; /* 뷰포트 높이 100% */
-    overflow-y: auto;
-    width: 100vw; /* 뷰포트 너비 100% */
-    display: flex; /* 자식 요소들을 가로로 배치하기 위해 flexbox 사용 */
-    justify-content: center; /* 가로 중앙 정렬 */
-    align-items: center; /* 세로 중앙 정렬 */
-    background-color: #f0f2f5; /* 전체 배경색과 통일 */
-    padding: 20px; /* 전체 컨테이너 패딩 */
-    box-sizing: border-box; /* 패딩, 보더 포함하여 너비 계산 */
+  width: 100vw;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start; /* 상단 정렬로 변경하여 스크롤 시작점 조정 */
+  background-color: #f0f2f5;
+  padding: 20px;
+  box-sizing: border-box;
+  min-height: 100vh; /* 스크롤 가능 영역 확보 */
 }
 
-/* 가운데 패널 */
-.login-right-panel {
-    display: flex;
-    justify-content: center; /* 가로 중앙 정렬 */
-    align-items: center; /* 세로 중앙 정렬 */
-    padding: 20px;
-    background-color: #ffffff; /* 폼 패널 배경색 */
-    min-height: 100vh; /* 최소 높이 뷰포트 꽉 채움 */
-    width: 100%; /* 부모 컨테이너 너비에 맞춤 */
-    max-width: 600px; /* PC에서 폼의 최대 너비 */
-    border-radius: 10px; /* 모바일처럼 둥근 모서리 적용 */
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1); /* 그림자 적용 */
-    box-sizing: border-box;
+/* 스크롤 컨테이너 */
+.scroll-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh; /* 뷰포트 높이 전체를 채움 */
+  width: 100%;
+  box-sizing: border-box;
+  overflow-y: scroll; /* 항상 스크롤 가능하도록 설정 */
+  -ms-overflow-style: none; /* IE 및 Edge에서 스크롤바 숨김 */
+  scrollbar-width: none; /* Firefox에서 스크롤바 숨김 */
 }
 
-/* 폼 자체의 스타일 */
+/* 웹킷 기반 브라우저(Chrome, Safari)용 스크롤바 숨기기 */
+.scroll-container::-webkit-scrollbar {
+  display: none; /* 스크롤바 숨김 */
+}
+
+/* 로그인 컨테이너 */
+.login-container {
+  width: 100vw;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start; /* 상단 정렬로 변경하여 스크롤 시작점 조정 */
+  background-color: #f0f2f5;
+  padding: 20px;
+  box-sizing: border-box;
+  min-height: 100vh; /* 스크롤 가능 영역 확보 */
+}
+
+/* 로그인 패널 */
+.login-panel {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  background-color: #ffffff;
+  width: 100%;
+  max-width: 600px;
+  border-radius: 10px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  box-sizing: border-box;
+}
+
+/* 로그인 폼 */
 .login-form {
-    width: 100%;
-    max-width: 400px; /* 폼 내부 요소의 최대 너비 (PC에서도 이 너비를 유지) */
-    display: flex;
-    flex-direction: column;
-    gap: 24px; /* 요소 간 간격 */
-    padding: 20px;
-    border-radius: 8px;
-    box-sizing: border-box;
+  width: 100%;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 20px;
+  border-radius: 8px;
+  box-sizing: border-box;
+  min-height: 100%; /* 부모 컨테이너 높이와 맞춤 */
 }
+
 /* 로고 섹션 */
 .logo-section {
     text-align: center;

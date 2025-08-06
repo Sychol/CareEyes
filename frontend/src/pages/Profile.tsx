@@ -1,4 +1,4 @@
-// 회원 정보 페이지 v1.0
+// 회원 정보 페이지 v1.5
 
 import React from 'react';
 import { useProfileManagement } from '../hooks/useProfileManagement';
@@ -94,6 +94,93 @@ const Profile = () => {
                 </div>
                 <h1 className="text-3xl sm:text-4xl font-extrabold text-center text-gray-800 mb-8">회원정보</h1>
                 <form onSubmit={handleSubmit} className="space-y-6">
+                    {/* 소셜 계정 연동 섹션 */}
+                    <section className="space-y-1 mt-8">
+                        <h2 className="text-2xl font-bold text-gray-700">소셜 계정</h2>
+
+                        {/* 카카오 연동 */}
+                        <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl shadow-inner">
+                            <div className="flex items-center gap-4">
+                                <img src={KakaoLogo} alt="카카오 로고" className="w-8 h-8" />
+                                <span className="text-base font-medium text-gray-700">카카오</span>
+                            </div>
+                            {profile.kakaoId ? (
+                                <button
+                                    type="button"
+                                    className="px-5 py-2 bg-red-600 text-white border-none rounded-lg cursor-pointer text-base font-medium transition duration-300 ease-in-out whitespace-nowrap hover:bg-red-700"
+                                    onClick={handleKakaoDisconnect}
+                                    title="카카오 계정 연동 해지"
+                                >
+                                    연동 해제
+                                </button>
+                            ) : (
+                                <button
+                                    type="button"
+                                    className="px-5 py-2 bg-yellow-400 text-black border-none rounded-lg cursor-pointer text-base font-medium transition duration-300 ease-in-out whitespace-nowrap hover:bg-yellow-500"
+                                    onClick={handleKakaoConnect}
+                                    title="카카오 계정 연동"
+                                >
+                                    연동하기
+                                </button>
+                            )}
+                        </div>
+
+                        {/* 네이버 연동 */}
+                        <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl shadow-inner">
+                            <div className="flex items-center gap-4">
+                                <img src={NaverLogo} alt="네이버 로고" className="w-8 h-8" />
+                                <span className="text-base font-medium text-gray-700">네이버</span>
+                            </div>
+                            {profile.naverId ? (
+                                <button
+                                    type="button"
+                                    className="px-5 py-2 bg-red-600 text-white border-none rounded-lg cursor-pointer text-base font-medium transition duration-300 ease-in-out whitespace-nowrap hover:bg-red-700"
+                                    onClick={handleNaverDisconnect}
+                                    title="네이버 계정 연동 해지"
+                                >
+                                    연동 해제
+                                </button>
+                            ) : (
+                                <button
+                                    type="button"
+                                    className="px-5 py-2 bg-green-500 text-white border-none rounded-lg cursor-pointer text-base font-medium transition duration-300 ease-in-out whitespace-nowrap hover:bg-green-600"
+                                    onClick={handleNaverConnect}
+                                    title="네이버 계정 연동"
+                                >
+                                    연동하기
+                                </button>
+                            )}
+                        </div>
+
+                        {/* 구글 연동 */}
+                        <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl shadow-inner">
+                            <div className="flex items-center gap-4">
+                                <img src={GoogleLogo} alt="구글 로고" className="w-8 h-8" />
+                                <span className="text-base font-medium text-gray-700">구글</span>
+                            </div>
+                            {profile.googleId ? (
+                                <button
+                                    type="button"
+                                    className="px-5 py-2 bg-red-600 text-white border-none rounded-lg cursor-pointer text-base font-medium transition duration-300 ease-in-out whitespace-nowrap hover:bg-red-700"
+                                    onClick={handleGoogleDisconnect}
+                                    title="구글 계정 연동 해지"
+                                >
+                                    연동 해제
+                                </button>
+                            ) : (
+                                <button
+                                    type="button"
+                                    className="px-5 py-2 bg-blue-500 text-white border-none rounded-lg cursor-pointer text-base font-medium transition duration-300 ease-in-out whitespace-nowrap hover:bg-blue-600"
+                                    onClick={handleGoogleConnect}
+                                    title="구글 계정 연동"
+                                >
+                                    연동하기
+                                </button>
+                            )}
+                        </div>
+
+                    </section>
+                   
                     {/* 사용자 정보 섹션 */}
 
                     <section className="space-y-4">
@@ -320,93 +407,6 @@ const Profile = () => {
                                 </p>
                             )}
                         </div>
-                    </section>
-
-                    {/* 소셜 계정 연동 섹션 */}
-                    <section className="space-y-4 mt-8">
-                        <h2 className="text-2xl font-bold text-gray-700">소셜 계정</h2>
-
-                        {/* 카카오 연동 */}
-                        <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl shadow-inner">
-                            <div className="flex items-center gap-4">
-                                <img src={KakaoLogo} alt="카카오 로고" className="w-8 h-8" />
-                                <span className="text-base font-medium text-gray-700">카카오</span>
-                            </div>
-                            {profile.kakaoId ? (
-                                <button
-                                    type="button"
-                                    className="px-5 py-2 bg-red-600 text-white border-none rounded-lg cursor-pointer text-base font-medium transition duration-300 ease-in-out whitespace-nowrap hover:bg-red-700"
-                                    onClick={handleKakaoDisconnect}
-                                    title="카카오 계정 연동 해지"
-                                >
-                                    연동 해제
-                                </button>
-                            ) : (
-                                <button
-                                    type="button"
-                                    className="px-5 py-2 bg-yellow-400 text-black border-none rounded-lg cursor-pointer text-base font-medium transition duration-300 ease-in-out whitespace-nowrap hover:bg-yellow-500"
-                                    onClick={handleKakaoConnect}
-                                    title="카카오 계정 연동"
-                                >
-                                    연동하기
-                                </button>
-                            )}
-                        </div>
-
-                        {/* 네이버 연동 */}
-                        <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl shadow-inner">
-                            <div className="flex items-center gap-4">
-                                <img src={NaverLogo} alt="네이버 로고" className="w-8 h-8" />
-                                <span className="text-base font-medium text-gray-700">네이버</span>
-                            </div>
-                            {profile.naverId ? (
-                                <button
-                                    type="button"
-                                    className="px-5 py-2 bg-red-600 text-white border-none rounded-lg cursor-pointer text-base font-medium transition duration-300 ease-in-out whitespace-nowrap hover:bg-red-700"
-                                    onClick={handleNaverDisconnect}
-                                    title="네이버 계정 연동 해지"
-                                >
-                                    연동 해제
-                                </button>
-                            ) : (
-                                <button
-                                    type="button"
-                                    className="px-5 py-2 bg-green-500 text-white border-none rounded-lg cursor-pointer text-base font-medium transition duration-300 ease-in-out whitespace-nowrap hover:bg-green-600"
-                                    onClick={handleNaverConnect}
-                                    title="네이버 계정 연동"
-                                >
-                                    연동하기
-                                </button>
-                            )}
-                        </div>
-
-                        {/* 구글 연동 */}
-                        <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl shadow-inner">
-                            <div className="flex items-center gap-4">
-                                <img src={GoogleLogo} alt="구글 로고" className="w-8 h-8" />
-                                <span className="text-base font-medium text-gray-700">구글</span>
-                            </div>
-                            {profile.googleId ? (
-                                <button
-                                    type="button"
-                                    className="px-5 py-2 bg-red-600 text-white border-none rounded-lg cursor-pointer text-base font-medium transition duration-300 ease-in-out whitespace-nowrap hover:bg-red-700"
-                                    onClick={handleGoogleDisconnect}
-                                    title="구글 계정 연동 해지"
-                                >
-                                    연동 해제
-                                </button>
-                            ) : (
-                                <button
-                                    type="button"
-                                    className="px-5 py-2 bg-blue-500 text-white border-none rounded-lg cursor-pointer text-base font-medium transition duration-300 ease-in-out whitespace-nowrap hover:bg-blue-600"
-                                    onClick={handleGoogleConnect}
-                                    title="구글 계정 연동"
-                                >
-                                    연동하기
-                                </button>
-                            )}
-                        </div>
-
                     </section>
 
                     {error && <p className="text-center mt-5 p-3 rounded-lg text-base font-medium bg-red-100 text-red-600">{error}</p>}

@@ -1,0 +1,36 @@
+# Dockerfile.gpubase
+
+# 1. PyTorch GPU (CUDA 12.1) base 이미지
+FROM python:3.10-slim
+
+# 2. 작업 디렉토리 생성
+WORKDIR /app
+
+# 3. 시스템 패키지 설치
+RUN apt-get update && \
+    apt-get install -y \
+        ffmpeg \
+        libgl1 \
+        libglib2.0-0 \
+        libsm6 \
+        libxext6 \
+        libxrender-dev \
+        python3-opencv \
+        streamlink \
+        git \
+        curl \
+        git-lfs \
+    && apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+# 4. Git LFS 초기화
+RUN git lfs install
+
+# 5. pip 업그레이드 및 torch(GPU용) 설치
+RUN pip install --upgrade pip && \
+    pip install \
+        torch==2.2.0+cu121 \
+        torchvision==0.17.0 \
+        --extra-index-url https://download.pytorch.org/whl/cu121
+
+# docker build -f Dockerfile.gpubase -t sychol/careeyes-aiserver-gpubase:latest .

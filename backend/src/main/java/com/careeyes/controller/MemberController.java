@@ -76,13 +76,14 @@ public class MemberController {
 	        "memberName", loginMember.getMemberName(),
 	        "memberRole", loginMember.getMemberRole(),
 	        "department", loginMember.getDepartment(),
-	        "email", loginMember.getEmail()
+	        "email", loginMember.getEmail(),
+	        "alertState", loginMember.getAlertState()
 	    ));
 	}
 	
 	// 카카오 로그인
 	@PostMapping("/kakao-login")
-    public ResponseEntity<?> kakaoLogin(@RequestBody Map<String, Object> request) {
+    public ResponseEntity<?> kakaoLogin(@RequestBody Map<String, Object> request, HttpSession session) {
         Long kakaoId = Long.valueOf(request.get("kakaoId").toString());
 
         Members member = memberMapper.findByKakaoId(kakaoId);
@@ -90,6 +91,9 @@ public class MemberController {
             // 새 사용자 → 프론트에서 회원가입 유도
             return ResponseEntity.ok(Map.of("status", "NEW_USER"));
         }
+        
+        session.setAttribute("loginMember", member);
+        System.out.println("카카오 로그인 세션 저장 완료: " + member.getMemberId());
 
         // 기존 사용자 → 로그인 처리
         return ResponseEntity.ok(Map.of(
