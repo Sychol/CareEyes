@@ -25,6 +25,6 @@ ENV YOLO_CONFIG_DIR=/app/.ultralytics
 EXPOSE 5000
 
 # 8. 실행 명령
-CMD ["python", "app.py"]
+CMD ["python", "main.py"]
 
 # docker build -f Dockerfile -t sychol/careeyes-aiserver:latest .

@@ -21,7 +21,7 @@ SAVE_CLASSES = {
     "mammal"
     } # 저장할 클래스
 FPS = 30 # youtube_url의 FPS
-DELAY = 1 # 프레임 간 딜레이 (초 단위)
+DELAY = 0.5 # 프레임 간 딜레이 (초 단위)
 CONF_THRESHOLD = 0.3 # 신뢰도 임계값
 SPRING_PROXY = "http://10.0.20.6:8090/api" # Spring 서버 프록시 URL
 
@@ -404,7 +404,9 @@ def index():
             <body>
                 <h1>YOLOv11 실시간 감지 스트리밍</h1>
                 <img src="/ai/video_feed?url=https://www.youtube.com/watch?v=91PfFoqvuUk&cctv_id=101" width="1000" />
-                <img src="/ai/video_feed?url=https://www.youtube.com/watch?v=MjD3gnNFYUo&cctv_id=201" width="1000" />
+                <img src="/ai/video_feed?url=https://www.youtube.com/watch?v=yrx0fvj-4QI&cctv_id=102" width="1000" />
+                <img src="/ai/video_feed?url=https://www.youtube.com/watch?v=0jUGiYZKAMg&cctv_id=201" width="1000" />
+                <img src="/ai/video_feed?url=https://www.youtube.com/watch?v=A6R81wOlQqs&cctv_id=202" width="1000" />
             </body>
         </html>
     '''
@@ -461,8 +463,10 @@ def detect_loop(url, cctv_id='unknown', delay=DELAY, save_type="ncloud"):
 # 💡 서버 실행
 if __name__ == '__main__':
     # 자동 감지 루프 시작
-    threading.Thread(target=detect_loop, args=('https://www.youtube.com/watch?v=91PfFoqvuUk', 101, DELAY, 'local'), daemon=True).start()
-    threading.Thread(target=detect_loop, args=('https://www.youtube.com/watch?v=MjD3gnNFYUo', 201, DELAY, 'local'), daemon=True).start()
+    threading.Thread(target=detect_loop, args=('https://www.youtube.com/watch?v=91PfFoqvuUk', 101, DELAY, 'None'), daemon=True).start()
+    threading.Thread(target=detect_loop, args=('https://www.youtube.com/watch?v=yrx0fvj-4QI', 102, DELAY, 'None'), daemon=True).start()
+    threading.Thread(target=detect_loop, args=('https://www.youtube.com/watch?v=0jUGiYZKAMg', 201, DELAY, 'None'), daemon=True).start()
+    threading.Thread(target=detect_loop, args=('https://www.youtube.com/watch?v=A6R81wOlQqs', 202, DELAY, 'None'), daemon=True).start()
 
     # Flask 서버 실행
     app.run(host='0.0.0.0', port=5000)
