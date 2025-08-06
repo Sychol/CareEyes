@@ -1,0 +1,12 @@
+# requirements-gpu.txt (GPU 버전)
+
+# PyTorch GPU 버전은 base 이미지에 포함되어 있으므로 설치 생략 가능
+# torch==2.2.0+cu121
+# torchvision==0.17.0
+numpy<2
+opencv-python-headless
+ultralytics
+flask
+requests
+boto3
+streamlink
