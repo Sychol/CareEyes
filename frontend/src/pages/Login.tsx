@@ -64,6 +64,18 @@ const Login = () => {
     </svg>
   );
 
+   /**
+   * @function useEffect
+   * @description 컴포넌트 로드 시 저장된 아이디를 불러와서 입력 필드에 설정합니다.
+   */
+  useEffect(() => {
+    const rememberedId = localStorage.getItem('rememberedId');
+    if (rememberedId) {
+      setMemberId(rememberedId);
+      setRememberMe(true);
+    }
+  }, []);
+
   /**
    * @function togglePasswordVisibility
    * @description 비밀번호 입력 필드의 텍스트 보이기/숨기기를 전환합니다.
@@ -97,6 +109,11 @@ const Login = () => {
     try {
       const response = await axios.post('/api/member/login', { memberId, memberPw }, { withCredentials: true });
       console.log('Login successful:', response.data);
+      if (rememberMe) {
+        localStorage.setItem('rememberedId', memberId);
+      } else {
+        localStorage.removeItem('rememberedId');
+      }
       if (response.data.memberRole === 'ADMIN') {
         setUser(response.data); 
         navigate('/');
