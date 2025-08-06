@@ -95,22 +95,22 @@ const Profile = () => {
                 <h1 className="text-3xl sm:text-4xl font-extrabold text-center text-gray-800 mb-8">회원정보</h1>
                 <form onSubmit={handleSubmit} className="space-y-6">
                     {/* 사용자 정보 섹션 */}
-                    
+
                     <section className="space-y-4">
                         <h2 className="text-2xl font-bold text-gray-700">개인 정보</h2>
 
-                     {/* 멤버 ID (읽기 전용) */}
-<div>
-    <label htmlFor="memberId" className="block text-sm font-medium text-gray-600 mb-1">ID</label>
-    <input
-        id="memberId"
-        type="text"
-        value={profile.memberId}
-        className="w-full p-3 border border-gray-300 rounded-lg bg-gray-100 cursor-not-allowed" // 읽기 전용 스타일
-        title="회원 ID"
-        disabled // 수정 불가능하게 설정
-    />
-</div>
+                        {/* 멤버 ID (읽기 전용) */}
+                        <div>
+                            <label htmlFor="memberId" className="block text-sm font-medium text-gray-600 mb-1">ID</label>
+                            <input
+                                id="memberId"
+                                type="text"
+                                value={profile.memberId}
+                                className="w-full p-3 border border-gray-300 rounded-lg bg-gray-100 cursor-not-allowed" // 읽기 전용 스타일
+                                title="회원 ID"
+                                disabled // 수정 불가능하게 설정
+                            />
+                        </div>
 
                         {/* 회원 이름 (읽기 전용) */}
                         <div>
@@ -248,7 +248,7 @@ const Profile = () => {
                                     onChange={handleNewPasswordChange}
                                     onFocus={handleNewPasswordFocus}
                                     onBlur={handleNewPasswordBlur}
-                                     className="w-full p-3 pr-10 border border-gray-300 rounded-lg 
+                                    className="w-full p-3 pr-10 border border-gray-300 rounded-lg 
                            focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 
                            transition-colors duration-200"
                                     placeholder="8자 이상, 영문/숫자/특수문자 중 2가지 이상"
@@ -294,7 +294,7 @@ const Profile = () => {
                                     onChange={handleConfirmNewPasswordChange}
                                     onFocus={handleConfirmNewPasswordFocus}
                                     onBlur={handleConfirmNewPasswordBlur}
-                                     className="w-full p-3 pr-10 border border-gray-300 rounded-lg 
+                                    className="w-full p-3 pr-10 border border-gray-300 rounded-lg 
                            focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 
                            transition-colors duration-200"
                                     placeholder="새 비밀번호를 다시 입력해주세요"

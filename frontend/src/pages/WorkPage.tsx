@@ -1,5 +1,4 @@
 import { AlertTable } from "@/pages/AlertTable";
-import CurrentWorkers from "@/pages/CurrentWorkers";
 import Schedule from "@/pages/Schedule";
 
 
@@ -15,14 +14,8 @@ const WorkPage = () => {
         <div className="xl:col-span-2">
           <AlertTable />
         </div>
-
-        {/* 오른쪽: 근무자 + 스케줄 */}
-        <div className="flex flex-col gap-6">
-          <CurrentWorkers />
-          <Schedule />
         </div>
       </div>
-    </div>
   );
 };
 

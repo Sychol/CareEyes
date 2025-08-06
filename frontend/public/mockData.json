@@ -1,30 +1,24 @@
 {
-  "list": [
-    {
-      "id": "CCTV1",
-      "location": "EAST",
-      "lastDetection": "2025-07-31 13:15",
-      "detectedObject": "조류 (2)",
-      "manage": "미처리"
-    },
-    {
-      "id": "CCTV2",
-      "location": "WEST",
-      "lastDetection": "2025-07-31 13:10",
-      "detectedObject": "차량 (1)",
-      "manage": "처리완료"
-    }
-  ],
   "feeds": [
     {
       "title": "CCTV1",
-      "subtitle": "조류 두 마리 탐지",
-      "youtubeUrl": "https://www.youtube.com/watch?v=91PfFoqvuUk"
+      "cctvId": 101,
+      "youtubeUrl": "/ai/video_feed?url=https://www.youtube.com/watch?v=91PfFoqvuUk&cctv_id=101"
     },
     {
       "title": "CCTV2",
-      "subtitle": "차량 한 대 탐지",
-      "youtubeUrl": "https://www.youtube.com/watch?v=MjD3gnNFYUo"
+      "cctvId": 102,
+      "youtubeUrl": "/ai/video_feed?url=https://www.youtube.com/watch?v=fakeurl3&cctv_id=102"
+    },    
+    {
+      "title": "CCTV3",
+      "cctvId": 103,
+      "youtubeUrl": "/ai/video_feed?url=https://www.youtube.com/watch?v=MjD3gnNFYUo&cctv_id=201"
+    },
+    {
+      "title": "CCTV4",
+      "cctvId": 104,
+      "youtubeUrl": "/ai/video_feed?url=https://www.youtube.com/watch?v=fakeurl4&cctv_id=401"
     }
   ]
 }

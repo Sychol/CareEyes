@@ -96,7 +96,7 @@ const translateItemType = (itemType: string): string => {
   switch (itemType) {
     case 'airplane': return '비행기';
     case 'vehicle': return '자동차';
-    case 'bird': return '새';
+    case 'bird': return '조류';
     case 'mammal': return '포유류';
     case 'person': return '사람';
     default: return itemType;
@@ -134,13 +134,26 @@ interface ChartData {
 export default function Analytics() {
   const [events, setEvents] = useState<EventItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filters, setFilters] = useState({
-    itemTypeRatioChart: { dateRange: "오늘", customDateRange: { start: "", end: "" } },
-    itemTypeTrendChart: { dateRange: "오늘", customDateRange: { start: "", end: "" } },
-    cctvRatioChart: { dateRange: "오늘", customDateRange: { start: "", end: "" } },
-    cctvTrendChart: { dateRange: "오늘", customDateRange: { start: "", end: "" } },
-    detectionFrequencyChart: { dateRange: "오늘", customDateRange: { start: "", end: "" } },
+  
+  // 전역 필터 상태
+  const [globalFilter, setGlobalFilter] = useState({
+    dateRange: "오늘",
+    customDateRange: { start: "", end: "" }
   });
+  
+  // 유형별 필터 상태 추가
+  const [itemTypeFilters, setItemTypeFilters] = useState({
+    bird: true,      // 조류
+    mammal: true,    // 포유류
+    person: true,    // 사람
+    vehicle: true    // 차량
+  });
+  
+  // 캘린더 표시 상태
+  const [showCalendar, setShowCalendar] = useState(false);
+  
+  // 필터 드롭다운 표시 상태
+  const [showFilterDropdown, setShowFilterDropdown] = useState(false);
 
   // API 데이터에서 가장 빠른 날짜와 가장 늦은 날짜 계산
   const dateRange = useMemo(() => {
@@ -155,16 +168,6 @@ export default function Analytics() {
       max: maxDate.toISOString().split('T')[0]
     };
   }, [events]);
-
-  const [showDropdowns, setShowDropdowns] = useState({
-    itemTypeRatioChart: false,
-    itemTypeTrendChart: false,
-    cctvRatioChart: false,
-    cctvTrendChart: false,
-    detectionFrequencyChart: false,
-  });
-
-
 
   const fetchData = useCallback(() => {
     axios
@@ -183,18 +186,8 @@ export default function Analytics() {
     return () => clearInterval(interval);
   }, [fetchData]);
 
-  const manageOptions = useMemo(
-    () => ["전체", "미처리", "처리중", "처리완료"],
-    []
-  );
-
   const dateRangeOptions = useMemo(
-    () => ["오늘", "이번주", "한달"],
-    []
-  );
-
-  const timeRangeOptions = useMemo(
-    () => ["전체", "오전(06:00-12:00)", "오후(12:00-18:00)", "저녁(18:00-24:00)", "새벽(00:00-06:00)"],
+    () => ["오늘", "이번 주", "한 달"],
     []
   );
 
@@ -218,15 +211,15 @@ export default function Analytics() {
     switch (dateRange) {
       case "오늘":
         return eventDate.toDateString() === today.toDateString();
-      case "이번주":
+      case "이번 주":
         const weekStart = new Date(today);
         weekStart.setDate(today.getDate() - 6); // 6일 전부터 오늘까지
         return eventDate >= weekStart && eventDate <= today;
-      case "한달":
+      case "한 달":
         return eventDate.getMonth() === today.getMonth() && eventDate.getFullYear() === today.getFullYear();
       case "오늘":
         return eventDate.toDateString() === today.toDateString();
-      case "이번주":
+      case "이번 주":
         const weekStartOld = new Date(today);
         weekStartOld.setDate(today.getDate() - today.getDay());
         return eventDate >= weekStartOld;
@@ -270,10 +263,16 @@ export default function Analytics() {
     }
   };
 
-  const getFilteredEvents = (chartFilter: { dateRange: string; customDateRange: { start: string; end: string } }) => {
+  const getFilteredEvents = () => {
     return events.filter(
-      (ev) => getDateRangeFilter(ev, chartFilter.dateRange, chartFilter.customDateRange)
+      (ev) => getDateRangeFilter(ev, globalFilter.dateRange, globalFilter.customDateRange) &&
+              getItemTypeFilter(ev)
     );
+  };
+
+  // 유형별 필터 함수 추가
+  const getItemTypeFilter = (event: EventItem) => {
+    return itemTypeFilters[event.itemType as keyof typeof itemTypeFilters] || false;
   };
 
   // 유형별 탐지 비율 차트 데이터
@@ -347,7 +346,7 @@ export default function Analytics() {
           }
         }).length;
       };
-    } else if (dateRange === '이번주') {
+    } else if (dateRange === '이번 주') {
       // This Week: 6일전부터 오늘까지 (오늘이 마지막)
       const today = new Date();
       const dayNames = ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일'];
@@ -375,7 +374,7 @@ export default function Analytics() {
           return e.eventDate === targetDateStr && e.itemType === itemType;
         }).length;
       };
-    } else if (dateRange === '한달') {
+    } else if (dateRange === '한 달') {
       // This Month: 이번달 일수를 4개씩 구분
       const today = new Date();
       const year = today.getFullYear();
@@ -407,6 +406,139 @@ export default function Analytics() {
           }
         }).length;
       };
+    } else if (dateRange === '사용자 지정') {
+      // 사용자 지정 날짜 범위에 따른 동적 x축 조정
+      const { customDateRange } = globalFilter;
+      if (customDateRange.start && customDateRange.end) {
+        const startDate = new Date(customDateRange.start);
+        const endDate = new Date(customDateRange.end);
+        const diffTime = Math.abs(endDate.getTime() - startDate.getTime());
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1; // 포함된 날짜 수
+        
+        if (diffDays === 1) {
+          // 1일: 시간별로 분할 (오늘과 동일)
+          labels = ['00시', '04시', '08시', '12시', '16시', '20시', '24시'];
+          dataGenerationLogic = (itemType: string, timeIndex: number) => {
+            const startHour = timeIndex * 4;
+            const endHour = timeIndex === 6 ? 24 : (timeIndex + 1) * 4;
+            
+            return list.filter(e => {
+              try {
+                const timeParts = e.eventTime.split(':');
+                const hour = parseInt(timeParts[0]);
+                const adjustedHour = hour === 0 && timeIndex === 6 ? 24 : hour;
+                return adjustedHour >= startHour && adjustedHour < endHour && e.itemType === itemType;
+              } catch (error) {
+                console.error('eventTime 파싱 오류:', e.eventTime, error);
+                return false;
+              }
+            }).length;
+          };
+        } else if (diffDays <= 7) {
+          // 7일 이하: 일별로 분할 (이번주와 동일)
+          const dayNames = ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일'];
+          const dates = [];
+          
+          for (let i = 0; i < diffDays; i++) {
+            const date = new Date(startDate);
+            date.setDate(startDate.getDate() + i);
+            dates.push(date);
+          }
+          
+          labels = dates.map(date => {
+            const dayName = dayNames[date.getDay()];
+            const month = date.getMonth() + 1;
+            const day = date.getDate();
+            return `${month}/${day} ${dayName}`;
+          });
+          
+          dataGenerationLogic = (itemType: string, dayIndex: number) => {
+            const targetDate = dates[dayIndex];
+            const targetDateStr = targetDate.toISOString().split('T')[0];
+            
+            return list.filter(e => {
+              return e.eventDate === targetDateStr && e.itemType === itemType;
+            }).length;
+          };
+        } else if (diffDays <= 30) {
+          // 30일 이하: 4일씩 구분 (한달과 동일)
+          const segments = Math.ceil(diffDays / 4);
+          labels = [];
+          
+          for (let i = 0; i < segments; i++) {
+            const startDay = i * 4 + 1;
+            const endDay = Math.min((i + 1) * 4, diffDays);
+            labels.push(`${startDay}일~${endDay}일`);
+          }
+          
+          dataGenerationLogic = (itemType: string, segmentIndex: number) => {
+            const startDay = segmentIndex * 4 + 1;
+            const endDay = Math.min((segmentIndex + 1) * 4, diffDays);
+            
+            return list.filter(e => {
+              try {
+                const eventDate = new Date(e.eventDate);
+                const startDateObj = new Date(startDate);
+                const daysDiff = Math.floor((eventDate.getTime() - startDateObj.getTime()) / (1000 * 60 * 60 * 24));
+                const adjustedDay = daysDiff + 1; // 1부터 시작
+                return adjustedDay >= startDay && adjustedDay <= endDay && e.itemType === itemType;
+              } catch (error) {
+                console.error('날짜 파싱 오류:', e.eventDate, error);
+                return false;
+              }
+            }).length;
+          };
+        } else {
+          // 30일 초과: 적절한 세그먼트로 분할 (최대 8개 세그먼트)
+          const maxSegments = 8;
+          const segments = Math.min(maxSegments, Math.ceil(diffDays / 7)); // 주 단위로 분할하되 최대 8개
+          const daysPerSegment = Math.ceil(diffDays / segments);
+          
+          labels = [];
+          for (let i = 0; i < segments; i++) {
+            const startDay = i * daysPerSegment + 1;
+            const endDay = Math.min((i + 1) * daysPerSegment, diffDays);
+            labels.push(`${startDay}일~${endDay}일`);
+          }
+          
+          dataGenerationLogic = (itemType: string, segmentIndex: number) => {
+            const startDay = segmentIndex * daysPerSegment + 1;
+            const endDay = Math.min((segmentIndex + 1) * daysPerSegment, diffDays);
+            
+            return list.filter(e => {
+              try {
+                const eventDate = new Date(e.eventDate);
+                const startDateObj = new Date(startDate);
+                const daysDiff = Math.floor((eventDate.getTime() - startDateObj.getTime()) / (1000 * 60 * 60 * 24));
+                const adjustedDay = daysDiff + 1; // 1부터 시작
+                return adjustedDay >= startDay && adjustedDay <= endDay && e.itemType === itemType;
+              } catch (error) {
+                console.error('날짜 파싱 오류:', e.eventDate, error);
+                return false;
+              }
+            }).length;
+          };
+        }
+      } else {
+        // 사용자 지정 날짜가 설정되지 않은 경우 기본값
+        labels = ['00시', '04시', '08시', '12시', '16시', '20시', '24시'];
+        dataGenerationLogic = (itemType: string, timeIndex: number) => {
+          const startHour = timeIndex * 4;
+          const endHour = timeIndex === 6 ? 24 : (timeIndex + 1) * 4;
+          
+          return list.filter(e => {
+            try {
+              const timeParts = e.eventTime.split(':');
+              const hour = parseInt(timeParts[0]);
+              const adjustedHour = hour === 0 && timeIndex === 6 ? 24 : hour;
+              return adjustedHour >= startHour && adjustedHour < endHour && e.itemType === itemType;
+            } catch (error) {
+              console.error('eventTime 파싱 오류:', e.eventTime, error);
+              return false;
+            }
+          }).length;
+        };
+      }
     } else {
       // 기본값: Today와 동일
       labels = ['00시', '04시', '08시', '12시', '16시', '20시', '24시'];
@@ -519,7 +651,7 @@ export default function Analytics() {
           }
         }).length;
       };
-    } else if (dateRange === '이번주') {
+    } else if (dateRange === '이번 주') {
       // This Week: 6일전부터 오늘까지 (오늘이 마지막)
       const today = new Date();
       const dayNames = ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일'];
@@ -547,7 +679,7 @@ export default function Analytics() {
           return e.eventDate === targetDateStr && e.location === location;
         }).length;
       };
-    } else if (dateRange === '한달') {
+    } else if (dateRange === '한 달') {
       // This Month: 이번달 일수를 4개씩 구분
       const today = new Date();
       const year = today.getFullYear();
@@ -579,6 +711,139 @@ export default function Analytics() {
           }
         }).length;
       };
+    } else if (dateRange === '사용자 지정') {
+      // 사용자 지정 날짜 범위에 따른 동적 x축 조정
+      const { customDateRange } = globalFilter;
+      if (customDateRange.start && customDateRange.end) {
+        const startDate = new Date(customDateRange.start);
+        const endDate = new Date(customDateRange.end);
+        const diffTime = Math.abs(endDate.getTime() - startDate.getTime());
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1; // 포함된 날짜 수
+        
+        if (diffDays === 1) {
+          // 1일: 시간별로 분할 (오늘과 동일)
+          labels = ['00시', '04시', '08시', '12시', '16시', '20시', '24시'];
+          dataGenerationLogic = (location: string, timeIndex: number) => {
+            const startHour = timeIndex * 4;
+            const endHour = timeIndex === 6 ? 24 : (timeIndex + 1) * 4;
+            
+            return list.filter(e => {
+              try {
+                const timeParts = e.eventTime.split(':');
+                const hour = parseInt(timeParts[0]);
+                const adjustedHour = hour === 0 && timeIndex === 6 ? 24 : hour;
+                return adjustedHour >= startHour && adjustedHour < endHour && e.location === location;
+              } catch (error) {
+                console.error('eventTime 파싱 오류:', e.eventTime, error);
+                return false;
+              }
+            }).length;
+          };
+        } else if (diffDays <= 7) {
+          // 7일 이하: 일별로 분할 (이번주와 동일)
+          const dayNames = ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일'];
+          const dates = [];
+          
+          for (let i = 0; i < diffDays; i++) {
+            const date = new Date(startDate);
+            date.setDate(startDate.getDate() + i);
+            dates.push(date);
+          }
+          
+          labels = dates.map(date => {
+            const dayName = dayNames[date.getDay()];
+            const month = date.getMonth() + 1;
+            const day = date.getDate();
+            return `${month}/${day} ${dayName}`;
+          });
+          
+          dataGenerationLogic = (location: string, dayIndex: number) => {
+            const targetDate = dates[dayIndex];
+            const targetDateStr = targetDate.toISOString().split('T')[0];
+            
+            return list.filter(e => {
+              return e.eventDate === targetDateStr && e.location === location;
+            }).length;
+          };
+        } else if (diffDays <= 30) {
+          // 30일 이하: 4일씩 구분 (한달과 동일)
+          const segments = Math.ceil(diffDays / 4);
+          labels = [];
+          
+          for (let i = 0; i < segments; i++) {
+            const startDay = i * 4 + 1;
+            const endDay = Math.min((i + 1) * 4, diffDays);
+            labels.push(`${startDay}일~${endDay}일`);
+          }
+          
+          dataGenerationLogic = (location: string, segmentIndex: number) => {
+            const startDay = segmentIndex * 4 + 1;
+            const endDay = Math.min((segmentIndex + 1) * 4, diffDays);
+            
+            return list.filter(e => {
+              try {
+                const eventDate = new Date(e.eventDate);
+                const startDateObj = new Date(startDate);
+                const daysDiff = Math.floor((eventDate.getTime() - startDateObj.getTime()) / (1000 * 60 * 60 * 24));
+                const adjustedDay = daysDiff + 1; // 1부터 시작
+                return adjustedDay >= startDay && adjustedDay <= endDay && e.location === location;
+              } catch (error) {
+                console.error('날짜 파싱 오류:', e.eventDate, error);
+                return false;
+              }
+            }).length;
+          };
+        } else {
+          // 30일 초과: 적절한 세그먼트로 분할 (최대 8개 세그먼트)
+          const maxSegments = 8;
+          const segments = Math.min(maxSegments, Math.ceil(diffDays / 7)); // 주 단위로 분할하되 최대 8개
+          const daysPerSegment = Math.ceil(diffDays / segments);
+          
+          labels = [];
+          for (let i = 0; i < segments; i++) {
+            const startDay = i * daysPerSegment + 1;
+            const endDay = Math.min((i + 1) * daysPerSegment, diffDays);
+            labels.push(`${startDay}일~${endDay}일`);
+          }
+          
+          dataGenerationLogic = (location: string, segmentIndex: number) => {
+            const startDay = segmentIndex * daysPerSegment + 1;
+            const endDay = Math.min((segmentIndex + 1) * daysPerSegment, diffDays);
+            
+            return list.filter(e => {
+              try {
+                const eventDate = new Date(e.eventDate);
+                const startDateObj = new Date(startDate);
+                const daysDiff = Math.floor((eventDate.getTime() - startDateObj.getTime()) / (1000 * 60 * 60 * 24));
+                const adjustedDay = daysDiff + 1; // 1부터 시작
+                return adjustedDay >= startDay && adjustedDay <= endDay && e.location === location;
+              } catch (error) {
+                console.error('날짜 파싱 오류:', e.eventDate, error);
+                return false;
+              }
+            }).length;
+          };
+        }
+      } else {
+        // 사용자 지정 날짜가 설정되지 않은 경우 기본값
+        labels = ['00시', '04시', '08시', '12시', '16시', '20시', '24시'];
+        dataGenerationLogic = (location: string, timeIndex: number) => {
+          const startHour = timeIndex * 4;
+          const endHour = timeIndex === 6 ? 24 : (timeIndex + 1) * 4;
+          
+          return list.filter(e => {
+            try {
+              const timeParts = e.eventTime.split(':');
+              const hour = parseInt(timeParts[0]);
+              const adjustedHour = hour === 0 && timeIndex === 6 ? 24 : hour;
+              return adjustedHour >= startHour && adjustedHour < endHour && e.location === location;
+            } catch (error) {
+              console.error('eventTime 파싱 오류:', e.eventTime, error);
+              return false;
+            }
+          }).length;
+        };
+      }
     } else {
       // 기본값: Today와 동일
       labels = ['00시', '04시', '08시', '12시', '16시', '20시', '24시'];
@@ -657,7 +922,7 @@ export default function Analytics() {
           }
         }).length;
       };
-    } else if (dateRange === '이번주') {
+    } else if (dateRange === '이번 주') {
       // This Week: 6일전부터 오늘까지 (오늘이 마지막)
       const today = new Date();
       const dayNames = ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일'];
@@ -685,7 +950,7 @@ export default function Analytics() {
           return e.eventDate === targetDateStr && e.location === location && e.itemType === itemType;
         }).length;
       };
-    } else if (dateRange === '한달') {
+    } else if (dateRange === '한 달') {
       // This Month: 이번달 일수를 4개씩 구분
       const today = new Date();
       const year = today.getFullYear();
@@ -717,6 +982,139 @@ export default function Analytics() {
           }
         }).length;
       };
+    } else if (dateRange === '사용자 지정') {
+      // 사용자 지정 날짜 범위에 따른 동적 x축 조정
+      const { customDateRange } = globalFilter;
+      if (customDateRange.start && customDateRange.end) {
+        const startDate = new Date(customDateRange.start);
+        const endDate = new Date(customDateRange.end);
+        const diffTime = Math.abs(endDate.getTime() - startDate.getTime());
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1; // 포함된 날짜 수
+        
+        if (diffDays === 1) {
+          // 1일: 시간별로 분할 (오늘과 동일)
+          labels = ['00시', '04시', '08시', '12시', '16시', '20시', '24시'];
+          dataGenerationLogic = (location: string, itemType: string, timeIndex: number) => {
+            const startHour = timeIndex * 4;
+            const endHour = timeIndex === 6 ? 24 : (timeIndex + 1) * 4;
+            
+            return list.filter(e => {
+              try {
+                const timeParts = e.eventTime.split(':');
+                const hour = parseInt(timeParts[0]);
+                const adjustedHour = hour === 0 && timeIndex === 6 ? 24 : hour;
+                return adjustedHour >= startHour && adjustedHour < endHour && e.location === location && e.itemType === itemType;
+              } catch (error) {
+                console.error('eventTime 파싱 오류:', e.eventTime, error);
+                return false;
+              }
+            }).length;
+          };
+        } else if (diffDays <= 7) {
+          // 7일 이하: 일별로 분할 (이번주와 동일)
+          const dayNames = ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일'];
+          const dates = [];
+          
+          for (let i = 0; i < diffDays; i++) {
+            const date = new Date(startDate);
+            date.setDate(startDate.getDate() + i);
+            dates.push(date);
+          }
+          
+          labels = dates.map(date => {
+            const dayName = dayNames[date.getDay()];
+            const month = date.getMonth() + 1;
+            const day = date.getDate();
+            return `${month}/${day} ${dayName}`;
+          });
+          
+          dataGenerationLogic = (location: string, itemType: string, dayIndex: number) => {
+            const targetDate = dates[dayIndex];
+            const targetDateStr = targetDate.toISOString().split('T')[0];
+            
+            return list.filter(e => {
+              return e.eventDate === targetDateStr && e.location === location && e.itemType === itemType;
+            }).length;
+          };
+        } else if (diffDays <= 30) {
+          // 30일 이하: 4일씩 구분 (한달과 동일)
+          const segments = Math.ceil(diffDays / 4);
+          labels = [];
+          
+          for (let i = 0; i < segments; i++) {
+            const startDay = i * 4 + 1;
+            const endDay = Math.min((i + 1) * 4, diffDays);
+            labels.push(`${startDay}일~${endDay}일`);
+          }
+          
+          dataGenerationLogic = (location: string, itemType: string, segmentIndex: number) => {
+            const startDay = segmentIndex * 4 + 1;
+            const endDay = Math.min((segmentIndex + 1) * 4, diffDays);
+            
+            return list.filter(e => {
+              try {
+                const eventDate = new Date(e.eventDate);
+                const startDateObj = new Date(startDate);
+                const daysDiff = Math.floor((eventDate.getTime() - startDateObj.getTime()) / (1000 * 60 * 60 * 24));
+                const adjustedDay = daysDiff + 1; // 1부터 시작
+                return adjustedDay >= startDay && adjustedDay <= endDay && e.location === location && e.itemType === itemType;
+              } catch (error) {
+                console.error('날짜 파싱 오류:', e.eventDate, error);
+                return false;
+              }
+            }).length;
+          };
+        } else {
+          // 30일 초과: 적절한 세그먼트로 분할 (최대 8개 세그먼트)
+          const maxSegments = 8;
+          const segments = Math.min(maxSegments, Math.ceil(diffDays / 7)); // 주 단위로 분할하되 최대 8개
+          const daysPerSegment = Math.ceil(diffDays / segments);
+          
+          labels = [];
+          for (let i = 0; i < segments; i++) {
+            const startDay = i * daysPerSegment + 1;
+            const endDay = Math.min((i + 1) * daysPerSegment, diffDays);
+            labels.push(`${startDay}일~${endDay}일`);
+          }
+          
+          dataGenerationLogic = (location: string, itemType: string, segmentIndex: number) => {
+            const startDay = segmentIndex * daysPerSegment + 1;
+            const endDay = Math.min((segmentIndex + 1) * daysPerSegment, diffDays);
+            
+            return list.filter(e => {
+              try {
+                const eventDate = new Date(e.eventDate);
+                const startDateObj = new Date(startDate);
+                const daysDiff = Math.floor((eventDate.getTime() - startDateObj.getTime()) / (1000 * 60 * 60 * 24));
+                const adjustedDay = daysDiff + 1; // 1부터 시작
+                return adjustedDay >= startDay && adjustedDay <= endDay && e.location === location && e.itemType === itemType;
+              } catch (error) {
+                console.error('날짜 파싱 오류:', e.eventDate, error);
+                return false;
+              }
+            }).length;
+          };
+        }
+      } else {
+        // 사용자 지정 날짜가 설정되지 않은 경우 기본값
+        labels = ['00시', '04시', '08시', '12시', '16시', '20시', '24시'];
+        dataGenerationLogic = (location: string, itemType: string, timeIndex: number) => {
+          const startHour = timeIndex * 4;
+          const endHour = timeIndex === 6 ? 24 : (timeIndex + 1) * 4;
+          
+          return list.filter(e => {
+            try {
+              const timeParts = e.eventTime.split(':');
+              const hour = parseInt(timeParts[0]);
+              const adjustedHour = hour === 0 && timeIndex === 6 ? 24 : hour;
+              return adjustedHour >= startHour && adjustedHour < endHour && e.location === location && e.itemType === itemType;
+            } catch (error) {
+              console.error('eventTime 파싱 오류:', e.eventTime, error);
+              return false;
+            }
+          }).length;
+        };
+      }
     } else {
       // 기본값: Today와 동일
       labels = ['00시', '04시', '08시', '12시', '16시', '20시', '24시'];
@@ -780,6 +1178,144 @@ export default function Analytics() {
 
   return (
     <div className="p-6 grid grid-cols-1 gap-6 overflow-y-auto" style={{ height: "calc(100vh - 100px)" }}>
+      {/* 전역 필터 섹션 */}
+      <Card className="bg-white rounded-xl shadow-md border border-border">
+        <CardHeader>
+          <div className="flex justify-between items-center">
+            <div className="flex items-center gap-16">
+              {/* 유형별 필터 */}
+              <div className="flex items-center gap-8">
+                <span className="text-2xl font-bold">유형별 필터</span>
+                <div className="flex gap-10">
+                  {Object.entries(itemTypeFilters).map(([key, value]) => {
+                    const label = key === 'bird' ? '조류' : 
+                                 key === 'mammal' ? '포유류' : 
+                                 key === 'person' ? '사람' : 
+                                 key === 'vehicle' ? '차량' : key;
+                    
+                    return (
+                      <button
+                        key={key}
+                        className={`px-3 py-1 rounded-full text-sm border transition ${
+                          value
+                            ? "bg-blue-600 text-white"
+                            : "bg-white text-gray-800 border-gray-300"
+                        }`}
+                        onClick={() => setItemTypeFilters(prev => ({
+                          ...prev,
+                          [key]: !prev[key as keyof typeof itemTypeFilters]
+                        }))}
+                      >
+                        {label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+              
+              {/* 필터 설정 */}
+              <CardTitle className="text-2xl font-bold"></CardTitle>
+            </div>
+            
+            <div className="flex gap-6 items-center">
+              {/* 날짜 범위 필터 */}
+              <div className="relative">
+              <span className="text-2xl font-bold mr-4">기간별 필터</span>
+                <Button
+                  variant="outline"
+                  className="gap-2"
+                  onClick={() => {
+                    setShowFilterDropdown(!showFilterDropdown);
+                    setShowCalendar(false);
+                  }}
+                >
+                  
+                  <Filter className="w-4 h-4" />
+                  {globalFilter.dateRange}
+                  <ChevronDown className="w-4 h-4" />
+                  
+                  </Button>
+                  
+                
+                {showFilterDropdown && (
+                  <div className="absolute top-full left-0 z-10 mt-2 bg-white border rounded-md shadow-lg w-48">
+                    <div className="p-2">
+                      <div className="text-xs font-medium text-gray-500 mb-1">날짜 범위</div>
+                      {dateRangeOptions.map((dateRange) => (
+                        <button
+                          key={dateRange}
+                          className={`w-full px-2 py-1 text-left text-sm hover:bg-gray-100 rounded ${
+                            globalFilter.dateRange === dateRange ? "bg-blue-100 text-blue-600" : ""
+                          }`}
+                          onClick={() => {
+                            setGlobalFilter(prev => ({ ...prev, dateRange: dateRange }));
+                            setShowFilterDropdown(false);
+                          }}
+                        >
+                          {dateRange}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* 캘린더 버튼 */}
+              <Button
+                variant="outline"
+                className="gap-2"
+                onClick={() => {
+                  setShowCalendar(!showCalendar);
+                  setShowFilterDropdown(false);
+                }}
+              >
+                <Calendar className="w-4 h-4" />
+                기간 설정
+              </Button>
+
+              {/* 캘린더 입력 필드 */}
+              {showCalendar && (
+                <div className="flex gap-2 items-center">
+                  <input
+                    type="date"
+                    value={globalFilter.customDateRange.start}
+                    onChange={(e) => setGlobalFilter(prev => ({
+                      ...prev,
+                      customDateRange: { ...prev.customDateRange, start: e.target.value }
+                    }))}
+                    className="px-3 py-2 border rounded-md text-sm"
+                    min={dateRange.min}
+                    max={dateRange.max}
+                  />
+                  <span className="text-gray-500">~</span>
+                  <input
+                    type="date"
+                    value={globalFilter.customDateRange.end}
+                    onChange={(e) => setGlobalFilter(prev => ({
+                      ...prev,
+                      customDateRange: { ...prev.customDateRange, end: e.target.value }
+                    }))}
+                    className="px-3 py-2 border rounded-md text-sm"
+                    min={dateRange.min}
+                    max={dateRange.max}
+                  />
+                  <Button
+                    size="sm"
+                    onClick={() => {
+                      if (globalFilter.customDateRange.start && globalFilter.customDateRange.end) {
+                        setGlobalFilter(prev => ({ ...prev, dateRange: "사용자 지정" }));
+                      }
+                    }}
+                  >
+                    적용
+                  </Button>
+                </div>
+              )}
+            </div>
+          </div>
+        </CardHeader>
+      </Card>
+
       {/* 5개 차트 그리드 - Figma 디자인 기반 */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* 유형별 탐지 비율 차트 */}
@@ -789,46 +1325,7 @@ export default function Analytics() {
               <div>
                 <CardTitle>유형별 탐지 비율</CardTitle>
                 <div className="text-4xl font-bold text-blue-600">
-                  {getFilteredEvents(filters.itemTypeRatioChart).length}
-                </div>
-              </div>
-              <div className="flex gap-2">
-                <div className="relative">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="gap-2"
-                    onClick={() => setShowDropdowns((prev) => ({ ...prev, itemTypeRatioChart: !prev.itemTypeRatioChart }))}
-                  >
-                    <Filter className="w-4 h-4" />
-                    {filters.itemTypeRatioChart.dateRange}
-                    <ChevronDown className="w-4 h-4" />
-                  </Button>
-
-                  {showDropdowns.itemTypeRatioChart && (
-                    <div className="absolute right-0 z-10 mt-2 bg-white border rounded-md shadow-lg w-48 max-h-64 overflow-y-auto">
-                      <div className="p-2">
-                        <div className="text-xs font-medium text-gray-500 mb-1">날짜 범위</div>
-                        {dateRangeOptions.map((dateRange) => (
-                          <button
-                            key={dateRange}
-                            className={`w-full px-2 py-1 text-left text-sm hover:bg-gray-100 rounded ${
-                              filters.itemTypeRatioChart.dateRange === dateRange ? "bg-blue-100 text-blue-600" : ""
-                            }`}
-                            onClick={() => {
-                              setFilters((f) => ({
-                                ...f,
-                                itemTypeRatioChart: { ...f.itemTypeRatioChart, dateRange: dateRange }
-                              }));
-                              setShowDropdowns((prev) => ({ ...prev, itemTypeRatioChart: false }));
-                            }}
-                          >
-                            {dateRange}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  )}
+                  {getFilteredEvents().length}
                 </div>
               </div>
             </div>
@@ -837,221 +1334,7 @@ export default function Analytics() {
             <div className="flex">
               <div className="flex-1 h-80">
                 <Pie
-                  data={getItemTypeRatioChartData(getFilteredEvents(filters.itemTypeRatioChart))}
-                  options={{ 
-                    responsive: true, 
-                    maintainAspectRatio: false,
-                    plugins: {
-                      legend: {
-                        display: false
-                      },
-                      tooltip: {
-                        callbacks: {
-                          label: function(context) {
-                            return `${context.label}: ${context.parsed.toFixed(2)}%`;
-                          }
-                        }
-                      }
-                    }
-                  }}
-                  plugins={[improvedPercentagePlugin]}
-                />
-              </div>
-                                             <div className="w-32 ml-4">
-                  {(() => {
-                    const filteredEvents = getFilteredEvents(filters.itemTypeRatioChart);
-                    const itemTypes = Array.from(new Set(filteredEvents.map(e => e.itemType)));
-                    // 범례 색상 변경 위치 - 비행기, 자동차, 새, 포유류, 사람의 색상을 여기서 변경
-                    const colors = ['#7987FF', '#E697FF', '#FFA5CB', '#FF6B6B', '#4ECDC4'];
-                    const total = filteredEvents.length;
-                    
-                    // itemType별 퍼센트 계산 및 정렬 (차트와 동일한 순서)
-                    const itemTypeData = itemTypes.map(itemType => {
-                      const count = filteredEvents.filter(e => e.itemType === itemType).length;
-                      const percentage = total > 0 ? (count / total) * 100 : 0;
-                      return { itemType, count, percentage };
-                    });
-                    
-                    // 퍼센트 높은 순으로 내림차순 정렬 (차트와 동일한 순서)
-                    itemTypeData.sort((a, b) => b.percentage - a.percentage);
-                    
-                    return itemTypeData.map((item, index) => {
-                      return (
-                        <div key={item.itemType} className="flex items-center mb-2">
-                          <div 
-                            className="w-4 h-4 rounded-full mr-2" 
-                            style={{ backgroundColor: colors[index % colors.length] }}
-                          />
-                          <div className="text-base">
-                            <div className="font-medium">{translateItemType(item.itemType)}</div>
-                            <div className="text-gray-500">{item.percentage.toFixed(1)}%</div>
-                          </div>
-                        </div>
-                      );
-                    });
-                  })()}
-                </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* 유형별/시간별 탐지 추세 차트 */}
-        <Card className="bg-white rounded-xl shadow-md border border-border lg:col-span-2">
-          <CardHeader>
-            <div className="flex justify-between items-center">
-              <div>
-                <CardTitle>유형별/시간별 탐지 추세 그래프</CardTitle>
-              </div>
-              <div className="flex gap-2">
-                <div className="relative">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="gap-2"
-                    onClick={() => setShowDropdowns((prev) => ({ ...prev, itemTypeTrendChart: !prev.itemTypeTrendChart }))}
-                  >
-                    <Filter className="w-4 h-4" />
-                    {filters.itemTypeTrendChart.dateRange}
-                    <ChevronDown className="w-4 h-4" />
-                  </Button>
-
-                  {showDropdowns.itemTypeTrendChart && (
-                    <div className="absolute right-0 z-10 mt-2 bg-white border rounded-md shadow-lg w-48 max-h-64 overflow-y-auto">
-                      <div className="p-2">
-                        <div className="text-xs font-medium text-gray-500 mb-1">날짜 범위</div>
-                        {dateRangeOptions.map((dateRange) => (
-                          <button
-                            key={dateRange}
-                            className={`w-full px-2 py-1 text-left text-sm hover:bg-gray-100 rounded ${
-                              filters.itemTypeTrendChart.dateRange === dateRange ? "bg-blue-100 text-blue-600" : ""
-                            }`}
-                            onClick={() => {
-                              setFilters((f) => ({
-                                ...f,
-                                itemTypeTrendChart: { ...f.itemTypeTrendChart, dateRange: dateRange }
-                              }));
-                              setShowDropdowns((prev) => ({ ...prev, itemTypeTrendChart: false }));
-                            }}
-                          >
-                            {dateRange}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="h-80">
-              <Line
-                data={getItemTypeTrendChartData(getFilteredEvents(filters.itemTypeTrendChart), filters.itemTypeTrendChart.dateRange)}
-                options={{ 
-                  responsive: true, 
-                  maintainAspectRatio: false,
-                  plugins: {
-                    legend: {
-                      display: true,
-                      position: 'top',
-                      labels: {
-                        font: {
-                          size: 16, // 범례 텍스트 크기 증가
-                        }
-                      }
-                    }
-                  },
-                  scales: {
-                    x: {
-                      title: {
-                        display: true,
-                        text: filters.itemTypeTrendChart.dateRange,
-                        font: {
-                          size: 12,
-                          weight: 'bold'
-                        }
-                      }
-                    },
-                    y: {
-                      title: {
-                        display: true,
-                        text: '탐지 건수',
-                        font: {
-                          size: 12,
-                          weight: 'bold'
-                        }
-                      },
-                      beginAtZero: true,
-                      // 데이터에 따라 최대값 자동 조정
-                      ticks: {
-                        callback: function(value) {
-                          return value;
-                        }
-                      }
-                    }
-                  }
-                }}
-              />
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* CCTV별 탐지 비율 차트 */}
-        <Card className="bg-white rounded-xl shadow-md border border-border">
-          <CardHeader>
-            <div className="flex justify-between items-center">
-              <div>
-                <CardTitle>CCTV별 탐지 비율</CardTitle>
-                <div className="text-4xl font-bold text-blue-600">
-                  {getFilteredEvents(filters.cctvRatioChart).length}
-                </div>
-              </div>
-              <div className="flex gap-2">
-                <div className="relative">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="gap-2"
-                    onClick={() => setShowDropdowns((prev) => ({ ...prev, cctvRatioChart: !prev.cctvRatioChart }))}
-                  >
-                    <Filter className="w-4 h-4" />
-                    {filters.cctvRatioChart.dateRange}
-                    <ChevronDown className="w-4 h-4" />
-                  </Button>
-
-                  {showDropdowns.cctvRatioChart && (
-                    <div className="absolute right-0 z-10 mt-2 bg-white border rounded-md shadow-lg w-48 max-h-64 overflow-y-auto">
-                      <div className="p-2">
-                        <div className="text-xs font-medium text-gray-500 mb-1">날짜 범위</div>
-                        {dateRangeOptions.map((dateRange) => (
-                          <button
-                            key={dateRange}
-                            className={`w-full px-2 py-1 text-left text-sm hover:bg-gray-100 rounded ${
-                              filters.cctvRatioChart.dateRange === dateRange ? "bg-blue-100 text-blue-600" : ""
-                            }`}
-                            onClick={() => {
-                              setFilters((f) => ({
-                                ...f,
-                                cctvRatioChart: { ...f.cctvRatioChart, dateRange: dateRange }
-                              }));
-                              setShowDropdowns((prev) => ({ ...prev, cctvRatioChart: false }));
-                            }}
-                          >
-                            {dateRange}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="flex">
-              <div className="flex-1 h-80">
-                <Pie
-                  data={getCctvRatioChartData(getFilteredEvents(filters.cctvRatioChart))}
+                  data={getItemTypeRatioChartData(getFilteredEvents())}
                   options={{ 
                     responsive: true, 
                     maintainAspectRatio: false,
@@ -1073,19 +1356,149 @@ export default function Analytics() {
               </div>
               <div className="w-32 ml-4">
                 {(() => {
-                  const filteredEvents = getFilteredEvents(filters.cctvRatioChart);
+                  const filteredEvents = getFilteredEvents();
+                  const itemTypes = Array.from(new Set(filteredEvents.map(e => e.itemType)));
+                  const colors = ['#7987FF', '#E697FF', '#FFA5CB', '#FF6B6B', '#4ECDC4'];
+                  const total = filteredEvents.length;
+                  
+                  const itemTypeData = itemTypes.map(itemType => {
+                    const count = filteredEvents.filter(e => e.itemType === itemType).length;
+                    const percentage = total > 0 ? (count / total) * 100 : 0;
+                    return { itemType, count, percentage };
+                  });
+                  
+                  itemTypeData.sort((a, b) => b.percentage - a.percentage);
+                  
+                  return itemTypeData.map((item, index) => {
+                    return (
+                      <div key={item.itemType} className="flex items-center mb-2">
+                        <div 
+                          className="w-4 h-4 rounded-full mr-2" 
+                          style={{ backgroundColor: colors[index % colors.length] }}
+                        />
+                        <div className="text-base">
+                          <div className="font-medium">{translateItemType(item.itemType)}</div>
+                          <div className="text-gray-500">{item.percentage.toFixed(1)}%</div>
+                        </div>
+                      </div>
+                    );
+                  });
+                })()}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* 유형별/시간별 탐지 추세 차트 */}
+        <Card className="bg-white rounded-xl shadow-md border border-border lg:col-span-2">
+          <CardHeader>
+            <div className="flex justify-between items-center">
+              <div>
+                <CardTitle>유형별/시간별 탐지 추세 그래프</CardTitle>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="h-80">
+              <Line
+                data={getItemTypeTrendChartData(getFilteredEvents(), globalFilter.dateRange)}
+                options={{ 
+                  responsive: true, 
+                  maintainAspectRatio: false,
+                  plugins: {
+                    legend: {
+                      display: true,
+                      position: 'top',
+                      labels: {
+                        font: {
+                          size: 16,
+                        }
+                      }
+                    }
+                  },
+                  scales: {
+                    x: {
+                      title: {
+                        display: true,
+                        text: globalFilter.dateRange,
+                        font: {
+                          size: 12,
+                          weight: 'bold'
+                        }
+                      }
+                    },
+                    y: {
+                      title: {
+                        display: true,
+                        text: '탐지 건수',
+                        font: {
+                          size: 12,
+                          weight: 'bold'
+                        }
+                      },
+                      beginAtZero: true,
+                      ticks: {
+                        callback: function(value) {
+                          return value;
+                        }
+                      }
+                    }
+                  }
+                }}
+              />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* CCTV별 탐지 비율 차트 */}
+        <Card className="bg-white rounded-xl shadow-md border border-border">
+          <CardHeader>
+            <div className="flex justify-between items-center">
+              <div>
+                <CardTitle>CCTV별 탐지 비율</CardTitle>
+                <div className="text-4xl font-bold text-blue-600">
+                  {getFilteredEvents().length}
+                </div>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="flex">
+              <div className="flex-1 h-80">
+                <Pie
+                  data={getCctvRatioChartData(getFilteredEvents())}
+                  options={{ 
+                    responsive: true, 
+                    maintainAspectRatio: false,
+                    plugins: {
+                      legend: {
+                        display: false
+                      },
+                      tooltip: {
+                        callbacks: {
+                          label: function(context) {
+                            return `${context.label}: ${context.parsed.toFixed(2)}%`;
+                          }
+                        }
+                      }
+                    }
+                  }}
+                  plugins={[improvedPercentagePlugin]}
+                />
+              </div>
+              <div className="w-32 ml-4">
+                {(() => {
+                  const filteredEvents = getFilteredEvents();
                   const locations = Array.from(new Set(filteredEvents.map(e => e.location)));
                   const colors = ['#7987FF', '#FFA5CB'];
                   const total = filteredEvents.length;
                   
-                  // location별 퍼센트 계산 및 정렬 (차트와 동일한 순서)
                   const locationData = locations.map(location => {
                     const count = filteredEvents.filter(e => e.location === location).length;
                     const percentage = total > 0 ? (count / total) * 100 : 0;
                     return { location, count, percentage };
                   });
                   
-                  // 퍼센트 높은 순으로 내림차순 정렬 (차트와 동일한 순서)
                   locationData.sort((a, b) => b.percentage - a.percentage);
                   
                   return locationData.map((item, index) => {
@@ -1114,55 +1527,13 @@ export default function Analytics() {
             <div className="flex justify-between items-center">
               <div>
                 <CardTitle>CCTV별/시간별 탐지 추세</CardTitle>
-                {/* <div className="text-2xl font-bold text-blue-600">
-                  {getFilteredEvents(filters.cctvTrendChart).length}
-                </div> */}
-              </div>
-              <div className="flex gap-2">
-                <div className="relative">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="gap-2"
-                    onClick={() => setShowDropdowns((prev) => ({ ...prev, cctvTrendChart: !prev.cctvTrendChart }))}
-                  >
-                    <Filter className="w-4 h-4" />
-                    {filters.cctvTrendChart.dateRange}
-                    <ChevronDown className="w-4 h-4" />
-                  </Button>
-
-                  {showDropdowns.cctvTrendChart && (
-                    <div className="absolute right-0 z-10 mt-2 bg-white border rounded-md shadow-lg w-48 max-h-64 overflow-y-auto">
-                      <div className="p-2">
-                        <div className="text-xs font-medium text-gray-500 mb-1">날짜 범위</div>
-                        {dateRangeOptions.map((dateRange) => (
-                          <button
-                            key={dateRange}
-                            className={`w-full px-2 py-1 text-left text-sm hover:bg-gray-100 rounded ${
-                              filters.cctvTrendChart.dateRange === dateRange ? "bg-blue-100 text-blue-600" : ""
-                            }`}
-                            onClick={() => {
-                              setFilters((f) => ({
-                                ...f,
-                                cctvTrendChart: { ...f.cctvTrendChart, dateRange: dateRange }
-                              }));
-                              setShowDropdowns((prev) => ({ ...prev, cctvTrendChart: false }));
-                            }}
-                          >
-                            {dateRange}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
               </div>
             </div>
           </CardHeader>
           <CardContent>
             <div className="h-80">
               <Line
-                data={getCctvTrendChartData(getFilteredEvents(filters.cctvTrendChart), filters.cctvTrendChart.dateRange)}
+                data={getCctvTrendChartData(getFilteredEvents(), globalFilter.dateRange)}
                 options={{ 
                   responsive: true, 
                   maintainAspectRatio: false,
@@ -1172,7 +1543,7 @@ export default function Analytics() {
                       position: 'top',
                       labels: {
                         font: {
-                          size: 16, // 범례 텍스트 크기 증가
+                          size: 16,
                         }
                       }
                     }
@@ -1181,7 +1552,7 @@ export default function Analytics() {
                     x: {
                       title: {
                         display: true,
-                        text: filters.cctvTrendChart.dateRange,
+                        text: globalFilter.dateRange,
                         font: {
                           size: 12,
                           weight: 'bold'
@@ -1211,57 +1582,14 @@ export default function Analytics() {
           <CardHeader>
             <div className="flex justify-between items-center">
               <div>
-                {/* 탐지 객체 폰트 크기 변경 위치 - 유형별 탐지 비율과 동일하게 설정 */}
                 <CardTitle>CCTV/유형별 탐지 빈도 그래프</CardTitle>
-                {/* <div className="text-4xl font-bold text-blue-600">
-                  {getFilteredEvents(filters.detectionFrequencyChart).length}
-                </div> */}
-              </div>
-              <div className="flex gap-2">
-                <div className="relative">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="gap-2"
-                    onClick={() => setShowDropdowns((prev) => ({ ...prev, detectionFrequencyChart: !prev.detectionFrequencyChart }))}
-                  >
-                    <Filter className="w-4 h-4" />
-                    {filters.detectionFrequencyChart.dateRange}
-                    <ChevronDown className="w-4 h-4" />
-                  </Button>
-
-                  {showDropdowns.detectionFrequencyChart && (
-                    <div className="absolute right-0 z-10 mt-2 bg-white border rounded-md shadow-lg w-48 max-h-64 overflow-y-auto">
-                      <div className="p-2">
-                        <div className="text-xs font-medium text-gray-500 mb-1">날짜 범위</div>
-                        {dateRangeOptions.map((dateRange) => (
-                          <button
-                            key={dateRange}
-                            className={`w-full px-2 py-1 text-left text-sm hover:bg-gray-100 rounded ${
-                              filters.detectionFrequencyChart.dateRange === dateRange ? "bg-blue-100 text-blue-600" : ""
-                            }`}
-                            onClick={() => {
-                              setFilters((f) => ({
-                                ...f,
-                                detectionFrequencyChart: { ...f.detectionFrequencyChart, dateRange: dateRange }
-                              }));
-                              setShowDropdowns((prev) => ({ ...prev, detectionFrequencyChart: false }));
-                            }}
-                          >
-                            {dateRange}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
               </div>
             </div>
           </CardHeader>
           <CardContent>
             <div className="h-80">
               <Bar
-                data={getDetectionFrequencyChartData(getFilteredEvents(filters.detectionFrequencyChart), filters.detectionFrequencyChart.dateRange)}
+                data={getDetectionFrequencyChartData(getFilteredEvents(), globalFilter.dateRange)}
                 options={{ 
                   responsive: true, 
                   maintainAspectRatio: false,
@@ -1271,7 +1599,7 @@ export default function Analytics() {
                       position: 'top',
                       labels: {
                         font: {
-                          size: 16, // 범례 텍스트 크기 증가
+                          size: 16,
                         }
                       }
                     }
@@ -1280,7 +1608,7 @@ export default function Analytics() {
                     x: {
                       title: {
                         display: true,
-                        text: filters.detectionFrequencyChart.dateRange,
+                        text: globalFilter.dateRange,
                         font: {
                           size: 12,
                           weight: 'bold'

@@ -1,6 +1,8 @@
+import { useEffect, useState } from "react";
 import { ChevronRight, User } from "lucide-react";
-import { useLocation, useNavigate } from "react-router-dom"; // ✅ useNavigate 추가
+import { useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -9,6 +11,10 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import axios from "axios";
+
+// ✅ 사용자 정보 API URL
+const USER_INFO_API_URL = "/api/member/userinfo";
 
 const pageNames: Record<string, string> = {
   "/": "Dashboard",
@@ -22,14 +28,38 @@ const pageNames: Record<string, string> = {
 
 export function Header() {
   const location = useLocation();
-  const navigate = useNavigate(); // ✅ 네비게이터 선언
-
+  const navigate = useNavigate();
   const currentPageName = pageNames[location.pathname] || "Dashboard";
 
-  // ✅ 로그아웃 처리 함수
+  // ✅ 사용자 정보 상태
+  const [userData, setUserData] = useState({
+    MEMBER_NAME: "",
+    DEPARTMENT: "",
+    MEMBER_ID: "",
+  });
+
+  // ✅ 사용자 정보 가져오기
+  useEffect(() => {
+    axios.get(USER_INFO_API_URL)
+      .then((res) => {
+        const userInfo = res.data;
+        if (userInfo && userInfo.memberName) {
+          setUserData({
+            MEMBER_NAME: userInfo.memberName,
+            DEPARTMENT: userInfo.department,
+            MEMBER_ID: userInfo.memberId,
+          });
+        }
+      })
+      .catch((err) => {
+        console.error("사용자 정보 가져오기 실패:", err);
+      });
+  }, []);
+
+  // ✅ 로그아웃
   const handleSignOut = () => {
-    localStorage.clear();       // 저장된 유저 정보 초기화
-    navigate("/login");         // 로그인 페이지로 이동
+    localStorage.clear();
+    navigate("/login");
   };
 
   return (
@@ -44,9 +74,9 @@ export function Header() {
       {/* User Profile */}
       <div className="flex items-center space-x-4">
         <div className="text-white text-sm">
-          <span className="font-medium">나인진</span>
+          <span className="font-medium">{userData.MEMBER_NAME || "사용자"}</span>
           <span className="mx-2">|</span>
-          <span>관리자</span>
+          <span>{userData.DEPARTMENT || "부서"}</span>
         </div>
 
         <DropdownMenu>
@@ -67,7 +97,7 @@ export function Header() {
               <span>프로필</span>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={handleSignOut}> {/* ✅ 클릭 이벤트 연결 */}
+            <DropdownMenuItem onClick={handleSignOut}>
               <span>Sign Out</span>
             </DropdownMenuItem>
           </DropdownMenuContent>

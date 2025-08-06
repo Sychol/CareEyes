@@ -7,8 +7,10 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import airportGroundMap from "@/components/airport-ground-map.png";
 import newCctvIcon from "@/components/cctv-default.png";
+import { Bell } from "lucide-react";
 
 import { Car, User, Bird, Cat, XCircle, Plane } from "lucide-react";
+import { useMemo } from "react";
 
 interface AlertEvent {
   eventId: number;
@@ -37,6 +39,7 @@ interface Cctv {
   location: string;
 }
 
+
 const ItemTypeIcon = ({ type }: { type: string }) => {
   switch (type) {
     case "차량":
@@ -64,6 +67,7 @@ export default function Dashboard() {
   const [alertHistory, setAlertHistory] = useState<AlertEvent[]>([]);
   const [recentAlerts, setRecentAlerts] = useState<Worker[]>([]);
   const [cctvs, setCctvs] = useState<Cctv[]>([]);
+  const [selectedAlertId, setSelectedAlertId] = useState<number | null>(null);
   const [selectedAlertImage, setSelectedAlertImage] = useState<string | null>(null);
   const [filters, setFilters] = useState<{
     status: number[];
@@ -76,6 +80,29 @@ export default function Dashboard() {
     itemType: [],
     date: null,
   });
+  const topStats = useMemo(() => {
+    const sortedAlerts = [...alertHistory].sort(
+      (a, b) =>
+        new Date(`${b.eventDate}T${b.eventTime}`).getTime() -
+        new Date(`${a.eventDate}T${a.eventTime}`).getTime()
+    );
+
+    const latest = sortedAlerts[0] || null;
+
+    const counts: Record<string, number> = {};
+    alertHistory.forEach((alert) => {
+      counts[alert.itemType] = (counts[alert.itemType] || 0) + 1;
+    });
+
+    const mostType = Object.entries(counts).sort((a, b) => b[1] - a[1])[0] || ["없음", 0];
+
+    return {
+      alertCount: alertHistory.length,
+      cctvCount: cctvs.length,
+      latestDetection: latest,
+      mostDetectedType: mostType,
+    };
+  }, [alertHistory, cctvs]);
 
   // 데이터 fetch 함수 분리
   const fetchData = () => {
@@ -148,46 +175,44 @@ export default function Dashboard() {
     const clicked = cctvs.find((c) => c.id === id);
     if (!clicked) return;
 
-    // EAST-101 처리
-    if (clicked.id === 101 && clicked.location === "EAST") {
-      const latestEast101 = alertHistory
-        .filter((alert) => alert.cctvId === 101 && alert.location === "EAST")
-        .sort(
-          (a, b) =>
-            new Date(`${b.eventDate}T${b.eventTime}`).getTime() -
-            new Date(`${a.eventDate}T${a.eventTime}`).getTime()
-        )[0];
+    const location = clicked.location;
+    const cctvId = clicked.id;
 
-      setSelectedAlertImage(latestEast101?.imgPath || "/dummy/dummy-image.jpg"); // 수정해야함
-      setActiveCctvs({ EAST: 101, WEST: null });
-      setHighlightedCctvId(101);
-      return;
+    console.log("📌 클릭된 CCTV ID:", cctvId, "Location:", location);
+
+    const matchedAlerts = alertHistory.filter(
+      (alert) =>
+        String(alert.cctvId) === String(cctvId) &&
+        String(alert.location).trim().toUpperCase() === String(location).trim().toUpperCase()
+    );
+
+    console.log("🔍 해당 CCTV에 매칭되는 알림 수:", matchedAlerts.length);
+
+    const latestAlert = matchedAlerts.sort(
+      (a, b) =>
+        new Date(`${b.eventDate}T${b.eventTime}`).getTime() -
+        new Date(`${a.eventDate}T${a.eventTime}`).getTime()
+    )[0];
+
+    if (latestAlert?.imgPath) {
+      const cleanPath = latestAlert.imgPath.replace(/^\.\//, "");
+      console.log("📷 선택된 이미지 경로:", cleanPath);
+      setSelectedAlertImage(cleanPath);
+    } else {
+      console.log("❌ 해당 CCTV의 최신 알림이 없습니다.");
+      setSelectedAlertImage(null);
     }
 
-    // WEST-201 처리
-    if (clicked.id === 201 && clicked.location === "WEST") {
-      const latestWest201 = alertHistory
-        .filter((alert) => alert.cctvId === 201 && alert.location === "WEST")
-        .sort(
-          (a, b) =>
-            new Date(`${b.eventDate}T${b.eventTime}`).getTime() -
-            new Date(`${a.eventDate}T${a.eventTime}`).getTime()
-        )[0];
-
-      setSelectedAlertImage(latestWest201?.imgPath || "/dummy/dummy-image.jpg");
-      setActiveCctvs({ EAST: null, WEST: 201 });
-      setHighlightedCctvId(201);
-      return;
-    }
-
-    // 그 외 → 더미 이미지 직접 경로 입력
-    setSelectedAlertImage("/dummy/dummy-image.jpg");
     setActiveCctvs({
-      EAST: clicked.location === "EAST" ? clicked.id : null,
-      WEST: clicked.location === "WEST" ? clicked.id : null,
+      EAST: location === "EAST" ? cctvId : null,
+      WEST: location === "WEST" ? cctvId : null,
     });
-    setHighlightedCctvId(clicked.id);
+    setHighlightedCctvId(cctvId);
   };
+
+
+
+
 
 
   const filteredAlerts = alertHistory
@@ -212,32 +237,36 @@ export default function Dashboard() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <div className="bg-white rounded-xl shadow-md p-5">
             <div className="text-sm text-muted-foreground">이상물체 탐지 수 (일)</div>
-            <div className="text-2xl font-bold mt-2">{alertHistory.length}건</div>
-            <div className="text-xs text-green-600 mt-1">전일 대비 +20%</div>
+            <div className="text-2xl font-bold mt-2">{topStats.alertCount}건</div>
           </div>
           <div className="bg-white rounded-xl shadow-md p-5">
             <div className="text-sm text-muted-foreground">실시간 CCTV 수</div>
-            <div className="text-2xl font-bold mt-2">{cctvs.length}대</div>
+            <div className="text-2xl font-bold mt-2">{topStats.cctvCount}대</div>
           </div>
           <div className="bg-white rounded-xl shadow-md p-5">
             <div className="text-sm text-muted-foreground">최근 탐지 내역</div>
-            {alertHistory[0] ? (
+            {topStats.latestDetection ? (
               <>
                 <div className="text-lg font-semibold mt-2">
-                  {alertHistory[0].location} - CCTV {alertHistory[0].cctvId}
+                  {topStats.latestDetection.location} - CCTV {topStats.latestDetection.cctvId}
                 </div>
                 <div className="text-xs text-muted-foreground">
-                  {alertHistory[0].eventDate} {alertHistory[0].eventTime}
+                  {topStats.latestDetection.eventDate} {topStats.latestDetection.eventTime}
                 </div>
               </>
             ) : (
               <div className="text-sm mt-2 text-muted-foreground">데이터 없음</div>
             )}
+
           </div>
           <div className="bg-white rounded-xl shadow-md p-5">
             <div className="text-sm text-muted-foreground">최다 탐지 유형</div>
-            <div className="text-lg font-semibold mt-2 text-red-600">조류</div>
-            <div className="text-xs text-red-500">지난 주 23건</div>
+            <div className="text-lg font-semibold mt-2 text-red-600">
+              {topStats.mostDetectedType[0]}
+            </div>
+            <div className="text-xs text-red-500">
+              지난 주 {topStats.mostDetectedType[1]}건
+            </div>
           </div>
         </div>
       </div>
@@ -257,20 +286,24 @@ export default function Dashboard() {
               {cctvs.map((cctv) => {
                 const isActive = activeCctvs[cctv.location] === cctv.id;
                 const isSelected = highlightedCctvId === cctv.id;
-                const matchedAlert = alertHistory.find(
+
+                const matchedAlerts = alertHistory.filter(
                   (alert) => alert.cctvId === cctv.id && alert.location === cctv.location
                 );
-                const statusText = matchedAlert
-                  ? getStatusText(matchedAlert.manage)
-                  : "미상";
-                const statusBorderColor =
-                  statusText === "처리완료"
-                    ? "border-green-500"
-                    : statusText === "처리중"
-                      ? "border-yellow-400"
-                      : statusText === "미처리"
-                        ? "border-red-500"
-                        : "border-black";
+
+                const hasUnprocessed = matchedAlerts.some(alert => alert.manage === 0);
+                const hasProcessing = matchedAlerts.some(alert => alert.manage === 1);
+                const hasCompleted = matchedAlerts.some(alert => alert.manage === 2);
+
+                let statusBorderColor = "border-black";
+
+                if (hasUnprocessed) {
+                  statusBorderColor = "border-red-500";       // 🔴 미처리
+                } else if (hasProcessing) {
+                  statusBorderColor = "border-yellow-400";    // 🟡 처리중
+                } else if (hasCompleted) {
+                  statusBorderColor = "border-green-500";     // 🟢 처리완료
+                }
 
                 return (
                   <div
@@ -298,32 +331,38 @@ export default function Dashboard() {
                   </div>
                 );
               })}
+
             </div>
           </CardContent>
         </Card>
 
         <Card className="bg-white rounded-xl shadow-md border border-border">
           <CardHeader>
-            <CardTitle>CCTV 영상</CardTitle>
+            <CardTitle>CCTV 이미지</CardTitle>
             <p className="text-sm text-muted-foreground">탐지된 물체 영상</p>
           </CardHeader>
           <CardContent>
             <div className="relative w-full h-[300px] rounded-lg overflow-hidden bg-gray-100">
               {selectedAlertImage ? (
                 <img
-                  src={`/ai/get_image?path=${encodeURIComponent(selectedAlertImage)}`}
+                  src={`/ai/get_image?path=${encodeURIComponent(
+                    selectedAlertImage.startsWith("./")
+                      ? selectedAlertImage.slice(2)
+                      : selectedAlertImage
+                  )}`}
                   alt="이상물체 이미지"
                   className="w-full h-full object-cover rounded-md"
                 />
-
               ) : (
                 <div className="flex items-center justify-center h-full text-muted-foreground">
                   알림을 선택하면 이미지가 표시됩니다
                 </div>
               )}
+
             </div>
           </CardContent>
         </Card>
+
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -369,52 +408,57 @@ export default function Dashboard() {
               ref={alertListRef}
               className="max-h-[320px] overflow-y-auto pr-1 space-y-3"
             >
-              {filteredAlerts.map((alert) => (
-                <div
-                  key={alert.eventId}
-                  className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:shadow transition cursor-pointer"
-                  onClick={() => {
-                    setSelectedAlertImage(alert.imgPath);
+              {filteredAlerts.map((alert) => {
+                const isSelected = selectedAlertId === alert.eventId;
 
-                    const matchedCctv = cctvs.find(
-                      (cctv) =>
-                        String(cctv.id) === String(alert.cctvId) &&
-                        cctv.location === alert.location
-                    );
+                return (
+                  <div
+                    key={alert.eventId}
+                    className={`flex items-center justify-between p-4 rounded-lg transition cursor-pointer
+        ${isSelected ? "bg-blue-100 border border-blue-400 shadow" : "bg-gray-50 hover:bg-gray-100 hover:shadow"}`}
+                    onClick={() => {
+                      setSelectedAlertId(alert.eventId);
+                      setSelectedAlertImage(alert.imgPath);
 
+                      const matchedCctv = cctvs.find(
+                        (cctv) =>
+                          String(cctv.id) === String(alert.cctvId) &&
+                          cctv.location === alert.location
+                      );
 
-                    if (matchedCctv) {
-                      setActiveCctvs({
-                        EAST: alert.location === "EAST" ? matchedCctv.id : null,
-                        WEST: alert.location === "WEST" ? matchedCctv.id : null,
-                      });
-                      setHighlightedCctvId(matchedCctv.id);
-                    }
-                  }}
-
-                >
-                  <div className="flex items-center gap-3">
-                    <ItemTypeIcon type={alert.itemType} />
-                    <div>
-                      <div className="text-sm font-semibold">
-                        탐지 유형: <span className="text-primary">{alert.itemType}</span> · 수량:{" "}
-                        <span>{alert.itemCount}</span>
-                      </div>
-                      <div className="text-xs text-muted-foreground mt-1">
-                        위치: <span className="text-blue-600 font-medium">{`${alert.location}-CCTV ${alert.cctvId}`}</span> ·
-                        일시: {alert.eventDate} {alert.eventTime}
+                      if (matchedCctv) {
+                        setActiveCctvs({
+                          EAST: alert.location === "EAST" ? matchedCctv.id : null,
+                          WEST: alert.location === "WEST" ? matchedCctv.id : null,
+                        });
+                        setHighlightedCctvId(matchedCctv.id);
+                      }
+                    }}
+                  >
+                    <div className="flex items-center gap-3">
+                      <ItemTypeIcon type={alert.itemType} />
+                      <div>
+                        <div className="text-sm font-semibold">
+                          탐지 유형: <span className="text-primary">{alert.itemType}</span> · 수량:{" "}
+                          <span>{alert.itemCount}</span>
+                        </div>
+                        <div className="text-xs text-muted-foreground mt-1">
+                          위치: <span className="text-blue-600 font-medium">{`${alert.location}-CCTV ${alert.cctvId}`}</span> ·
+                          일시: {alert.eventDate} {alert.eventTime}
+                        </div>
                       </div>
                     </div>
+                    <Badge
+                      className={`px-3 py-1 text-sm rounded-full font-semibold ${getStatusColor(
+                        getStatusText(alert.manage)
+                      )}`}
+                    >
+                      {getStatusText(alert.manage)}
+                    </Badge>
                   </div>
-                  <Badge
-                    className={`px-3 py-1 text-sm rounded-full font-semibold ${getStatusColor(
-                      getStatusText(alert.manage)
-                    )}`}
-                  >
-                    {getStatusText(alert.manage)}
-                  </Badge>
-                </div>
-              ))}
+                );
+              })}
+
             </div>
           </CardContent>
         </Card>
@@ -442,7 +486,8 @@ export default function Dashboard() {
                         </div>
                       </div>
                     </div>
-                    <div className="w-3 h-3 rounded-full bg-green-500" />
+                    <Bell className="w-6 h-6 text-green-500" />
+
                   </div>
                 ))}
             </div>

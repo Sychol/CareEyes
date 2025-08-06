@@ -51,6 +51,14 @@ export function AlertFilterPanel({ currentFilters, onApply, onClose }: AlertFilt
     setter(list.includes(item) ? list.filter((v) => v !== item) : [...list, item]);
   };
 
+  const locationMap: Record<string, string> = {
+    EAST: "동쪽",
+    WEST: "서쪽",
+    SOUTH: "남쪽",
+    NORTH: "북쪽",
+  };
+
+
   const applyFilters = () => {
     onApply({
       level,
@@ -66,6 +74,15 @@ export function AlertFilterPanel({ currentFilters, onApply, onClose }: AlertFilt
     setStatus([]);
     setDate(null);
   };
+
+  const itemTypeMap: Record<string, string> = {
+    airplane: "비행기",
+    vehicle: "차량",
+    bird: "조류",
+    person: "사람",
+    mammal: "동물",
+  };
+
 
   return (
     <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex justify-center items-center">
@@ -86,11 +103,12 @@ export function AlertFilterPanel({ currentFilters, onApply, onClose }: AlertFilt
                 className={`px-3 py-1 rounded-full border text-sm ${level.includes(item) ? "bg-blue-500 text-white" : "bg-gray-100"
                   }`}
               >
-                {item}
+                {itemTypeMap[item] || item}
               </button>
             ))}
           </div>
         </div>
+
 
         {/* 위치 */}
         <div>
@@ -103,11 +121,12 @@ export function AlertFilterPanel({ currentFilters, onApply, onClose }: AlertFilt
                 className={`px-3 py-1 rounded-full border text-sm ${location.includes(item) ? "bg-blue-500 text-white" : "bg-gray-100"
                   }`}
               >
-                {item}
+                {locationMap[item] || item}
               </button>
             ))}
           </div>
         </div>
+
 
         {/* 상태 */}
         <div>

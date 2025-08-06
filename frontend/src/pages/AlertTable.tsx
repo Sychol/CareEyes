@@ -2,9 +2,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Filter, Search, Bell } from "lucide-react";
+import { Bell } from "lucide-react";
 
 interface WorkerAlert {
   memberId: number | null;
@@ -19,33 +17,13 @@ interface WorkerAlert {
   alertState: number;
 }
 
-// ✅ 이미지 자동 import
 const profileImages = import.meta.glob("@/assets/profile/*.png", {
   eager: true,
 }) as Record<string, { default: string }>;
 
-// ✅ 이름 → 파일명 매핑
-const nameToFile: Record<string, string> = {
-  "최동혁": "man1.png",
-  "조동수": "man2.png",
-  "양정민": "man3.png",
-  "황상제": "man4.png",
-  "김순찰": "man5.png",
-  "이홍진": "man6.png",
-  "정민양": "man7.png"
-  // 필요 시 추가
-};
-
-// ✅ 이미지 경로 추출
-const getProfileImage = (name: string): string | null => {
-  const filename = nameToFile[name];
-  if (!filename) return null;
-
-  const entry = Object.entries(profileImages).find(([path]) =>
-    path.endsWith(`/profile/${filename}`)
-  );
-  return entry?.[1].default || null;
-};
+const profileFilenames = Object.entries(profileImages)
+  .filter(([path]) => path.includes("/man"))
+  .map(([_, mod]) => mod.default);
 
 export const AlertTable = () => {
   const [alerts, setAlerts] = useState<WorkerAlert[]>([]);
@@ -57,67 +35,97 @@ export const AlertTable = () => {
       .catch((err) => console.error("작업자 경고 데이터 실패:", err));
   }, []);
 
-  return (
-    <Card className="flex-1">
-      <div className="p-6">
-        {/* 상단 필터바 */}
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-lg font-semibold text-foreground">작업자 관리 내역</h2>
-          <div className="flex items-center space-x-3">
-            <div className="relative">
+  const renderWorkerCard = (alert: WorkerAlert, index: number) => {
+    const location = `${alert.company} • ${alert.department}`;
+    const profileImg = profileFilenames[index % profileFilenames.length];
+    const isAlertEnabled = alert.alertState === 1;
+
+    return (
+      <div
+        key={index}
+        className="flex items-center justify-between p-4 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors"
+      >
+        <div className="flex items-center space-x-4">
+          <Avatar className="h-12 w-12">
+            <AvatarImage src={profileImg || "/placeholder.svg"} />
+            <AvatarFallback className="bg-muted text-muted-foreground">
+              {alert.memberName.slice(0, 1)}
+            </AvatarFallback>
+          </Avatar>
+          <div className="space-y-1">
+            <div className="flex items-center space-x-2">
+              <span className="font-medium text-foreground">{alert.memberName}</span>
+              <span className="text-sm text-muted-foreground">•</span>
+              <span className="text-sm text-muted-foreground">{location}</span>
+            </div>
+            <div className="flex items-center space-x-4 text-sm text-muted-foreground">
+              <span>알림 설정: {isAlertEnabled ? "알림" : "미설정"}</span>
+              <span>위치: 철주몰 동 1 · CCTV {index + 1}</span>
             </div>
           </div>
         </div>
+        <Bell
+          className={`h-5 w-5 ${isAlertEnabled ? "text-green-500" : "text-red-500"}`}
+          strokeWidth={2.5}
+        />
+      </div>
+    );
+  };
 
-        {/* 작업자 목록 */}
-        <div className="space-y-3">
-          {alerts.map((alert, index) => {
-            const isAlertEnabled = alert.alertState === 1;
-            const location = `${alert.company} • ${alert.department}`;
-            const profileImg = getProfileImage(alert.memberName);
+  const enabledAlerts = alerts.filter((alert) => alert.alertState === 1);
+  const disabledAlerts = alerts.filter((alert) => alert.alertState !== 1);
 
-            return (
-              <div
-                key={index}
-                className="flex items-center justify-between p-4 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors"
-              >
-                {/* 프로필 + 이름 + 위치 */}
-                <div className="flex items-center space-x-4">
-                  <Avatar className="h-12 w-12">
-                    <AvatarImage src={profileImg || "/placeholder.svg"} />
-                    <AvatarFallback className="bg-muted text-muted-foreground">
-                      {alert.memberName.slice(0, 1)}
-                    </AvatarFallback>
-                  </Avatar>
+  return (
+    <div className="w-full px-6">
+      <div className="flex w-full gap-4 items-start">
+        {/* 왼쪽 - 알림 수신 설정 */}
+        <div className="w-1/3">
+          <Card className="p-6 h-full">
+            <h3 className="text-lg font-semibold mb-4">알림 수신 설정됨</h3>
+            <div className="space-y-3">
+              {enabledAlerts.map((alert, idx) => (
+                <div key={alert.memberId}>{renderWorkerCard(alert, idx)}</div>
+              ))}
+            </div>
+          </Card>
+        </div>
 
-                  <div className="space-y-1">
-                    <div className="flex items-center space-x-2">
-                      <span className="font-medium text-foreground">{alert.memberName}</span>
-                      <span className="text-sm text-muted-foreground">•</span>
-                      <span className="text-sm text-muted-foreground">{location}</span>
-                    </div>
-                    <div className="flex items-center space-x-4 text-sm text-muted-foreground">
-                      <span>알림 상태: {isAlertEnabled ? "알림 설정" : "미설정"}</span>
-                      <span>위치: 철주몰 동 1 · CCTV {index + 1}</span>
-                    </div>
-                  </div>
+        {/* 가운데 - 알림 일시 정지 */}
+        <div className="w-1/3">
+          <Card className="p-6 h-full">
+            <h3 className="text-lg font-semibold mb-4">알림 일시 정지</h3>
+            <div className="space-y-3">
+              {disabledAlerts.map((alert, idx) => (
+                <div key={alert.memberId}>
+                  {renderWorkerCard(alert, idx + enabledAlerts.length)}
                 </div>
+              ))}
+            </div>
+          </Card>
+        </div>
 
-                {/* 알림 종 아이콘 */}
-                <div className="flex items-center space-x-4">
-                  <Bell
-                    className={`h-5 w-5 ${
-                      isAlertEnabled ? "text-green-500" : "text-red-500"
-                    }`}
-                    strokeWidth={2.5}
-                  />
-                </div>
-              </div>
-            );
-          })}
+        {/* 오른쪽 - 요약 카드 */}
+        <div className="w-1/3">
+          <Card className="p-6 h-full">
+            <h3 className="text-lg font-semibold mb-4">📊 작업자 요약</h3>
+            <ul className="text-sm space-y-2 text-muted-foreground">
+              <li>총 작업자: {alerts.length}명</li>
+              <li>알림 설정: {enabledAlerts.length}명 ✅</li>
+              <li>알림 정지: {disabledAlerts.length}명 ❌</li>
+            </ul>
+
+            <div className="mt-6 space-y-2">
+              <button className="w-full py-2 px-4 rounded bg-[#5F69C7] text-white hover:bg-[#4e55b4] text-sm font-medium">
+                작업자 전체 보기
+              </button>
+              <button className="w-full py-2 px-4 rounded border text-sm hover:bg-muted">
+                설정 변경
+              </button>
+            </div>
+          </Card>
         </div>
       </div>
-    </Card>
+    </div>
   );
 };
 

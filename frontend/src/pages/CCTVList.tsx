@@ -1,53 +1,82 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import { Filter, ChevronDown } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import runwayView from "@/assets/runway-view.jpg";
-
-interface CctvInfo {
-  id: string;
-  location: string;
-  lastDetection: string;
-  detectedObject: string;
-  manage: string;
-}
-
-interface DetectionBox {
-  top: string;
-  left: string;
-  width: string;
-  height: string;
-  label: string;
-}
 
 interface CctvFeed {
   title: string;
+  cctvId: number;
+  youtubeUrl: string;
+}
+
+interface MergedCCTV {
+  title: string;
   subtitle: string;
-  image?: string;
-  youtubeUrl?: string;
-  detections?: DetectionBox[];
+  youtubeUrl: string;
+  location: string;
+  lastDetection: string;
+  manage: string;
 }
 
 export default function CCTVList() {
-  const [cctvData, setCctvData] = useState<CctvInfo[]>([]);
-  const [cctvFeeds, setCctvFeeds] = useState<CctvFeed[]>([]);
+  const [mergedFeeds, setMergedFeeds] = useState<MergedCCTV[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [selectedLocation, setSelectedLocation] = useState<string>("전체");
   const [showDropdown, setShowDropdown] = useState(false);
   const [error, setError] = useState(false);
+  const videoRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    const typeMap: Record<string, string> = {
+      airplane: "비행기",
+      bird: "조류",
+      vehicle: "차량",
+      mammal: "동물",
+      person: "사람",
+    };
+
     axios
-      .get("/mockData.json")
+      .get("/api/eventlist")
       .then((res) => {
-        const { list, feeds } = res.data;
-        setCctvData(list);
-        setCctvFeeds(feeds);
-        if (list.length > 0) {
-          setSelectedId(list[0].id);
-        }
+        const events = res.data;
+
+        const latestEvents: Record<number, any> = {};
+        events.forEach((event: any) => {
+          const timeKey = `${event.eventDate} ${event.eventTime}`;
+          if (
+            !latestEvents[event.cctvId] ||
+            timeKey > `${latestEvents[event.cctvId].eventDate} ${latestEvents[event.cctvId].eventTime}`
+          ) {
+            latestEvents[event.cctvId] = event;
+          }
+        });
+
+        axios.get("/mockData.json").then((mockRes) => {
+          const feeds: CctvFeed[] = mockRes.data.feeds;
+
+          const merged: MergedCCTV[] = Object.entries(latestEvents).map(([_, event]: any) => {
+            const feed = feeds.find((f) => f.cctvId === event.cctvId);
+
+            return {
+              title: `CCTV${event.cctvId}`,
+              subtitle: `${typeMap[event.itemType] || event.itemType} (${event.itemCount})`,
+              youtubeUrl: feed?.youtubeUrl || "",
+              location: event.location,
+              lastDetection: `${event.eventDate} ${event.eventTime}`,
+              manage:
+                event.manage === 0
+                  ? "미처리"
+                  : event.manage === 1
+                  ? "처리중"
+                  : "처리완료",
+            };
+          });
+
+          setMergedFeeds(merged);
+          if (merged.length > 0) setSelectedId(merged[0].title);
+        });
       })
       .catch((err) => {
         console.error("❌ CCTV 데이터 로드 실패:", err);
@@ -55,21 +84,28 @@ export default function CCTVList() {
       });
   }, []);
 
-  const locations = ["전체", ...Array.from(new Set(cctvData.map((cctv) => cctv.location)))];
+  const locations = ["전체", ...Array.from(new Set(mergedFeeds.map((cctv) => cctv.location)))];
+
   const filteredData =
     selectedLocation === "전체"
-      ? cctvData
-      : cctvData.filter((cctv) => cctv.location === selectedLocation);
+      ? mergedFeeds
+      : mergedFeeds.filter((cctv) => cctv.location === selectedLocation);
 
-  const selectedFeed = cctvFeeds.find((feed) => feed.title === selectedId) || null;
+  const selectedFeed = mergedFeeds.find((feed) => feed.title === selectedId) || null;
 
   useEffect(() => {
     if (filteredData.length > 0) {
-      setSelectedId(filteredData[0].id);
+      setSelectedId(filteredData[0].title);
     } else {
       setSelectedId(null);
     }
-  }, [selectedLocation, cctvData]);
+  }, [selectedLocation, mergedFeeds]);
+
+  useEffect(() => {
+    if (videoRef.current) {
+      videoRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [selectedId]);
 
   return (
     <div className="p-6 space-y-6">
@@ -90,7 +126,6 @@ export default function CCTVList() {
                   {selectedLocation}
                   <ChevronDown className="w-4 h-4" />
                 </Button>
-
                 {showDropdown && (
                   <div className="absolute right-0 z-10 mt-2 bg-white border rounded-md shadow-lg w-56">
                     {locations.map((loc) => (
@@ -121,17 +156,21 @@ export default function CCTVList() {
               <div className="space-y-3">
                 {filteredData.map((cctv) => (
                   <div
-                    key={cctv.id}
-                    onClick={() => setSelectedId(cctv.id)}
+                    key={cctv.title}
+                    onClick={() => setSelectedId(cctv.title)}
                     className={`p-4 bg-background rounded-lg border cursor-pointer transition-all ${
-                      selectedId === cctv.id ? "ring-2 ring-primary" : ""
+                      selectedId === cctv.title ? "ring-2 ring-primary" : ""
                     }`}
                   >
                     <div className="flex items-center justify-between mb-2">
-                      <h3 className="font-medium text-sm">{cctv.id}</h3>
+                      <h3 className="font-medium text-sm">{cctv.title}</h3>
                       <Badge
                         className={`text-white text-xs ${
-                          cctv.manage === "미처리" ? "bg-destructive" : "bg-success"
+                          cctv.manage === "미처리"
+                            ? "bg-red-500"
+                            : cctv.manage === "처리중"
+                            ? "bg-yellow-400"
+                            : "bg-green-500"
                         }`}
                       >
                         {cctv.manage}
@@ -145,7 +184,7 @@ export default function CCTVList() {
                       <div className="flex justify-between">
                         <span>탐지물체 :</span>
                         <span className="text-foreground font-medium">
-                          {cctv.detectedObject}
+                          {cctv.subtitle.replace(" 탐지", "")}
                         </span>
                       </div>
                     </div>
@@ -157,7 +196,7 @@ export default function CCTVList() {
         </Card>
 
         {/* 선택된 CCTV 피드 */}
-        <Card className="lg:col-span-2 bg-gradient-card border-0 shadow-lg">
+        <Card ref={videoRef} className="lg:col-span-2 w-full bg-gradient-card border-0 shadow-lg">
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
               <div>
@@ -169,59 +208,30 @@ export default function CCTVList() {
                 </p>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-success rounded-full"></div>
+                <div className="w-2 h-2 bg-success rounded-full" />
                 <span className="text-sm text-muted-foreground">Live</span>
               </div>
             </div>
           </CardHeader>
           <CardContent>
-            <div className="relative rounded-lg overflow-hidden">
-              {selectedFeed?.youtubeUrl ? (
-                <iframe
-                  className="w-full h-96 rounded-lg"
-                  src={
-                    selectedFeed.youtubeUrl.replace("watch?v=", "embed/") +
-                    "?autoplay=1&mute=1"
-                  }
-                  title="CCTV 영상"
-                  allow="autoplay; encrypted-media"
-                  allowFullScreen
-                />
-              ) : (
-                <img
-                  src={selectedFeed?.image || runwayView}
-                  alt={selectedFeed?.title || "Main CCTV Feed"}
-                  className="w-full h-96 object-cover"
-                />
-              )}
-
-              {!selectedFeed?.youtubeUrl &&
-                selectedFeed?.detections?.map((box, idx) => (
-                  <div
-                    key={idx}
-                    className="absolute border-2 border-destructive bg-destructive/20 rounded text-[10px] text-white"
-                    style={{
-                      top: box.top,
-                      left: box.left,
-                      width: box.width,
-                      height: box.height,
-                      padding: "2px",
-                    }}
-                  >
-                    {box.label}
-                  </div>
-                ))}
+            <div className="relative w-full aspect-video rounded-lg overflow-hidden">
+              <img
+                src={selectedFeed?.youtubeUrl}
+                className="w-full h-full object-cover"
+                alt="CCTV 영상"
+              />
             </div>
           </CardContent>
         </Card>
       </div>
 
       {/* 기타 CCTV 피드 */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {cctvFeeds
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {mergedFeeds
           .filter((feed) => feed.title !== selectedId)
+          .slice(0, 3)
           .map((feed, idx) => (
-            <Card key={idx} className="bg-gradient-card border-0 shadow-lg">
+            <Card key={idx} className="bg-gradient-card border-0 shadow-lg w-full">
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
                   <div>
@@ -235,25 +245,12 @@ export default function CCTVList() {
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="relative rounded-lg overflow-hidden">
-                  {feed.youtubeUrl ? (
-                    <iframe
-                      className="w-full h-48 rounded-lg"
-                      src={
-                        feed.youtubeUrl.replace("watch?v=", "embed/") +
-                        "?autoplay=1&mute=1"
-                      }
-                      title={`CCTV 영상 - ${feed.title}`}
-                      allow="autoplay; encrypted-media"
-                      allowFullScreen
-                    />
-                  ) : (
-                    <img
-                      src={feed.image || runwayView}
-                      alt={feed.title}
-                      className="w-full h-48 object-cover"
-                    />
-                  )}
+                <div className="relative w-full aspect-video rounded-lg overflow-hidden">
+                  <img
+                    className="w-full h-full object-cover"
+                    src={feed.youtubeUrl}
+                    alt={`CCTV 영상 - ${feed.title}`}
+                  />
                 </div>
               </CardContent>
             </Card>

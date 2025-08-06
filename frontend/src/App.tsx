@@ -24,6 +24,7 @@ import Join from "./pages/Register";
 import KakaoCallback from "./pages/KakaoCallback";
 import WorkPage from "./pages/WorkPage";
 import Analytics from "./pages/Analytics"
+import Profile from "./pages/Profile";
 
 const queryClient = new QueryClient();
 
@@ -60,35 +61,36 @@ const App = () => {
           <Sonner />
           <UserContext.Provider value={{ user, setUser }}>
             {/* 사용자 정보가 있는지 확인하고, ProtectedRoute로 감싸기 */}
-          <BrowserRouter>
-            <Routes>
-              {/* ✅ Layout 적용, 로그인 필요한 페이지들 */}
-              <Route element={
-                <ProtectedRoute user={user}>
-                <Layout />
-                </ProtectedRoute>
+            <BrowserRouter>
+              <Routes>
+                {/* ✅ Layout 적용, 로그인 필요한 페이지들 */}
+                <Route element={
+                  <ProtectedRoute user={user}>
+                    <Layout />
+                  </ProtectedRoute>
                 }>
-                <Route path="/" element={<Dashboard />} />
-                <Route path="/cctv" element={<CCTVList />} />
-                <Route path="/alerts" element={<AlertHistory />} />
-                <Route path="/index" element={<Index />} />
-                <Route path="/worker" element={<WorkPage />} />
-                <Route path="/analytics" element={<Analytics />} />
-                <Route path="*" element={<NotFound />} />
-              </Route>
-              {/* ❌ Layout 없이, 로그인 필요한 Airport 대시보드 페이지 */}
+                  <Route path="/" element={<Dashboard />} />
+                  <Route path="/cctv" element={<CCTVList />} />
+                  <Route path="/alerts" element={<AlertHistory />} />
+                  <Route path="/index" element={<Index />} />
+                  <Route path="/worker" element={<WorkPage />} />
+                  <Route path="/analytics" element={<Analytics />} />
+                  <Route path="*" element={<NotFound />} />
+                </Route>
+                {/* ❌ Layout 없이, 로그인 필요한 Airport 대시보드 페이지 */}
                 <Route path="/airport" element={
                   <ProtectedRoute user={user}>
-                  <AirportDashboard />
+                    <AirportDashboard />
                   </ProtectedRoute>
-                  }>
+                }>
                 </Route>
-              {/* ❌ Layout 없이 뜨는 페이지들 */}
-              <Route path="/login" element={<LogIn />} />
-              <Route path="/join" element={<Join />} />
-              <Route path="/kakao/callback" element={<KakaoCallback />} />
-            </Routes>
-          </BrowserRouter>
+                {/* ❌ Layout 없이 뜨는 페이지들 */}
+                <Route path="/login" element={<LogIn />} />
+                <Route path="/join" element={<Join />} />
+                <Route path="/kakao/callback" element={<KakaoCallback />} />
+                <Route path="/profile" element={<Profile />} />
+              </Routes>
+            </BrowserRouter>
           </UserContext.Provider>
         </TooltipProvider>
       </ThemeProvider>
