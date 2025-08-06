@@ -61,7 +61,7 @@ def start_detection_threads():
     """
     targets = TARGET_CCTV
     for url, cctv_id in targets:
-        threading.Thread(target=detect_loop, args=(url, cctv_id, DELAY, "None"), daemon=True).start()
+        threading.Thread(target=detect_loop, args=(url, cctv_id, DELAY, "local"), daemon=True).start()
 
 
 def get_cached_frame(cctv_id):
