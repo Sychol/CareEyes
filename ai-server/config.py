@@ -31,8 +31,8 @@ NCLOUD_ACCESS_KEY = os.environ.get("NCLOUD_ACCESS_KEY")
 NCLOUD_SECRET_KEY = os.environ.get("NCLOUD_SECRET_KEY")
 
 TARGET_CCTV = [
-        ("https://www.youtube.com/watch?v=91PfFoqvuUk", 101),
-        ("https://www.youtube.com/watch?v=yrx0fvj-4QI", 102),
-        ("https://www.youtube.com/watch?v=0jUGiYZKAMg", 201),
-        ("https://www.youtube.com/watch?v=A6R81wOlQqs", 202),
+        (101, "https://www.youtube.com/watch?v=91PfFoqvuUk"),
+        (102, "https://www.youtube.com/watch?v=yrx0fvj-4QI"),
+        (201, "https://www.youtube.com/watch?v=0jUGiYZKAMg"),
+        (202, "https://www.youtube.com/watch?v=A6R81wOlQqs"),
     ]
