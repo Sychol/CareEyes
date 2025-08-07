@@ -419,8 +419,8 @@ const Profile = () => {
                         <button
                             type="button"
                             onClick={handleWithdrawal}
-                            className="py-2 px-3 text-gray-500 text-sm font-semibold hover:text-red-600 transition-colors duration-200 whitespace-nowrap"
-                        >
+                            className="py-2 px-3 text-red-600 text-sm font-semibold hover:text-[#67080b] transition-colors duration-200 whitespace-nowrap"
+>
                             회원 탈퇴
                         </button>
                         <div className="flex justify-center gap-4 w-full">
