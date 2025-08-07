@@ -4,19 +4,21 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card } from "@/components/ui/card";
 import { Bell } from "lucide-react";
 
+// ✅ memberId 타입을 string으로 수정
 interface WorkerAlert {
-  memberId: number | null;
-  memberPw: string | null;
+  memberId: string;
+  memberPw: string;
   memberName: string;
-  email: string | null;
-  phone: string | null;
+  email: string;
+  phone: string;
   memberRole: string;
   company: string;
   department: string;
-  kakaoId: string | null;
+  kakaoId: string;
   alertState: number;
 }
 
+// 프로필 이미지 가져오기
 const profileImages = import.meta.glob("@/assets/profile/*.png", { eager: true }) as Record<string, { default: string }>;
 const profileFilenames = Object.entries(profileImages)
   .filter(([path]) => path.includes("/man"))
@@ -26,43 +28,78 @@ export const AlertTable = () => {
   const [alerts, setAlerts] = useState<WorkerAlert[]>([]);
 
   useEffect(() => {
+    console.log("📦 useEffect 실행됨");
     axios
       .get("/api/member/workerlist")
-      .then((res) => setAlerts(res.data))
-      .catch((err) => console.error("작업자 경고 데이터 실패:", err));
+      .then((res) => {
+        console.log("✅ 초기 알림 목록 불러옴:", res.data);
+        setAlerts(res.data);
+
+        res.data.forEach((item: any, idx: number) => {
+          console.log(`👀 [${idx}] memberId:`, item.memberId);
+        });
+      })
+      .catch((err) => console.error("❌ 작업자 경고 데이터 실패:", err));
   }, []);
 
-  const toggleAlert = (memberId: number | null, newState: number) => {
-    axios
-      .patch(`/api/member/update-alert`, { memberId, alertState: newState })
-      .then(() => {
-        setAlerts((prev) =>
-          prev.map((a) => (a.memberId === memberId ? { ...a, alertState: newState } : a))
-        );
+  const toggleAlert = (memberId: string | null, currentState: number) => {
+    console.log("🔥 toggleAlert 호출됨:", { memberId, currentState });
+
+    if (!memberId) {
+      console.warn("⚠️ memberId가 null이라 무시됨");
+      return;
+    }
+
+    const newState = currentState === 1 ? 0 : 1;
+    console.log("🔁 상태 바꾸기 시도:", newState);
+
+    // 👉 화면에 먼저 상태 적용 (낙관적 업데이트)
+    setAlerts((prev) =>
+      prev.map((a) =>
+        a.memberId === memberId ? { ...a, alertState: newState } : a
+      )
+    );
+
+    const request =
+      currentState === 1
+        ? axios.post("/api/member/pause-alert", { memberId, pauseMinutes: 10 })
+        : axios.post("/api/member/resume-alert", { memberId });
+
+    request
+      .then((res) => {
+        console.log("✅ 서버 상태 변경 완료:", res.data);
+        return axios.get("/api/member/workerlist");
       })
-      .catch((err) => console.error("알림 상태 변경 실패:", err));
+      .then((res) => {
+        console.log("🔁 서버에서 새 알림 목록 다시 받아옴:", res.data);
+        setAlerts(res.data);
+      })
+      .catch((err) => {
+        console.error("❌ 서버 요청 중 에러:", err);
+      });
   };
 
   const renderWorkerCard = (alert: WorkerAlert, index: number, showToggle = false) => {
-    const location = `${alert.company} • ${alert.department}`;
-    const profileImg = profileFilenames[index % profileFilenames.length];
-    const isAlertEnabled = alert.alertState === 1;
+    console.log("🧱 renderWorkerCard 실행:", alert.memberName, alert.alertState);
 
-    const handleBellClick = () => {
-      const newState = isAlertEnabled ? 0 : 1;
-      toggleAlert(alert.memberId, newState);
-    };
+    const location = `${alert.company} • ${alert.department}`;
+    const profileImg =
+      profileFilenames.length > 0
+        ? profileFilenames[index % profileFilenames.length]
+        : "/default-profile.png";
+
+    const isAlertEnabled = alert.alertState === 1;
 
     return (
       <div
-        key={index}
+        key={alert.memberId !== null ? alert.memberId : `fallback-${index}`}
         className="flex items-center justify-between p-4 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors"
       >
         <div className="flex items-center space-x-4">
           <Avatar className="h-12 w-12">
-            <AvatarImage src={profileImg || "/placeholder.svg"} />
+            <AvatarImage src={profileImg} />
             <AvatarFallback className="bg-muted text-muted-foreground">
-              {alert.memberName.slice(0, 1)}
+              {alert.memberName?.slice(0, 1) ?? "?"}
             </AvatarFallback>
           </Avatar>
           <div className="space-y-1">
@@ -75,14 +112,15 @@ export const AlertTable = () => {
             </div>
           </div>
         </div>
-       <Bell
-  className={`h-5 w-5 cursor-pointer ${isAlertEnabled ? "text-green-500" : "text-red-500"}`}
-  strokeWidth={2.5}
-  onClick={() => {
-    const newState = isAlertEnabled ? 0 : 1;
-    toggleAlert(alert.memberId, newState);
-  }}
-/>
+
+        <Bell
+          className={`h-5 w-5 cursor-pointer ${isAlertEnabled ? "text-green-500" : "text-red-500"}`}
+          strokeWidth={2.5}
+          onClick={() => {
+            console.log("🖱️ 벨 클릭됨 - memberId:", alert.memberId);
+            toggleAlert(alert.memberId, alert.alertState);
+          }}
+        />
       </div>
     );
   };
@@ -105,7 +143,9 @@ export const AlertTable = () => {
         <Card className="p-6 h-full">
           <h3 className="text-lg font-semibold mb-4">알림 일시 정지</h3>
           <div className="space-y-3">
-            {disabledAlerts.map((alert, idx) => renderWorkerCard(alert, idx + enabledAlerts.length))}
+            {disabledAlerts.map((alert, idx) =>
+              renderWorkerCard(alert, idx + enabledAlerts.length)
+            )}
           </div>
         </Card>
       </div>

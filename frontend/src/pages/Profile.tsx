@@ -88,9 +88,9 @@ const Profile = () => {
                         scrollbar-hide">
                 {/* 로고 또는 프로필 공간 */}
                 <div className="flex justify-center mb-6">
-                    <div className="w-24 h-24 rounded-full bg-gray-200 flex items-center justify-center text-gray-500">
+                    <div  className="w-24 h-24 bg-gray-200 flex items-center justify-center text-gray-500">
                         {/* 필요시 로고 대신 프로필 사진 삽입 가능 */}
-                        <img src={CareEyesLogo} alt="CareEyes 로고" className="w-full h-full object-cover rounded-full" />
+                        <img src={CareEyesLogo} alt="CareEyes 로고" className="w-full h-full object-cover" />
                     </div>
                 </div>
                 <h1 className="text-3xl sm:text-4xl font-extrabold text-center text-gray-800 mb-8">회원정보</h1>
@@ -419,8 +419,8 @@ const Profile = () => {
                         <button
                             type="button"
                             onClick={handleWithdrawal}
-                            className="py-2 px-3 text-gray-500 text-sm font-semibold hover:text-red-600 transition-colors duration-200 whitespace-nowrap"
-                        >
+                            className="py-2 px-3 text-red-600 text-sm font-semibold hover:text-[#67080b] transition-colors duration-200 whitespace-nowrap"
+>
                             회원 탈퇴
                         </button>
                         <div className="flex justify-center gap-4 w-full">
