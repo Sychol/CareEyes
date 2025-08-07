@@ -56,23 +56,26 @@ export default function CCTVList() {
         axios.get("/mockData.json").then((mockRes) => {
           const feeds: CctvFeed[] = mockRes.data.feeds;
 
-          const merged: MergedCCTV[] = Object.entries(latestEvents).map(([_, event]: any) => {
-            const feed = feeds.find((f) => f.cctvId === event.cctvId);
+          const merged: MergedCCTV[] = Object.entries(latestEvents)
+  .map(([_, event]: any) => {
+    const feed = feeds.find((f) => Number(f.cctvId) === Number(event.cctvId));
+    if (!feed) return null; // 🔥 mockData에 없는 CCTV는 제외
 
-            return {
-              title: `CCTV${event.cctvId}`,
-              subtitle: `${typeMap[event.itemType] || event.itemType} (${event.itemCount})`,
-              youtubeUrl: feed?.youtubeUrl || "",
-              location: event.location,
-              lastDetection: `${event.eventDate} ${event.eventTime}`,
-              manage:
-                event.manage === 0
-                  ? "미처리"
-                  : event.manage === 1
-                  ? "처리중"
-                  : "처리완료",
-            };
-          });
+    return {
+      title: feed.title,
+      subtitle: `${typeMap[event.itemType] || event.itemType} (${event.itemCount})`,
+      youtubeUrl: feed.youtubeUrl,
+      location: event.location,
+      lastDetection: `${event.eventDate} ${event.eventTime}`,
+      manage:
+        event.manage === 0
+          ? "미처리"
+          : event.manage === 1
+          ? "처리중"
+          : "처리완료",
+    };
+  })
+  .filter(Boolean); // 🔥 null 제거
 
           setMergedFeeds(merged);
           if (merged.length > 0) setSelectedId(merged[0].title);
@@ -131,9 +134,8 @@ export default function CCTVList() {
                     {locations.map((loc) => (
                       <button
                         key={loc}
-                        className={`w-full px-4 py-2 text-left text-sm hover:bg-gray-100 ${
-                          selectedLocation === loc ? "bg-gray-100 font-semibold" : ""
-                        }`}
+                        className={`w-full px-4 py-2 text-left text-sm hover:bg-gray-100 ${selectedLocation === loc ? "bg-gray-100 font-semibold" : ""
+                          }`}
                         onClick={() => {
                           setSelectedLocation(loc);
                           setShowDropdown(false);
@@ -158,20 +160,18 @@ export default function CCTVList() {
                   <div
                     key={cctv.title}
                     onClick={() => setSelectedId(cctv.title)}
-                    className={`p-4 bg-background rounded-lg border cursor-pointer transition-all ${
-                      selectedId === cctv.title ? "ring-2 ring-primary" : ""
-                    }`}
+                    className={`p-4 bg-background rounded-lg border cursor-pointer transition-all ${selectedId === cctv.title ? "ring-2 ring-primary" : ""
+                      }`}
                   >
                     <div className="flex items-center justify-between mb-2">
                       <h3 className="font-medium text-sm">{cctv.title}</h3>
                       <Badge
-                        className={`text-white text-xs ${
-                          cctv.manage === "미처리"
+                        className={`text-white text-xs ${cctv.manage === "미처리"
                             ? "bg-red-500"
                             : cctv.manage === "처리중"
-                            ? "bg-yellow-400"
-                            : "bg-green-500"
-                        }`}
+                              ? "bg-yellow-400"
+                              : "bg-green-500"
+                          }`}
                       >
                         {cctv.manage}
                       </Badge>

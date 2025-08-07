@@ -1,26 +1,5 @@
 [
   {
-    "id": 201,
-    "location": "WEST",
-    "top": "70%",
-    "left": "14%",
-    "detected": false
-  },
-  {
-    "id": 202,
-    "location": "WEST",
-    "top": "40%",
-    "left": "10%",
-    "detected": false
-  },
-  {
-    "id": 203,
-    "location": "WEST",
-    "top": "34%",
-    "left": "30%",
-    "detected": false
-  },
-  {
     "id": 101,
     "location": "EAST",
     "top": "38%",
@@ -46,6 +25,27 @@
     "location": "EAST",
     "top": "70%",
     "left": "60%",
+    "detected": false
+  },
+  {
+    "id": 201,
+    "location": "WEST",
+    "top": "70%",
+    "left": "14%",
+    "detected": false
+  },
+  {
+    "id": 202,
+    "location": "WEST",
+    "top": "40%",
+    "left": "10%",
+    "detected": false
+  },
+  {
+    "id": 203,
+    "location": "WEST",
+    "top": "34%",
+    "left": "30%",
     "detected": false
   }
 ]

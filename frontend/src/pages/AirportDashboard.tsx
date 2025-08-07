@@ -5,6 +5,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
   Bell,
   BellOff,
   Settings,
@@ -18,6 +25,7 @@ import {
   Plane,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
 import profileMan1 from "@/assets/profile/man1.png";
 
 // ==========================
@@ -76,22 +84,22 @@ const STATUS_ENUM: StatusType[] = ["미처리", "처리중", "처리완료"];
 
 const STATUS_STYLEMAP = [
   {
-    bg: "bg-red-500",
-    hover: "hover:bg-red-600",
+    bg: "bg-red-400",
+    hover: "hover:bg-red-500",
     text: "text-white",
     border: "border-red-500",
   },
   {
     bg: "bg-yellow-400",
-    hover: "hover:bg-orange-600",
+    hover: "hover:bg-yellow-500",
     text: "text-black",
     border: "border-orange-500",
   },
   {
-    bg: "bg-green-500",
-    hover: "hover:bg-green-700",
+    bg: "bg-green-400",
+    hover: "hover:bg-green-500",
     text: "text-white",
-    border: "border-green-600",
+    border: "border-green-500",
   },
 ];
 
@@ -180,11 +188,11 @@ const StatusBadge = ({
     <Badge
       className={
         manage === "미처리"
-          ? "bg-red-500 text-white py-2 px-2 w-20 text-center whitespace-nowrap flex items-center justify-center"
+          ? "bg-red-400 text-white py-2 px-2 w-20 text-center whitespace-nowrap flex items-center justify-center"
           : manage === "처리중"
           ? "bg-yellow-400 text-black py-2 px-2 w-20 text-center whitespace-nowrap flex items-center justify-center"
           : manage === "처리완료"
-          ? "bg-green-500 text-white py-2 px-2 w-20 text-center whitespace-nowrap flex items-center justify-center"
+          ? "bg-green-400 text-white py-2 px-2 w-20 text-center whitespace-nowrap flex items-center justify-center"
           : ""
       }
     >
@@ -259,6 +267,7 @@ const StatusChangePopup = ({
 
 const AirportDashboard = () => {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const cctvSectionRef = useRef<HTMLDivElement>(null);
 
   const [userData, setUserData] = useState<UserData>(DEFAULT_USER);
@@ -270,7 +279,7 @@ const AirportDashboard = () => {
   const [selectedEvent, setSelectedEvent] = useState<DetectionEvent | null>(
     null
   );
-  const [showSetting, setShowSetting] = useState(false);
+
   const [statusPopupTarget, setStatusPopupTarget] =
     useState<DetectionEvent | null>(null);
   const [showPausePopup, setShowPausePopup] = useState(false);
@@ -304,7 +313,7 @@ const AirportDashboard = () => {
               bg-white border-2 border-primary/60
               text-black
             `,
-            duration: 2000,
+            duration: 1500,
           });
         } else {
           setUserData(DEFAULT_USER);
@@ -320,7 +329,7 @@ const AirportDashboard = () => {
               bg-white border-2 border-primary/60
               text-black
             `,
-            duration: 2000,
+            duration: 1500,
           });
         }
       })
@@ -339,37 +348,77 @@ const AirportDashboard = () => {
             bg-white border-2 border-primary/60
             text-black
           `,
-          duration: 2000,
+          duration: 1500,
         });
       });
   }, [toast]);
 
-  // 2. 이벤트 리스트 불러오기
+  // 2. 이벤트 리스트 불러오기 (10초마다 갱신)
   useEffect(() => {
-    axios
-      .get(API_URL)
-      .then((res) => {
-        if (Array.isArray(res.data)) {
-          setEvents(res.data.map(mapApiEvent));
-        } else if (Array.isArray(res.data.data)) {
-          setEvents(res.data.data.map(mapApiEvent));
-        }
-      })
-      .catch(() => {
-        toast({
-          title: "이벤트 데이터 불러오기 실패",
-          description: "서버 또는 네트워크 오류 발생",
-          variant: "destructive",
-          className: `
-            fixed top-6 left-1/2 -translate-x-1/2 z-[9999]
-            min-w-[280px] max-w-[380px] w-[80vw]
-            rounded-xl shadow-2xl px-4 py-3
-            bg-white border-2 border-primary/60
-            text-black
-          `,
-          duration: 2000,
+    const fetchEvents = () => {
+      axios
+        .get(API_URL)
+        .then((res) => {
+          if (Array.isArray(res.data)) {
+            setEvents(res.data.map(mapApiEvent));
+          } else if (Array.isArray(res.data.data)) {
+            setEvents(res.data.data.map(mapApiEvent));
+          }
+        })
+        .catch(() => {
+          toast({
+            title: "이벤트 데이터 불러오기 실패",
+            description: "서버 또는 네트워크 오류 발생",
+            variant: "destructive",
+            className: `
+              fixed top-6 left-1/2 -translate-x-1/2 z-[9999]
+              min-w-[280px] max-w-[380px] w-[80vw]
+              rounded-xl shadow-2xl px-4 py-3
+              bg-white border-2 border-primary/60
+              text-black
+            `,
+            duration: 1500,
+          });
         });
-      });
+    };
+
+    // 사용자 정보 갱신 함수
+    const fetchUserInfo = () => {
+      axios
+        .get(USER_INFO_API_URL)
+        .then((res) => {
+          const userInfo = res.data;
+          if (userInfo && userInfo.memberName) {
+            setUserData({
+              MEMBER_NAME: userInfo.memberName,
+              DEPARTMENT: userInfo.department,
+              MEMBER_ID: userInfo.memberId,
+              ALERT_STATE: userInfo.alertState, // 0/1 서버값 그대로
+            });
+            setSelectedNotification(
+              userInfo.alertState === undefined || userInfo.alertState === 1
+                ? "general"
+                : "emergency"
+            );
+          }
+        })
+        .catch((error) => {
+          console.error("사용자 정보 갱신 실패:", error);
+        });
+    };
+
+    // 초기 로드
+    fetchEvents();
+    fetchUserInfo();
+
+    // 10초마다 갱신
+    const interval = setInterval(() => {
+      fetchEvents();
+      fetchUserInfo();
+    }, 30000);
+
+    // 컴포넌트 언마운트 시 인터벌 정리
+    return () => clearInterval(interval);
   }, [toast]);
 
   // 필터+정렬된 이벤트 리스트
@@ -404,7 +453,7 @@ const AirportDashboard = () => {
           bg-white border-2 border-primary/60
           text-black
         `,
-        duration: 2000,
+        duration: 1500,
       });
       setStatusPopupTarget(null);
     } catch {
@@ -418,7 +467,7 @@ const AirportDashboard = () => {
           bg-white border-2 border-primary/60
           text-black
         `,
-        duration: 2000,
+        duration: 1500,
       });
     }
   };
@@ -467,7 +516,7 @@ const AirportDashboard = () => {
           bg-white border-2 border-primary/60
           text-black
         `,
-        duration: 2000,
+        duration: 1500,
       });
     } catch (err) {
       toast({
@@ -481,7 +530,7 @@ const AirportDashboard = () => {
           bg-white border-2 border-primary/60
           text-black
         `,
-        duration: 2000,
+        duration: 1500,
       });
     }
   };
@@ -511,7 +560,7 @@ const AirportDashboard = () => {
           bg-white border-2 border-primary/60
           text-black
         `,
-        duration: 2000,
+        duration: 1500,
       });
     } catch (error) {
       console.error("일시정지 설정 오류:", error);
@@ -526,9 +575,21 @@ const AirportDashboard = () => {
           bg-white border-2 border-primary/60
           text-black
         `,
-        duration: 2000,
+        duration: 1500,
       });
     }
+  };
+
+  // 로그아웃 함수
+  const handleSignOut = () => {
+    axios.post('/api/member/logout', {}, { withCredentials: true })
+      .then(() => {
+        console.log("로그아웃 성공");
+        navigate('/login'); // 로그인 페이지로 이동
+      })
+      .catch((error) => {
+        console.error("로그아웃 실패:", error);
+      });
   };
 
   // =================== UI ===================
@@ -558,47 +619,30 @@ const AirportDashboard = () => {
               </p>
             </div>
           </div>
-          <Button
-            variant="outline"
-            size="icon"
-            className="rounded-full shadow-soft"
-            onClick={() => setShowSetting(true)}
-          >
-            <Settings className="h-4 w-4" />
-          </Button>
-        </div>
-        {showSetting && (
-          <div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
-            style={{ backdropFilter: "blur(2px)" }}
-          >
-            <div className="bg-white rounded-xl shadow-2xl border-2 border-primary/60 p-6 min-w-[320px] max-w-[90vw] mx-2 relative">
-              <button
-                className="absolute top-3 right-4 text-xl text-gray-400 hover:text-gray-800"
-                onClick={() => setShowSetting(false)}
-                aria-label="닫기"
-                style={{
-                  background: "none",
-                  border: "none",
-                  cursor: "pointer",
-                  fontSize: 24,
-                  lineHeight: 1,
-                }}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="outline"
+                size="icon"
+                className="rounded-full shadow-soft"
               >
-                ×
-              </button>
-              <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
-                <Settings className="h-5 w-5 mr-1" />
-                환경설정
-              </h2>
-              <div className="space-y-2">
-                <p>
-                  ✏️ <b>추가할 기능</b>을 이 영역에 자유롭게 삽입하세요.
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
+                <Settings className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+
+            <DropdownMenuContent className="w-48 bg-white shadow-md rounded-md" align="end" forceMount>
+              <DropdownMenuItem onClick={() => navigate('/profile')}>
+                <User className="mr-2 h-4 w-4" />
+                <span>Profile</span>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={handleSignOut}>
+                <Settings className="mr-2 h-4 w-4" />
+                <span>Logout</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
 
         {/* 알림 설정 카드 */}
         <Card className="shadow-soft border-0 bg-card/50 backdrop-blur-sm">

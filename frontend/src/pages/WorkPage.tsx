@@ -1,6 +1,4 @@
 import { AlertTable } from "@/pages/AlertTable";
-import Schedule from "@/pages/Schedule";
-
 
 const WorkPage = () => {
   return (
@@ -8,14 +6,11 @@ const WorkPage = () => {
       {/* 제목 */}
       <h1 className="text-4xl font-bold text-foreground">작업자 관리 내역</h1>
 
-      {/* 메인 그리드 */}
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
-        {/* 왼쪽: 알림 테이블 */}
-        <div className="xl:col-span-2">
-          <AlertTable />
-        </div>
-        </div>
+      {/* 메인 Flex 3단 구성 */}
+      <div className="flex flex-row gap-4 w-full">
+        <AlertTable />
       </div>
+    </div>
   );
 };
 
