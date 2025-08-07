@@ -4,6 +4,10 @@ import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -76,14 +80,21 @@ public class MemberController {
 	                .body(Map.of("message", "로그인 정보가 없습니다."));
 	    }
 
-	    return ResponseEntity.ok(Map.of(
-	        "memberId", loginMember.getMemberId(),
-	        "memberName", loginMember.getMemberName(),
-	        "memberRole", loginMember.getMemberRole(),
-	        "department", loginMember.getDepartment(),
-	        "email", loginMember.getEmail(),
-	        "alertState", loginMember.getAlertState()
-	    ));
+	    Map<String, Object> result = Stream.of(
+	            Map.entry("memberId", loginMember.getMemberId()),
+	            Map.entry("memberName", loginMember.getMemberName()),
+	            Map.entry("memberRole", loginMember.getMemberRole()),
+	            Map.entry("department", loginMember.getDepartment()),
+	            Map.entry("email", loginMember.getEmail()),
+	            Map.entry("alertState", loginMember.getAlertState()),
+	            Optional.ofNullable(loginMember.getKakaoId())
+	                    .map(id -> Map.entry("kakaoId", id))
+	                    .orElse(null)
+	        )
+	        .filter(Objects::nonNull) // null (예: kakaoId=null) 제거
+	        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
+	    return ResponseEntity.ok(result);
 	}
 	
 	// 카카오 로그인
@@ -174,5 +185,18 @@ public class MemberController {
 	    memberMapper.pauseAlert(memberId, 0, Timestamp.valueOf(expireTime));  // alertState 0으로 설정
 
 	    return ResponseEntity.ok(Map.of("message", "알림이 " + pauseMinutes + "분간 일시정지 됩니다."));
+	}
+	
+	// 알림 재개
+	@PostMapping("/resume-alert")
+	public ResponseEntity<?> resumeAlert(@RequestBody Map<String, Object> body) {
+	    String memberId = (String) body.get("memberId");
+
+	    if (memberId == null) {
+	        return ResponseEntity.badRequest().body("잘못된 요청입니다.");
+	    }
+
+	    memberMapper.pauseAlert(memberId, 1, null); // ON 설정 및 만료 시간 제거
+	    return ResponseEntity.ok(Map.of("message", "알림이 다시 활성화되었습니다."));
 	}
 }

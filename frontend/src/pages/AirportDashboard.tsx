@@ -28,6 +28,7 @@ interface UserData {
   DEPARTMENT: string;
   MEMBER_ID?: string; // 로그인한 사용자의 ID
   ALERT_STATE?: 0 | 1; // 0: 일시정지, 1: 알림받기
+  KAKAO_ID?: number; // 카카오 연동 ID (선택적)
 }
 
 type StatusType = "미처리" | "처리중" | "처리완료";
@@ -274,11 +275,12 @@ const AirportDashboard = () => {
   const [statusPopupTarget, setStatusPopupTarget] =
     useState<DetectionEvent | null>(null);
   const [showPausePopup, setShowPausePopup] = useState(false);
+  
 
   // 1. 로그인한 사용자 정보 가져오기 + ALERT_STATE 처리
   useEffect(() => {
     axios
-      .get(USER_INFO_API_URL)
+      .get(USER_INFO_API_URL, { withCredentials: true })
       .then((res) => {
         const userInfo = res.data;
         if (userInfo && userInfo.memberName) {
@@ -287,6 +289,7 @@ const AirportDashboard = () => {
             DEPARTMENT: userInfo.department,
             MEMBER_ID: userInfo.memberId,
             ALERT_STATE: userInfo.alertState, // 0/1 서버값 그대로
+            KAKAO_ID: userInfo.kakaoId // 카카오 연동 ID
           });
           setSelectedNotification(
             userInfo.alertState === undefined || userInfo.alertState === 1

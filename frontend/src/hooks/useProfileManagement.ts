@@ -45,13 +45,10 @@ export const useProfileManagement = () => {
             // 🚀 목업 데이터를 실제 API 응답으로 교체하는 방법:
             // 아래 주석 처리된 코드를 활성화하시고, `/api/user/profile` 경로를
             // 실제 사용자 프로필 정보를 가져오는 API 엔드포인트로 변경해 주세요.
-            // const response = await axios.get('/api/user/profile');
-            // const fetchedProfile: UserProfile = response.data;
-            // setProfile(fetchedProfile);
-
-            // 현재는 목업 데이터(DEFAULT_USER_PROFILE)를 사용하고 있습니다.
-            const fetchedProfile: UserProfile = DEFAULT_USER_PROFILE;
-            setProfile(fetchedProfile);
+            const response = await axios.get('/api/member/userinfo', {
+            withCredentials: true,
+            });
+            const fetchedProfile: UserProfile = response.data;
 
             // 전화번호를 부분별로 분리
             if (fetchedProfile.phone) {
