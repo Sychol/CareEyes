@@ -7,7 +7,9 @@ import logging
 
 # 디바이스 설정 및 로깅
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
-logging.info(f"YOLO 모델 로드: {YOLO_MODEL_PATH}, 디바이스: {DEVICE}")
+#logging.info(f"YOLO 모델 로드: {YOLO_MODEL_PATH}, 디바이스: {DEVICE}")
+print("🧠 CUDA 사용 가능:", torch.cuda.is_available())
+print("🔋 사용 중인 디바이스:", torch.cuda.get_device_name(0) if torch.cuda.is_available() else "CPU")
 
 model = YOLO(YOLO_MODEL_PATH)
 model.to(DEVICE)
