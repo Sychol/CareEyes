@@ -336,19 +336,14 @@ export const useProfileManagement = () => {
      * @function handleKakaoConnect
      * @description 카카오 계정 연동을 처리합니다.
      */
-    const handleKakaoConnect = useCallback(async () => {
-        try {
-            // 실제 카카오 연동 로직 (예: 팝업 열기, 리다이렉트)
-            // const response = await axios.get('/api/auth/kakao');
-            console.log('카카오 연동 시도');
-            alert('카카오 연동 기능은 아직 구현되지 않았습니다.');
-            // 연동 성공 후 profile 상태 업데이트
-            // setProfile(prev => ({ ...prev, kakaoId: 123456789 })); // 예시 ID
-        } catch (err) {
-            console.error('카카오 연동 실패:', err);
-            setError('카카오 연동에 실패했습니다.');
-        }
-    }, []);
+const handleKakaoConnect = useCallback(() => {
+    const clientId = '99b61a29a2963e3f58d79a6f2e9eccb6'; // 실제 REST API 키로 변경
+    const redirectUri = 'http://localhost:5173/kakao/callback'; // 배포 시 변경 필요
+    const kakaoAuthUrl = `https://kauth.kakao.com/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code&state=link`;
+
+    // ✅ 카카오 로그인 페이지로 리다이렉트 (연동용 state=link 포함)
+    window.location.href = kakaoAuthUrl;
+}, []);
 
     /**
      * @function handleKakaoDisconnect
