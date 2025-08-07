@@ -414,11 +414,11 @@ const AirportDashboard = () => {
     fetchEvents();
     fetchUserInfo();
 
-    // 10초마다 갱신
+    // 120초마다 갱신
     const interval = setInterval(() => {
       fetchEvents();
       fetchUserInfo();
-    }, 30000);
+    }, 120000);
 
     // 컴포넌트 언마운트 시 인터벌 정리
     return () => clearInterval(interval);
@@ -491,20 +491,18 @@ const AirportDashboard = () => {
     setSelectedNotification(newKey);
 
     try {
-      const alertStateValue = newKey === "general" ? 1 : 0;
+      // const alertStateValue = newKey === "general" ? 1 : 0;
 
       if (!userData.MEMBER_ID) throw new Error("사용자 ID가 없습니다.");
 
       await axios.post(`/api/member/pause-alert`, {
         memberId: userData.MEMBER_ID,
-        alertState: alertStateValue,
-        // 일시정지 시간은 별도 팝업에서 설정하므로 기본 0 혹은 null로 둠
-        pauseMinutes: newKey === "emergency" ? 0 : null,
+        alertState: 1, // 일시정지 상태
       });
 
-      setUserData((prev) =>
-        prev ? { ...prev, ALERT_STATE: alertStateValue } : prev
-      );
+      setSelectedNotification("general");
+      setUserData((prev) => (prev ? { ...prev, ALERT_STATE: 1 } : prev));
+      setShowPausePopup(false);
 
       toast({
         title: `알림 상태 변경됨`,

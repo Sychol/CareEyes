@@ -68,6 +68,8 @@ export const useProfileManagement = () => {
             withCredentials: true,
             });
             const fetchedProfile: UserProfile = response.data;
+            
+            setProfile(fetchedProfile);
 
             // 전화번호를 부분별로 분리
             if (fetchedProfile.phone) {

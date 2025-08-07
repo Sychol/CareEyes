@@ -35,6 +35,9 @@ public interface MemberMapper {
             	@Param("alertState") int alertState,
             	@Param("expireTime") Timestamp expireTime);
 	
+	public void resumeAlert(@Param("memberId") String memberId,
+            	@Param("alertState") int alertState);
+	
 	public List<String> findRestorables();
 	
 	public void updateAlertState(@Param("memberId") String memberId, @Param("alertState") int alertState);
