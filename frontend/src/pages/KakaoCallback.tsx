@@ -9,21 +9,28 @@ const KakaoCallback = () => {
   useEffect(() => {
     const fetchKakaoUser = async () => {
       const code = new URL(window.location.href).searchParams.get('code');
+      const state = new URL(window.location.href).searchParams.get('state'); // 'link'면 연동
+
       if (!code) {
-        alert('오류가 발생했습니다.'); // 코드가 없으면 오류 처리
-        console.error('Kakao login code not found');
+        alert('인가 코드가 없습니다.');
         navigate('/login');
         return;
       }
 
       try {
+        if (state === 'link') {
+          // ✅ 연동 로직
+          await axios.post('/api/member/account/link-kakao', { code }, { withCredentials: true });
+          alert('카카오 계정이 연동되었습니다!');
+          navigate('/profile'); // 연동 후 이동할 곳
+        } else {
         // access_token 요청
         const tokenRes = await axios.post(
           'https://kauth.kakao.com/oauth/token',
           new URLSearchParams({
             grant_type: 'authorization_code',
             client_id: '99b61a29a2963e3f58d79a6f2e9eccb6',
-            redirect_uri: 'http://49.50.134.171:80/kakao/callback', // 배포시 주소 교체
+            redirect_uri: 'http://localhost:5173/kakao/callback', // 배포시 주소 교체
             code,
           }),
           {
@@ -49,23 +56,13 @@ const KakaoCallback = () => {
           navigate('/join', { state: { kakaoId } });
         } else {
           const member = serverRes.data.member;
-          sessionStorage.setItem('loginMember', JSON.stringify(serverRes.data.member));
-          switch (member.memberRole) {
-            case 'ADMIN':
-              navigate('/');
-              break;
-            case 'WORKER':
-              navigate('/airport');
-              break;
-            default:
-              alert('알 수 없는 사용자 권한입니다.');
-              navigate('/login');
-              break;
+          sessionStorage.setItem('loginMember', JSON.stringify(member));
+            navigate(member.memberRole === 'ADMIN' ? '/' : '/airport');
           }
         }
       } catch (error) {
-        console.error('카카오 로그인 처리 실패:', error);
-        alert('카카오 로그인 중 오류 발생');
+        console.error('카카오 처리 실패:', error);
+        alert('카카오 로그인/연동 실패');
         navigate('/login');
       }
     };

@@ -1,33 +1,48 @@
 # api/endpoints.py
 from flask import Response, request, send_file, abort
 from detect.detect_loop import get_cached_frame
-from config import IMAGE_SAVE_DIR
+from config import IMAGE_SAVE_DIR, DELAY
 import cv2
 import os
+import time
 
 
 def register_routes(app):
     @app.route('/ai/video_feed')
     def video_feed():
+        # URL 파라미터에서 CCTV ID 가져오기
         cctv_id = request.args.get("cctv_id")
+
         if not cctv_id:
             return "❌ CCTV ID가 필요합니다.", 400
-
         try:
-            cctv_id = int(cctv_id)
+            cctv_id = int(cctv_id) # int로 변환
         except ValueError:
             return "❌ CCTV ID는 숫자여야 합니다.", 400
 
+        # 루프에서 탐지한 이미지 가져오기
         def generate():
             while True:
-                frame = get_cached_frame(cctv_id)
-                if frame is None:
-                    continue
-                _, buffer = cv2.imencode(".jpg", frame)
-                yield (b"--frame\r\n"
-                       b"Content-Type: image/jpeg\r\n\r\n" + buffer.tobytes() + b"\r\n")
+                try:
+                    frame = get_cached_frame(cctv_id)
+                    if frame is None:
+                        # 디버깅용 출력
+                        #print(f"⏳ {cctv_id}의 YOLO 감지 이미지 없음")
+                        continue
 
-        return Response(generate(), mimetype="multipart/x-mixed-replace; boundary=frame")
+                    _, buffer = cv2.imencode(".jpg", frame)
+
+                    yield (b"--frame\r\n"
+                        b"Content-Type: image/jpeg\r\n\r\n" + buffer.tobytes() + b"\r\n")
+                    
+                    time.sleep(DELAY) # 불필요한 요청주기 제어
+                    
+                except Exception as e:
+                    print(f"⚠️ 스트리밍 오류: {e}")
+                    time.sleep(DELAY)
+
+        return Response(generate(), # 비디오 스트림 생성기 호출
+                        mimetype="multipart/x-mixed-replace; boundary=frame") # 멀티파트 스트림 반환
 
     @app.route("/ai/get_image")
     def get_image():

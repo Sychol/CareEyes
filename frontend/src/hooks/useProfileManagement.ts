@@ -33,6 +33,25 @@ export const useProfileManagement = () => {
     const [isNewPasswordFocused, setIsNewPasswordFocused] = useState(false);
     const [isConfirmNewPasswordFocused, setIsConfirmNewPasswordFocused] = useState(false);
 
+    const handleWithdrawal = async () => {
+    // 사용자에게 확인 메시지를 표시
+    if (window.confirm("정말로 회원 탈퇴를 하시겠습니까? 모든 정보가 삭제되며 되돌릴 수 없습니다.")) {
+        try {
+            const response = await axios.post('/api/withdrawal'); // 실제 API 경로로 수정
+            if (response.data.success) {
+                // 탈퇴 성공 시, 로그아웃 처리 후 로그인 페이지로 이동
+                alert("회원 탈퇴가 완료되었습니다.");
+                // 로그인 페이지로 이동하는 로직 추가
+                // 예: window.location.href = '/login';
+            } else {
+                alert("회원 탈퇴에 실패했습니다: " + response.data.message);
+            }
+        } catch (err) {
+            console.error(err);
+            alert("회원 탈퇴 중 오류가 발생했습니다.");
+        }
+    }
+};
 
     /**
      * @function fetchUserProfile
@@ -45,13 +64,10 @@ export const useProfileManagement = () => {
             // 🚀 목업 데이터를 실제 API 응답으로 교체하는 방법:
             // 아래 주석 처리된 코드를 활성화하시고, `/api/user/profile` 경로를
             // 실제 사용자 프로필 정보를 가져오는 API 엔드포인트로 변경해 주세요.
-            // const response = await axios.get('/api/user/profile');
-            // const fetchedProfile: UserProfile = response.data;
-            // setProfile(fetchedProfile);
-
-            // 현재는 목업 데이터(DEFAULT_USER_PROFILE)를 사용하고 있습니다.
-            const fetchedProfile: UserProfile = DEFAULT_USER_PROFILE;
-            setProfile(fetchedProfile);
+            const response = await axios.get('/api/member/userinfo', {
+            withCredentials: true,
+            });
+            const fetchedProfile: UserProfile = response.data;
 
             // 전화번호를 부분별로 분리
             if (fetchedProfile.phone) {
@@ -336,19 +352,14 @@ export const useProfileManagement = () => {
      * @function handleKakaoConnect
      * @description 카카오 계정 연동을 처리합니다.
      */
-    const handleKakaoConnect = useCallback(async () => {
-        try {
-            // 실제 카카오 연동 로직 (예: 팝업 열기, 리다이렉트)
-            // const response = await axios.get('/api/auth/kakao');
-            console.log('카카오 연동 시도');
-            alert('카카오 연동 기능은 아직 구현되지 않았습니다.');
-            // 연동 성공 후 profile 상태 업데이트
-            // setProfile(prev => ({ ...prev, kakaoId: 123456789 })); // 예시 ID
-        } catch (err) {
-            console.error('카카오 연동 실패:', err);
-            setError('카카오 연동에 실패했습니다.');
-        }
-    }, []);
+const handleKakaoConnect = useCallback(() => {
+    const clientId = '99b61a29a2963e3f58d79a6f2e9eccb6'; // 실제 REST API 키로 변경
+    const redirectUri = 'http://localhost:5173/kakao/callback'; // 배포 시 변경 필요
+    const kakaoAuthUrl = `https://kauth.kakao.com/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code&state=link`;
+
+    // ✅ 카카오 로그인 페이지로 리다이렉트 (연동용 state=link 포함)
+    window.location.href = kakaoAuthUrl;
+}, []);
 
     /**
      * @function handleKakaoDisconnect
@@ -474,5 +485,6 @@ export const useProfileManagement = () => {
         handleNaverDisconnect,
         handleGoogleConnect,
         handleGoogleDisconnect,
+        handleWithdrawal,
     };
 };

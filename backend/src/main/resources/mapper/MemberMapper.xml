@@ -54,7 +54,8 @@
 	
 	<!-- 기존 계정과 카카오 계정 연동 -->
 	<update id="updateKakaoId">
-		UPDATE MEMBERS SET KAKAO_ID = #{kakaoId}
+		UPDATE MEMBERS 
+		SET KAKAO_ID = #{kakaoId}
 		WHERE MEMBER_ID = #{memberId}
 	</update>
 	
