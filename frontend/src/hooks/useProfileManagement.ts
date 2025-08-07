@@ -33,6 +33,25 @@ export const useProfileManagement = () => {
     const [isNewPasswordFocused, setIsNewPasswordFocused] = useState(false);
     const [isConfirmNewPasswordFocused, setIsConfirmNewPasswordFocused] = useState(false);
 
+    const handleWithdrawal = async () => {
+    // 사용자에게 확인 메시지를 표시
+    if (window.confirm("정말로 회원 탈퇴를 하시겠습니까? 모든 정보가 삭제되며 되돌릴 수 없습니다.")) {
+        try {
+            const response = await axios.post('/api/withdrawal'); // 실제 API 경로로 수정
+            if (response.data.success) {
+                // 탈퇴 성공 시, 로그아웃 처리 후 로그인 페이지로 이동
+                alert("회원 탈퇴가 완료되었습니다.");
+                // 로그인 페이지로 이동하는 로직 추가
+                // 예: window.location.href = '/login';
+            } else {
+                alert("회원 탈퇴에 실패했습니다: " + response.data.message);
+            }
+        } catch (err) {
+            console.error(err);
+            alert("회원 탈퇴 중 오류가 발생했습니다.");
+        }
+    }
+};
 
     /**
      * @function fetchUserProfile
@@ -474,5 +493,6 @@ export const useProfileManagement = () => {
         handleNaverDisconnect,
         handleGoogleConnect,
         handleGoogleDisconnect,
+        handleWithdrawal,
     };
 };

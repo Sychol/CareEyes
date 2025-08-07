@@ -46,11 +46,18 @@ cd 경로
 # 이미지 빌드
 docker build -t sychol/careeyes-frontend:latest .
 docker build -t sychol/careeyes-backend:latest .
-docker build -t sychol/careeyes-aiserver:latest .
+docker build -f Dockerfile -t sychol/careeyes-aiserver:latest .
+docker build -f Dockerfile -t sychol/careeyes-aiserver-gpu:latest .
+
+docker build -f Dockerfile.base -t sychol/careeyes-aiserver-base:latest .
+docker build -f Dockerfile.gpubase -t sychol/careeyes-aiserver-gpubase:latest .
 
 docker push sychol/careeyes-frontend:latest
 docker push sychol/careeyes-backend:latest
 docker push sychol/careeyes-aiserver:latest
+
+docker push sychol/careeyes-aiserver-base:latest
+docker push sychol/careeyes-aiserver-gpubase:latest
 
 # 사용하지 않는 이미지 전체 삭제
 docker image prune -a

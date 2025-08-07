@@ -49,6 +49,7 @@ const Profile = () => {
         handleNaverDisconnect,
         handleGoogleConnect,
         handleGoogleDisconnect,
+        handleWithdrawal,
     } = useProfileManagement();
 
 
@@ -412,22 +413,32 @@ const Profile = () => {
                     {error && <p className="text-center mt-5 p-3 rounded-lg text-base font-medium bg-red-100 text-red-600">{error}</p>}
                     {passwordChangeMessage && <p className="text-center mt-5 p-3 rounded-lg text-base font-medium bg-green-100 text-green-600">{passwordChangeMessage}</p>}
 
-                    {/* 버튼 섹션 */}
-                    <div className="flex justify-center mt-8 gap-4">
-                        <button
-                            type="submit"
-                            className="px-6 py-3 border-none rounded-lg text-base font-semibold cursor-pointer transition duration-300 ease-in-out min-w-32 text-center hover:-translate-y-0.5 text-white bg-careeyes"
-                        >
-                            정보 수정
-                        </button>
-                        {/* 취소 버튼 */}
+                {/* 버튼 섹션 */}
+                    <div className="flex justify-between mt-12">
+                        {/* 회원 탈퇴 버튼 */}
                         <button
                             type="button"
-                            onClick={handleCancel}
-                            className="px-6 py-3 border border-gray-300 rounded-lg text-base font-semibold cursor-pointer transition duration-300 ease-in-out min-w-32 text-center hover:-translate-y-0.5 bg-white text-gray-700 hover:bg-gray-100"
+                            onClick={handleWithdrawal}
+                            className="py-2 px-3 text-gray-500 text-sm font-semibold hover:text-red-600 transition-colors duration-200 whitespace-nowrap"
                         >
-                            취소
+                            회원 탈퇴
                         </button>
+                        <div className="flex justify-center gap-4 w-full">
+                            <button
+                                type="submit"
+                                className="px-6 py-1 border-none rounded-lg text-base font-semibold cursor-pointer transition duration-300 ease-in-out min-w-32 text-center hover:-translate-y-0.5 text-white bg-careeyes"
+                            >
+                                정보 수정
+                            </button>
+                            {/* 취소 버튼 */}
+                            <button
+                                type="button"
+                                onClick={handleCancel}
+                                className="px-5 py-1 border border-gray-300 rounded-lg text-base font-semibold cursor-pointer transition duration-300 ease-in-out whitespace-nowrap text-center hover:bg-gray-100 text-gray-700"
+                            >
+                                취소
+                            </button>
+                        </div>
                     </div>
                 </form>
             </div>

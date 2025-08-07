@@ -9,9 +9,10 @@ from storage.upload_ncloud import upload_to_ncloud
 
 def save_detection_image(annotated_img, object_counts, cctv_id, date_str, time_str, save_type="ncloud"):
     """
-    감지 결과 이미지를 저장하거나 Ncloud에 업로드합니다.
+    감지 결과 이미지를 저장하거나 Ncloud에 업로드
     return: 저장 경로 (로컬 상대경로 또는 Ncloud URL)
     """
+    # Ncloud에 업로드
     if save_type == "ncloud":
         success, buffer = cv2.imencode('.jpg', annotated_img)
         if not success:
@@ -19,11 +20,19 @@ def save_detection_image(annotated_img, object_counts, cctv_id, date_str, time_s
         image_stream = io.BytesIO(buffer)
         return upload_to_ncloud(image_stream, f"{cctv_id}/{date_str}/{time_str}.jpg")
 
+    # 로컬에 저장
     elif save_type == "local":
+        # 저장 디렉토리 생성
         save_dir = f"{IMAGE_SAVE_DIR}/{cctv_id}/{date_str}"
         os.makedirs(save_dir, exist_ok=True)
+
+        # 저장 경로 설정
         save_path = f"{save_dir}/{time_str}.jpg"
-        cv2.imwrite(save_path, annotated_img)
+        cv2.imwrite(save_path, annotated_img) # 이미지 저장
+        # 디버깅용 : 탐지 객체 및 저장 경로 출력
+        print(f"🔍 탐지 완료! {object_counts} → 저장: {save_path}")
+
+        # return : DB에 저장할 경로
         return f"{cctv_id}/{date_str}/{time_str}.jpg"
 
     else:
