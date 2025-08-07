@@ -25,12 +25,6 @@ public interface MemberMapper {
 	
 	public List<Members> getWorkerList();
 	
-	public List<Members> getFilteredWorker (
-		@Param("department") String department,
-		@Param("company") String company,
-		@Param("alertState") Integer alertState
-	);
-	
 	public void pauseAlert(@Param("memberId") String memberId,
             	@Param("alertState") int alertState,
             	@Param("expireTime") Timestamp expireTime);
