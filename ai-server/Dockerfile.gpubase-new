@@ -1,0 +1,47 @@
+# Dockerfile.gpubase-new
+
+# 베이스: 우분투 + Python 3.8 설치
+FROM ubuntu:20.04
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+# 작업 디렉토리 생성
+WORKDIR /app
+
+# Python 3.8 설치
+RUN apt-get update && \
+    apt-get install -y \
+        python3.8 \
+        python3.8-dev \
+        python3.8-distutils \
+        python3-pip \
+        ffmpeg \
+        libgl1 \
+        libglib2.0-0 \
+        libsm6 \
+        libxext6 \
+        libxrender-dev \
+        git \
+        curl \
+        git-lfs
+    
+RUN apt-get install -y python3-opencv
+RUN apt-get install -y streamlink
+
+RUN apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+# Python3 링크 강제 변경
+RUN ln -sf python3.8 /usr/bin/python3 && ln -sf pip3 /usr/bin/pip
+
+# pip 업그레이드
+RUN pip install --upgrade pip
+
+# Git LFS 초기화
+RUN git lfs install
+
+# PyTorch (CUDA 12.1 지원 버전으로 설치)
+RUN pip install torch==2.2.0+cu121 torchvision==0.17.0+cu121 -f https://download.pytorch.org/whl/torch_stable.html
+
+
+# docker build -f Dockerfile.gpubase -t sychol/careeyes-aiserver-gpubase:latest .
