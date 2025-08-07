@@ -26,11 +26,4 @@ RUN apt-get update && \
 # 4. Git LFS 초기화
 RUN git lfs install
 
-# 5. pip 업그레이드 및 torch(GPU용) 설치
-RUN pip install --upgrade pip && \
-    pip install \
-        torch==2.2.0+cu121 \
-        torchvision==0.17.0 \
-        --extra-index-url https://download.pytorch.org/whl/cu121
-
 # docker build -f Dockerfile.gpubase -t sychol/careeyes-aiserver-gpubase:latest .
