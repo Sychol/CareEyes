@@ -59,7 +59,6 @@ export const AlertTable = () => {
               <span className="text-sm text-muted-foreground">{location}</span>
             </div>
             <div className="flex items-center space-x-4 text-sm text-muted-foreground">
-              <span>알림 설정: {isAlertEnabled ? "알림" : "미설정"}</span>
               <span>위치: 철주몰 동 1 · CCTV {index + 1}</span>
             </div>
           </div>
@@ -104,26 +103,6 @@ export const AlertTable = () => {
           </Card>
         </div>
 
-        {/* 오른쪽 - 요약 카드 */}
-        <div className="w-1/3">
-          <Card className="p-6 h-full">
-            <h3 className="text-lg font-semibold mb-4">📊 작업자 요약</h3>
-            <ul className="text-sm space-y-2 text-muted-foreground">
-              <li>총 작업자: {alerts.length}명</li>
-              <li>알림 설정: {enabledAlerts.length}명 ✅</li>
-              <li>알림 정지: {disabledAlerts.length}명 ❌</li>
-            </ul>
-
-            <div className="mt-6 space-y-2">
-              <button className="w-full py-2 px-4 rounded bg-[#5F69C7] text-white hover:bg-[#4e55b4] text-sm font-medium">
-                작업자 전체 보기
-              </button>
-              <button className="w-full py-2 px-4 rounded border text-sm hover:bg-muted">
-                설정 변경
-              </button>
-            </div>
-          </Card>
-        </div>
       </div>
     </div>
   );
