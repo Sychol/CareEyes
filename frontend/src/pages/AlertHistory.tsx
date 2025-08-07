@@ -222,49 +222,53 @@ export default function AlertHistory() {
 
       {/* 🖼 CCTV 이미지 */}
       <Card className="lg:col-span-2 self-center bg-white rounded-xl shadow-md border border-border">
+  <CardHeader>
+    <CardTitle>
+      {selectedAlert
+        ? `${selectedAlert.location} - CCTV ${selectedAlert.cctvId}`
+        : "탐지 정보 없음"}
+    </CardTitle>
+    <p className="text-sm text-muted-foreground">
+      {selectedAlert
+        ? `탐지된 물체: ${convertItemType(selectedAlert.itemType)} · 수량: ${selectedAlert.itemCount}건`
+        : "탐지 정보 없음"}
+    </p>
+  </CardHeader>
+  <CardContent className="h-[300px] bg-gray-100 rounded-md flex items-center justify-center">
+    <div className="w-full h-full flex items-center justify-center">
+      {selectedAlert ? (
+        selectedAlert.imgPath ? (
+          (() => {
+            const selectedAlertImage = selectedAlert.imgPath;
 
-        <CardHeader>
-          <CardTitle>
-            {selectedAlert
-              ? `${selectedAlert.location} - CCTV ${selectedAlert.cctvId}`
-              : "탐지 정보 없음"}
-          </CardTitle>
-          <p className="text-sm text-muted-foreground">
-            {selectedAlert
-              ? `탐지된 물체: ${convertItemType(selectedAlert.itemType)} · 수량: ${selectedAlert.itemCount}건`
-              : "탐지 정보 없음"}
-          </p>
-        </CardHeader>
-        <CardContent className="h-[300px] bg-gray-100 rounded-md flex items-center justify-center">
-          <div className="w-full h-full flex items-center justify-center">
-            {selectedAlert ? (
-              selectedAlert.imgPath ? (
-                <img
-                  src={`/ai/get_image?path=${encodeURIComponent(
-                    selectedAlert.imgPath.startsWith("./")
-                      ? selectedAlert.imgPath.slice(2)
-                      : selectedAlert.imgPath
-                  )}`}
-                  alt="이상물체 이미지"
-                  className="object-contain max-h-full max-w-full"
-                />
-              ) : (
-                <img
-                  src="/ai/get_image?path=5ded778b-0d02-4805-9c63-0235043231bc.png"
-                  alt="기본 이미지"
-                  className="w-[120px] h-[120px] object-contain"
-                />
-              )
-            ) : (
-              <div className="text-muted text-sm">탐지 정보 없음</div>
-            )}
-          </div>
-        </CardContent>
+            const imageSrc =
+              selectedAlertImage.startsWith("https")
+                ? selectedAlertImage
+                : selectedAlertImage.startsWith("/")
+                  ? `/ai/get_image?path=${encodeURIComponent(selectedAlertImage)}`
+                  : `/ai/get_image?path=${encodeURIComponent(selectedAlertImage.slice(2))}`;
 
-
-
-
-      </Card>
+            return (
+              <img
+                src={imageSrc}
+                alt="이상물체 이미지"
+                className="object-contain max-h-full max-w-full"
+              />
+            );
+          })()
+        ) : (
+          <img
+            src="/ai/get_image?path=5ded778b-0d02-4805-9c63-0235043231bc.png"
+            alt="기본 이미지"
+            className="w-[120px] h-[120px] object-contain"
+          />
+        )
+      ) : (
+        <div className="text-muted text-sm">탐지 정보 없음</div>
+      )}
+    </div>
+  </CardContent>
+</Card>
 
 
       {/* 📺 실시간 영상 */}

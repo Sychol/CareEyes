@@ -345,11 +345,14 @@ export default function Dashboard() {
             <div className="relative w-full h-[300px] rounded-lg overflow-hidden bg-gray-100">
               {selectedAlertImage ? (
                 <img
-                  src={`/ai/get_image?path=${encodeURIComponent(
-                    selectedAlertImage.startsWith("./")
-                      ? selectedAlertImage.slice(2)
-                      : selectedAlertImage
-                  )}`}
+                  src={
+                    selectedAlertImage.startsWith("https")
+                      ? selectedAlertImage
+                      : selectedAlertImage.startsWith("/")
+                        ? `/ai/get_image?path=${encodeURIComponent(selectedAlertImage)}`
+                        : `/ai/get_image?path=${encodeURIComponent(selectedAlertImage.slice(2))}`
+                  }
+
                   alt="이상물체 이미지"
                   className="w-full h-full object-cover rounded-md"
                 />
