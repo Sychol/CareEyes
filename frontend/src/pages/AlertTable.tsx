@@ -17,10 +17,7 @@ interface WorkerAlert {
   alertState: number;
 }
 
-const profileImages = import.meta.glob("@/assets/profile/*.png", {
-  eager: true,
-}) as Record<string, { default: string }>;
-
+const profileImages = import.meta.glob("@/assets/profile/*.png", { eager: true }) as Record<string, { default: string }>;
 const profileFilenames = Object.entries(profileImages)
   .filter(([path]) => path.includes("/man"))
   .map(([_, mod]) => mod.default);
@@ -35,10 +32,26 @@ export const AlertTable = () => {
       .catch((err) => console.error("작업자 경고 데이터 실패:", err));
   }, []);
 
-  const renderWorkerCard = (alert: WorkerAlert, index: number) => {
+  const toggleAlert = (memberId: number | null, newState: number) => {
+    axios
+      .patch(`/api/member/update-alert`, { memberId, alertState: newState })
+      .then(() => {
+        setAlerts((prev) =>
+          prev.map((a) => (a.memberId === memberId ? { ...a, alertState: newState } : a))
+        );
+      })
+      .catch((err) => console.error("알림 상태 변경 실패:", err));
+  };
+
+  const renderWorkerCard = (alert: WorkerAlert, index: number, showToggle = false) => {
     const location = `${alert.company} • ${alert.department}`;
     const profileImg = profileFilenames[index % profileFilenames.length];
     const isAlertEnabled = alert.alertState === 1;
+
+    const handleBellClick = () => {
+      const newState = isAlertEnabled ? 0 : 1;
+      toggleAlert(alert.memberId, newState);
+    };
 
     return (
       <div
@@ -55,19 +68,21 @@ export const AlertTable = () => {
           <div className="space-y-1">
             <div className="flex items-center space-x-2">
               <span className="font-medium text-foreground">{alert.memberName}</span>
-              <span className="text-sm text-muted-foreground">•</span>
-              <span className="text-sm text-muted-foreground">{location}</span>
+              <span className="text-sm text-muted-foreground">• {location}</span>
             </div>
-            <div className="flex items-center space-x-4 text-sm text-muted-foreground">
-              <span>알림 설정: {isAlertEnabled ? "알림" : "미설정"}</span>
-              <span>위치: 철주몰 동 1 · CCTV {index + 1}</span>
+            <div className="text-sm text-muted-foreground">
+              위치: 철주몰 동 1 · CCTV {index + 1}
             </div>
           </div>
         </div>
-        <Bell
-          className={`h-5 w-5 ${isAlertEnabled ? "text-green-500" : "text-red-500"}`}
-          strokeWidth={2.5}
-        />
+       <Bell
+  className={`h-5 w-5 cursor-pointer ${isAlertEnabled ? "text-green-500" : "text-red-500"}`}
+  strokeWidth={2.5}
+  onClick={() => {
+    const newState = isAlertEnabled ? 0 : 1;
+    toggleAlert(alert.memberId, newState);
+  }}
+/>
       </div>
     );
   };
@@ -76,54 +91,32 @@ export const AlertTable = () => {
   const disabledAlerts = alerts.filter((alert) => alert.alertState !== 1);
 
   return (
-    <div className="w-full px-6">
-      <div className="flex w-full gap-4 items-start">
-        {/* 왼쪽 - 알림 수신 설정 */}
-        <div className="w-1/3">
-          <Card className="p-6 h-full">
-            <h3 className="text-lg font-semibold mb-4">알림 수신 설정됨</h3>
-            <div className="space-y-3">
-              {enabledAlerts.map((alert, idx) => (
-                <div key={alert.memberId}>{renderWorkerCard(alert, idx)}</div>
-              ))}
-            </div>
-          </Card>
-        </div>
+    <div className="flex flex-row w-full gap-4">
+      <div className="w-1/3">
+        <Card className="p-6 h-full">
+          <h3 className="text-lg font-semibold mb-4">알림 수신 설정됨</h3>
+          <div className="space-y-3">
+            {enabledAlerts.map((alert, idx) => renderWorkerCard(alert, idx))}
+          </div>
+        </Card>
+      </div>
 
-        {/* 가운데 - 알림 일시 정지 */}
-        <div className="w-1/3">
-          <Card className="p-6 h-full">
-            <h3 className="text-lg font-semibold mb-4">알림 일시 정지</h3>
-            <div className="space-y-3">
-              {disabledAlerts.map((alert, idx) => (
-                <div key={alert.memberId}>
-                  {renderWorkerCard(alert, idx + enabledAlerts.length)}
-                </div>
-              ))}
-            </div>
-          </Card>
-        </div>
+      <div className="w-1/3">
+        <Card className="p-6 h-full">
+          <h3 className="text-lg font-semibold mb-4">알림 일시 정지</h3>
+          <div className="space-y-3">
+            {disabledAlerts.map((alert, idx) => renderWorkerCard(alert, idx + enabledAlerts.length))}
+          </div>
+        </Card>
+      </div>
 
-        {/* 오른쪽 - 요약 카드 */}
-        <div className="w-1/3">
-          <Card className="p-6 h-full">
-            <h3 className="text-lg font-semibold mb-4">📊 작업자 요약</h3>
-            <ul className="text-sm space-y-2 text-muted-foreground">
-              <li>총 작업자: {alerts.length}명</li>
-              <li>알림 설정: {enabledAlerts.length}명 ✅</li>
-              <li>알림 정지: {disabledAlerts.length}명 ❌</li>
-            </ul>
-
-            <div className="mt-6 space-y-2">
-              <button className="w-full py-2 px-4 rounded bg-[#5F69C7] text-white hover:bg-[#4e55b4] text-sm font-medium">
-                작업자 전체 보기
-              </button>
-              <button className="w-full py-2 px-4 rounded border text-sm hover:bg-muted">
-                설정 변경
-              </button>
-            </div>
-          </Card>
-        </div>
+      <div className="w-1/3">
+        <Card className="p-6 h-full">
+          <h3 className="text-lg font-semibold mb-4">전체 작업자 알림 제어</h3>
+          <div className="space-y-3">
+            {alerts.map((alert, idx) => renderWorkerCard(alert, idx, true))}
+          </div>
+        </Card>
       </div>
     </div>
   );

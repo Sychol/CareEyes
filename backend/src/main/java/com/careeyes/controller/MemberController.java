@@ -4,6 +4,10 @@ import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -14,10 +18,12 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.careeyes.config.KakaoApi;
 import com.careeyes.entity.Members;
 import com.careeyes.mapper.MemberMapper;
 
 import jakarta.servlet.http.HttpSession;
+
 
 @RestController
 @RequestMapping("/api/member")
@@ -25,6 +31,9 @@ public class MemberController {
 	
 	@Autowired
 	private MemberMapper memberMapper;
+	
+	@Autowired
+	private KakaoApi kakaoApi;
 	
 	// 회원가입
 	@PostMapping("/join")
@@ -71,14 +80,21 @@ public class MemberController {
 	                .body(Map.of("message", "로그인 정보가 없습니다."));
 	    }
 
-	    return ResponseEntity.ok(Map.of(
-	        "memberId", loginMember.getMemberId(),
-	        "memberName", loginMember.getMemberName(),
-	        "memberRole", loginMember.getMemberRole(),
-	        "department", loginMember.getDepartment(),
-	        "email", loginMember.getEmail(),
-	        "alertState", loginMember.getAlertState()
-	    ));
+	    Map<String, Object> result = Stream.of(
+	            Map.entry("memberId", loginMember.getMemberId()),
+	            Map.entry("memberName", loginMember.getMemberName()),
+	            Map.entry("memberRole", loginMember.getMemberRole()),
+	            Map.entry("department", loginMember.getDepartment()),
+	            Map.entry("email", loginMember.getEmail()),
+	            Map.entry("alertState", loginMember.getAlertState()),
+	            Optional.ofNullable(loginMember.getKakaoId())
+	                    .map(id -> Map.entry("kakaoId", id))
+	                    .orElse(null)
+	        )
+	        .filter(Objects::nonNull) // null (예: kakaoId=null) 제거
+	        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
+	    return ResponseEntity.ok(result);
 	}
 	
 	// 카카오 로그인
@@ -117,25 +133,35 @@ public class MemberController {
 	
 	// 카카오 계정 연동
 	@PostMapping("/account/link-kakao")
-	public ResponseEntity<?> linkKakao(@RequestBody Map<String, Object> body, HttpSession session) {
+	public ResponseEntity<?> linkKakao(@RequestBody Map<String, String> body, HttpSession session) {
 	    // 로그인된 사용자 가져오기
 	    Members loginMember = (Members) session.getAttribute("loginMember");
+        System.out.println("✅ 세션 유저: " + loginMember);
 	    if (loginMember == null) {
 	        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인 필요");
 	    }
 	    
 	    // 카카오 아이디 받아오기
-	    Long kakaoId = Long.valueOf(body.get("kakaoId").toString());
-	    
-	    // 이미 다른 회원이 해당 kakaoId로 연동한 경우 방지
-	    Members existing = memberMapper.findByKakaoId(kakaoId);
-	    if (existing != null && !existing.getMemberId().equals(loginMember.getMemberId())) {
-	        return ResponseEntity.status(HttpStatus.CONFLICT).body("이미 다른 계정과 연동된 카카오 ID입니다.");
+	    String code = body.get("code");
+	    if (code == null || code.isBlank()) {
+	        return ResponseEntity.badRequest().body("인가 코드 누락");
 	    }
+	    try {
+	        String accessToken = kakaoApi.getAccessToken(code);
+	        Map<String, Object> userInfo = kakaoApi.getUserInfo(accessToken);
+	        Long kakaoId = Long.valueOf(userInfo.get("id").toString());
 
-	    // 연동 처리
-	    memberMapper.updateKakaoId(loginMember.getMemberId(), kakaoId);
-	    return ResponseEntity.ok("카카오 계정 연동 완료");
+	        Members existing = memberMapper.findByKakaoId(kakaoId);
+	        if (existing != null && !existing.getMemberId().equals(loginMember.getMemberId())) {
+	            return ResponseEntity.status(HttpStatus.CONFLICT).body("이미 다른 계정과 연동된 카카오 ID입니다.");
+	        }
+
+	        memberMapper.updateKakaoId(loginMember.getMemberId(), kakaoId);
+	        return ResponseEntity.ok("카카오 계정 연동 완료");
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        return ResponseEntity.status(500).body("카카오 연동 실패");
+	    }
 	}
 	
 	// 작업자 리스트 받아오기
@@ -159,5 +185,18 @@ public class MemberController {
 	    memberMapper.pauseAlert(memberId, 0, Timestamp.valueOf(expireTime));  // alertState 0으로 설정
 
 	    return ResponseEntity.ok(Map.of("message", "알림이 " + pauseMinutes + "분간 일시정지 됩니다."));
+	}
+	
+	// 알림 재개
+	@PostMapping("/resume-alert")
+	public ResponseEntity<?> resumeAlert(@RequestBody Map<String, Object> body) {
+	    String memberId = (String) body.get("memberId");
+
+	    if (memberId == null) {
+	        return ResponseEntity.badRequest().body("잘못된 요청입니다.");
+	    }
+
+	    memberMapper.pauseAlert(memberId, 1, null); // ON 설정 및 만료 시간 제거
+	    return ResponseEntity.ok(Map.of("message", "알림이 다시 활성화되었습니다."));
 	}
 }

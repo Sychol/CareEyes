@@ -340,17 +340,14 @@ def send_to_spring(object_counts, save_path, date_str, time_str, cctv_id='unknow
 # 💡 비디오 피드 엔드포인트
 @app.route('/ai/video_feed')
 def video_feed():
-    youtube_url = request.args.get('url') # URL 파라미터에서 YouTube URL 가져오기(예: /video_feed?url=https://...)
     cctv_id = request.args.get('cctv_id')  # URL 파라미터에서 CCTV ID 가져오기
 
     if not cctv_id:
-        return "❌ CCTV ID가 필요합니다. 예: /video_feed?url=https://...&cctv_id=east1", 400
+        return "❌ CCTV ID가 필요합니다. 예: /video_feed?cctv_id=east1", 400
     try:
         cctv_id = int(cctv_id)  # ✅ int로 변환
     except ValueError:
         return "❌ CCTV ID는 숫자여야 합니다.", 400
-    if not youtube_url:
-        return "❌ 스트림 URL이 필요합니다. 예: /video_feed?url=https://...", 400
     
     # 루프에서 탐지한 이미지 가져오기 또는 열기
     def generate():
@@ -403,10 +400,10 @@ def index():
         <html>
             <body>
                 <h1>YOLOv11 실시간 감지 스트리밍</h1>
-                <img src="/ai/video_feed?url=https://www.youtube.com/watch?v=91PfFoqvuUk&cctv_id=101" width="1000" />
-                <img src="/ai/video_feed?url=https://www.youtube.com/watch?v=yrx0fvj-4QI&cctv_id=102" width="1000" />
-                <img src="/ai/video_feed?url=https://www.youtube.com/watch?v=0jUGiYZKAMg&cctv_id=201" width="1000" />
-                <img src="/ai/video_feed?url=https://www.youtube.com/watch?v=A6R81wOlQqs&cctv_id=202" width="1000" />
+                <img src="/ai/video_feed?cctv_id=101" width="1000" />
+                <img src="/ai/video_feed?cctv_id=102" width="1000" />
+                <img src="/ai/video_feed?cctv_id=201" width="1000" />
+                <img src="/ai/video_feed?cctv_id=202" width="1000" />
             </body>
         </html>
     '''

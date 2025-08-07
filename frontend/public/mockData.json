@@ -1,24 +1,24 @@
 {
   "feeds": [
     {
-      "title": "CCTV1",
+      "title": "CCTV-EAST 101",
       "cctvId": 101,
       "youtubeUrl": "/ai/video_feed?url=https://www.youtube.com/watch?v=91PfFoqvuUk&cctv_id=101"
     },
     {
-      "title": "CCTV2",
+      "title": "CCTV-EAST 102",
       "cctvId": 102,
-      "youtubeUrl": "/ai/video_feed?url=https://www.youtube.com/watch?v=fakeurl3&cctv_id=102"
+      "youtubeUrl": "/ai/video_feed?url=https://www.youtube.com/watch?v=yrx0fvj-4QI&cctv_id=102"
     },    
     {
-      "title": "CCTV3",
-      "cctvId": 103,
-      "youtubeUrl": "/ai/video_feed?url=https://www.youtube.com/watch?v=MjD3gnNFYUo&cctv_id=201"
+      "title": "CCTV-WEST 201",
+      "cctvId": 201,
+      "youtubeUrl": "/ai/video_feed?url=https://www.youtube.com/watch?v=0jUGiYZKAMg&cctv_id=201"
     },
     {
-      "title": "CCTV4",
-      "cctvId": 104,
-      "youtubeUrl": "/ai/video_feed?url=https://www.youtube.com/watch?v=fakeurl4&cctv_id=401"
+      "title": "CCTV-WEST 202",
+      "cctvId": 202,
+      "youtubeUrl": "/ai/video_feed?url=https://www.youtube.com/watch?v=A6R81wOlQqs&cctv_id=202"
     }
   ]
 }

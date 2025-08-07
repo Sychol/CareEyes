@@ -7,7 +7,9 @@ import {
   Settings,
   User,
 } from "lucide-react";
-import { NavLink, useLocation } from "react-router-dom";
+import careEyesLogo from "@/assets/logo/CareEyes_title Logo_nobg2.png";
+
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import {
   Sidebar,
   SidebarContent,
@@ -38,27 +40,29 @@ const accountItems = [
 
 export function AppSidebar({ isCollapsed, setIsCollapsed }: AppSidebarProps) {
   const location = useLocation();
+  const navigate = useNavigate(); // ✅ 이동용 훅
 
   return (
     <Sidebar
-      className={`${isCollapsed ? "w-16" : "w-52"
-        } bg-card border-r border-border transition-all duration-300`}
+      className={`${isCollapsed ? "w-16" : "w-52"} bg-card border-r border-border transition-all duration-300`}
     >
-      {/* ✅ 이 줄 추가됨 */}
       <SidebarContent className="p-0 h-full flex flex-col">
-
-        {/* 헤더 로고 및 토글 */}
+        {/* ✅ 로고 + 접기 버튼 */}
         <div className="h-16 px-4 border-b border-border bg-[#5F69C7] flex items-center justify-between">
           {!isCollapsed && (
-            <div className="flex items-center space-x-2">
-              <img
-                src="/CareEyesLogo.png"
-                alt="CareEyes Logo"
-                className="w-6 h-6 object-contain"
-              />
-              <span className="text-xl font-bold text-white">CareEyes</span>
-            </div>
-          )}
+  <div
+    className="flex items-center space-x-2 cursor-pointer"
+    onClick={() => navigate("/")}
+  >
+    <img
+      src={careEyesLogo}
+      alt="CareEyes Logo"
+      className="w-6 h-6 object-contain"
+    />
+    <span className="text-xl font-bold text-white">CareEyes</span>
+  </div>
+)}
+
           <button
             onClick={() => setIsCollapsed(!isCollapsed)}
             className="text-white text-xs ml-2"
@@ -94,8 +98,7 @@ export function AppSidebar({ isCollapsed, setIsCollapsed }: AppSidebarProps) {
                         />
                         {!isCollapsed && (
                           <span
-                            className={`text-sm ${isSelected ? "text-[#5F69C7]" : ""
-                              }`}
+                            className={`text-sm ${isSelected ? "text-[#5F69C7]" : ""}`}
                           >
                             {item.title}
                           </span>
@@ -152,8 +155,6 @@ export function AppSidebar({ isCollapsed, setIsCollapsed }: AppSidebarProps) {
             </SidebarGroupContent>
           </SidebarGroup>
         </div>
-
-        {/* ✅ 닫는 태그 추가됨 */}
       </SidebarContent>
     </Sidebar>
   );
