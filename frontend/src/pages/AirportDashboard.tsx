@@ -274,7 +274,7 @@ const AirportDashboard = () => {
   const [userData, setUserData] = useState<UserData>(DEFAULT_USER);
   const [events, setEvents] = useState<DetectionEvent[]>([]);
   const [selectedNotification, setSelectedNotification] = useState<
-    "general" | "emergency"
+    "general" | "emergency" | "none"
   >("general");
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [selectedEvent, setSelectedEvent] = useState<DetectionEvent | null>(
@@ -418,7 +418,7 @@ const AirportDashboard = () => {
     const interval = setInterval(() => {
       fetchEvents();
       fetchUserInfo();
-    }, 120000);
+    }, 10000);
 
     // 컴포넌트 언마운트 시 인터벌 정리
     return () => clearInterval(interval);
@@ -491,17 +491,23 @@ const AirportDashboard = () => {
     setSelectedNotification(newKey);
 
     try {
-      // const alertStateValue = newKey === "general" ? 1 : 0;
-
       if (!userData.MEMBER_ID) throw new Error("사용자 ID가 없습니다.");
 
-      await axios.post(`/api/member/pause-alert`, {
-        memberId: userData.MEMBER_ID,
-        alertState: 1, // 일시정지 상태
-      });
+      if (newKey === "general") {
+        // 알림받기 활성화
+        await axios.post(`/api/member/resume-alert`, {
+          memberId: userData.MEMBER_ID,
+        });
+      } else {
+        // 일시정지 설정
+        await axios.post(`/api/member/pause-alert`, {
+          memberId: userData.MEMBER_ID,
+          alertState: 0, // 일시정지 상태
+        });
+      }
 
-      setSelectedNotification("general");
-      setUserData((prev) => (prev ? { ...prev, ALERT_STATE: 1 } : prev));
+      setSelectedNotification(newKey);
+      setUserData((prev) => (prev ? { ...prev, ALERT_STATE: newKey === "general" ? 1 : 0 } : prev));
       setShowPausePopup(false);
 
       toast({
