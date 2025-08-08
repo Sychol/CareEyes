@@ -24,7 +24,6 @@ const KakaoCallback = () => {
         if (state === 'link') {
           // ✅ 연동 로직
           await axios.post('/api/member/account/link-kakao', { code }, { withCredentials: true });
-                    await fetchUserProfile();
           alert('카카오 계정이 연동되었습니다!');
           navigate('/profile'); // 연동 후 이동할 곳
         } else {
@@ -34,7 +33,7 @@ const KakaoCallback = () => {
           new URLSearchParams({
             grant_type: 'authorization_code',
             client_id: '99b61a29a2963e3f58d79a6f2e9eccb6',
-            redirect_uri: 'http://localhost:5173/kakao/callback', // 배포시 주소 교체
+            redirect_uri: 'http://49.50.134.171:80/kakao/callback', // 배포시 주소 교체
             code,
           }),
           {
