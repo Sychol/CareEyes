@@ -1,6 +1,6 @@
 // 회원 정보 페이지 v1.5
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useProfileManagement } from '../hooks/useProfileManagement';
 
 // 이미지 에셋 import
@@ -51,6 +51,10 @@ const Profile = () => {
         handleGoogleDisconnect,
         handleWithdrawal,
     } = useProfileManagement();
+
+    useEffect(() => {
+    console.log("🔥 현재 kakaoId 값:", profile.kakaoId);
+    }, [profile]);
 
 
     /**
@@ -105,7 +109,7 @@ const Profile = () => {
                                 <img src={KakaoLogo} alt="카카오 로고" className="w-8 h-8" />
                                 <span className="text-base font-medium text-gray-700">카카오</span>
                             </div>
-                            {profile.kakaoId ? (
+                            {profile.kakaoId != null ? (    
                                 <button
                                     type="button"
                                     className="px-5 py-2 bg-red-600 text-white border-none rounded-lg cursor-pointer text-base font-medium transition duration-300 ease-in-out whitespace-nowrap hover:bg-red-700"
