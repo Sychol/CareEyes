@@ -67,12 +67,11 @@ export const useProfileManagement = () => {
             const response = await axios.get('/api/member/userinfo', {
             withCredentials: true,
             });
+
             const fetchedProfile: UserProfile = response.data;
-            
-            setProfile(fetchedProfile);
 
             setProfile(fetchedProfile);
-            
+
             // 전화번호를 부분별로 분리
             if (fetchedProfile.phone) {
                 const parts = fetchedProfile.phone.split('-');
@@ -91,6 +90,7 @@ export const useProfileManagement = () => {
                 setPhonePart2('');
                 setPhonePart3('');
             }
+            return fetchedProfile;
 
         } catch (err) {
             console.error('Failed to fetch user profile:', err);
@@ -360,9 +360,10 @@ const handleKakaoConnect = useCallback(() => {
     const clientId = '99b61a29a2963e3f58d79a6f2e9eccb6'; // 실제 REST API 키로 변경
     const redirectUri = 'http://localhost:5173/kakao/callback'; // 배포 시 변경 필요
     const kakaoAuthUrl = `https://kauth.kakao.com/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code&state=link`;
-
+    
     // ✅ 카카오 로그인 페이지로 리다이렉트 (연동용 state=link 포함)
     window.location.href = kakaoAuthUrl;
+    // fetchUserProfile();
 }, []);
 
     /**
@@ -371,16 +372,29 @@ const handleKakaoConnect = useCallback(() => {
      */
     const handleKakaoDisconnect = useCallback(async () => {
         try {
-            // 실제 카카오 연동 해지 로직
-            // await axios.post('/api/auth/kakao/disconnect');
-            console.log('카카오 연동 해지');
-            alert('카카오 연동 해지 기능은 아직 구현되지 않았습니다.');
-            setProfile(prev => ({ ...prev, kakaoId: null }));
+            await axios.patch(
+                '/api/member/kakao/disconnect',
+                null,
+                {
+                    params: { memberId: profile.memberId },
+                    withCredentials: true, // 🔥 중요!
+                }
+            );
+            console.log('카카오 연동 해지 성공');
+            const response = await axios.get('/api/member/userinfo', {
+            withCredentials: true,
+            });
+            console.log('🔥 userinfo 응답:', response.data);
+            // 최신 fetchUserProfile 사용
+            const freshProfile: UserProfile = response.data;
+            setProfile(freshProfile); 
+            alert('카카오 연동이 해제되었습니다.');
         } catch (err) {
             console.error('카카오 연동 해지 실패:', err);
-            setError('카카오 연동 해지에 실패했습니다.');
+            setError('카카오 연동 해제에 실패했습니다.');
         }
-    }, []);
+
+    }, [profile.memberId, fetchUserProfile]);
 
     /**
      * @function handleNaverConnect
@@ -490,5 +504,6 @@ const handleKakaoConnect = useCallback(() => {
         handleGoogleConnect,
         handleGoogleDisconnect,
         handleWithdrawal,
+        fetchUserProfile,
     };
 };

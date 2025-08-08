@@ -3,7 +3,7 @@ import torch
 from ultralytics import YOLO
 from config import CONF_THRESHOLD, SAVE_CLASSES, YOLO_MODEL_PATH
 from collections import Counter
-import logging
+from common.config_state import config_state
 
 # 디바이스 설정 및 로깅
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
@@ -28,14 +28,14 @@ def model_filter(frame):
         return results, {}, False
 
     # 신뢰도 필터링
-    conf_mask = results.boxes.conf >= CONF_THRESHOLD
+    conf_mask = results.boxes.conf >= config_state.conf_threshold
     results.boxes = results.boxes[conf_mask] # 필터링된 박스만 유지
     #print(f"📦 신뢰도 {CONF_THRESHOLD} 통과 박스 수: {len(results.boxes)}")  # 박스 갯수 확인
 
     # 클래스 카운팅
     filtered_classes = [results.names[int(cls)]
                         for cls in results.boxes.cls
-                        if results.names[int(cls)] in SAVE_CLASSES]
+                        if results.names[int(cls)] in config_state.save_classes]
     # 디버깅용: 감지객체 및 신뢰도 출력
     for i in range(len(results.boxes.cls)):
         cls = int(results.boxes.cls[i])
@@ -48,6 +48,6 @@ def model_filter(frame):
 
     # 저장 여부 결정
     # SAVE_CLASSES에 있는 클래스가 하나라도 감지되면 저장
-    should_save = any(count.get(cls, 0) >= 1 for cls in SAVE_CLASSES)
+    should_save = any(count.get(cls, 0) >= 1 for cls in config_state.save_classes)
 
     return results, count, should_save

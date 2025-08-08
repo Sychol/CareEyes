@@ -23,11 +23,16 @@ public interface MemberMapper {
 	
 	public Members findByKakaoId(Long kakaoId);
 	
+	public void disconnectKakao(String memberId);
+	
 	public List<Members> getWorkerList();
 	
 	public void pauseAlert(@Param("memberId") String memberId,
             	@Param("alertState") int alertState,
             	@Param("expireTime") Timestamp expireTime);
+	
+	public void pauseAlertForever(@Param("memberId") String memberId,
+        	@Param("alertState") int alertState);
 	
 	public void resumeAlert(@Param("memberId") String memberId,
             	@Param("alertState") int alertState);

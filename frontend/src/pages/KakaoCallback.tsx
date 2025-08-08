@@ -2,9 +2,12 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { useProfileManagement } from '../hooks/useProfileManagement';
 
 const KakaoCallback = () => {
   const navigate = useNavigate();
+  const { fetchUserProfile } = useProfileManagement();
+  
 
   useEffect(() => {
     const fetchKakaoUser = async () => {
@@ -30,7 +33,7 @@ const KakaoCallback = () => {
           new URLSearchParams({
             grant_type: 'authorization_code',
             client_id: '99b61a29a2963e3f58d79a6f2e9eccb6',
-            redirect_uri: 'http://localhost:5173/kakao/callback', // 배포시 주소 교체
+            redirect_uri: 'http://49.50.134.171:80/kakao/callback', // 배포시 주소 교체
             code,
           }),
           {
