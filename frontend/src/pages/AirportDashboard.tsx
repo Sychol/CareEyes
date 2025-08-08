@@ -141,8 +141,8 @@ const mapApiEvent = (apiEvent) => ({
       ? apiEvent.manage === 0
         ? "미처리"
         : apiEvent.manage === 1
-        ? "처리중"
-        : "처리완료"
+          ? "처리중"
+          : "처리완료"
       : apiEvent.MANAGE ?? "미처리",
   ITEMS: apiEvent.itemType
     ? [{ ITEM_TYPE: apiEvent.itemType, ITEM_COUNT: apiEvent.itemCount }]
@@ -191,10 +191,10 @@ const StatusBadge = ({
         manage === "미처리"
           ? "bg-red-400 text-white py-2 px-2 w-20 text-center whitespace-nowrap flex items-center justify-center"
           : manage === "처리중"
-          ? "bg-yellow-400 text-black py-2 px-2 w-20 text-center whitespace-nowrap flex items-center justify-center"
-          : manage === "처리완료"
-          ? "bg-green-400 text-white py-2 px-2 w-20 text-center whitespace-nowrap flex items-center justify-center"
-          : ""
+            ? "bg-yellow-400 text-black py-2 px-2 w-20 text-center whitespace-nowrap flex items-center justify-center"
+            : manage === "처리완료"
+              ? "bg-green-400 text-white py-2 px-2 w-20 text-center whitespace-nowrap flex items-center justify-center"
+              : ""
       }
     >
       {manage}
@@ -235,10 +235,9 @@ const StatusChangePopup = ({
             <button
               key={label}
               className={`block w-full rounded-lg px-4 py-2 mb-2 text-left border-2 transition-all duration-150
-                ${
-                  isCurrent
-                    ? `${style.bg} text-black font-bold ${style.border}`
-                    : `bg-white text-black border-gray-200 ${style.hover}`
+                ${isCurrent
+                  ? `${style.bg} text-black font-bold ${style.border}`
+                  : `bg-white text-black border-gray-200 ${style.hover}`
                 }`}
               onClick={() => onChange(idx)}
               disabled={isCurrent}
@@ -284,7 +283,7 @@ const AirportDashboard = () => {
   const [statusPopupTarget, setStatusPopupTarget] =
     useState<DetectionEvent | null>(null);
   const [showPausePopup, setShowPausePopup] = useState(false);
-  
+
 
   // 1. 로그인한 사용자 정보 가져오기 + ALERT_STATE 처리
   useEffect(() => {
@@ -300,11 +299,12 @@ const AirportDashboard = () => {
             ALERT_STATE: userInfo.alertState, // 0/1 서버값 그대로
             KAKAO_ID: userInfo.kakaoId // 카카오 연동 ID
           });
-          setSelectedNotification(
-            userInfo.alertState === undefined || userInfo.alertState === 1
-              ? "general"
-              : "emergency"
-          );
+          if (typeof userInfo.alertState === "number") {
+            setSelectedNotification(userInfo.alertState === 1 ? "general" : "emergency");
+          } else {
+            setSelectedNotification("general");
+          }
+
 
           toast({
             title: "로그인 성공",
@@ -387,28 +387,30 @@ const AirportDashboard = () => {
 
     // 사용자 정보 갱신 함수
     const fetchUserInfo = () => {
-      axios
-        .get(USER_INFO_API_URL)
-        .then((res) => {
-          const userInfo = res.data;
-          if (userInfo && userInfo.memberName) {
-            setUserData({
-              MEMBER_NAME: userInfo.memberName,
-              DEPARTMENT: userInfo.department,
-              MEMBER_ID: userInfo.memberId,
-              ALERT_STATE: userInfo.alertState, // 0/1 서버값 그대로
-            });
-            setSelectedNotification(
-              userInfo.alertState === undefined || userInfo.alertState === 1
-                ? "general"
-                : "emergency"
-            );
-          }
-        })
-        .catch((error) => {
-          console.error("사용자 정보 갱신 실패:", error);
+  axios
+    .get(USER_INFO_API_URL)
+    .then((res) => {
+      const userInfo = res.data;
+      if (userInfo && userInfo.memberName) {
+        setUserData({
+          MEMBER_NAME: userInfo.memberName,
+          DEPARTMENT: userInfo.department,
+          MEMBER_ID: userInfo.memberId,
+          ALERT_STATE: userInfo.alertState,
         });
-    };
+
+        // ✅ 이 조건만 유지해야 함
+        if (typeof userInfo.alertState === "number") {
+          setSelectedNotification(userInfo.alertState === 1 ? "general" : "emergency");
+        } else {
+          setSelectedNotification("general");
+        }
+      }
+    })
+    .catch((error) => {
+      console.error("사용자 정보 갱신 실패:", error);
+    });
+};
 
     // 초기 로드
     fetchEvents();
@@ -662,16 +664,15 @@ const AirportDashboard = () => {
                     <div
                       key={key}
                       className={`flex flex-col items-center space-y-2 p-4 rounded-xl cursor-pointer transition-all
-                        ${
-                          selected
-                            ? `${bg} text-white border-2 border-[${bg.replace(
-                                "bg-",
-                                ""
-                              )}]`
-                            : `${bg}/10 border border-[${bg.replace(
-                                "bg-",
-                                ""
-                              )}]/20 hover:${bg}/20`
+                        ${selected
+                          ? `${bg} text-white border-2 border-[${bg.replace(
+                            "bg-",
+                            ""
+                          )}]`
+                          : `${bg}/10 border border-[${bg.replace(
+                            "bg-",
+                            ""
+                          )}]/20 hover:${bg}/20`
                         }`}
                       onClick={() => {
                         if (key === "emergency") {
@@ -688,9 +689,8 @@ const AirportDashboard = () => {
                         className={`h-8 w-8 ${selected ? "text-white" : text}`}
                       />
                       <span
-                        className={`text-sm font-medium ${
-                          selected ? "text-white" : text
-                        }`}
+                        className={`text-sm font-medium ${selected ? "text-white" : text
+                          }`}
                       >
                         {label}
                       </span>
@@ -847,11 +847,10 @@ const AirportDashboard = () => {
               <Monitor className="h-5 w-5 text-primary" />
               <span>
                 {selectedEvent
-                  ? `${
-                      selectedEvent.LOCATION
-                        ? selectedEvent.LOCATION + " - "
-                        : ""
-                    }${selectedEvent.CCTV_ID}`
+                  ? `${selectedEvent.LOCATION
+                    ? selectedEvent.LOCATION + " - "
+                    : ""
+                  }${selectedEvent.CCTV_ID}`
                   : "이상물체 탐지현황"}
               </span>
             </CardTitle>
@@ -891,8 +890,7 @@ const AirportDashboard = () => {
                       탐지된 물체 :{" "}
                       {selectedEvent.ITEMS.map(
                         (item) =>
-                          `${translateItemType(item.ITEM_TYPE)} ${
-                            item.ITEM_COUNT
+                          `${translateItemType(item.ITEM_TYPE)} ${item.ITEM_COUNT
                           }`
                       ).join(", ")}
                     </div>
