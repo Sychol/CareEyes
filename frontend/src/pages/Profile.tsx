@@ -1,6 +1,6 @@
-// 회원 정보 페이지 v1.5
+// 회원 정보 페이지 v1.9
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useProfileManagement } from '../hooks/useProfileManagement';
 
 // 이미지 에셋 import
@@ -52,16 +52,24 @@ const Profile = () => {
         handleWithdrawal,
         fetchUserProfile,
     } = useProfileManagement();
+    
+    // 현재 비밀번호 표시 상태 관리
+    /**
+     * @description 현재 비밀번호 필드의 비밀번호 표시 여부를 관리하는 상태
+     */
+    const [showCurrentPassword, setShowCurrentPassword] = useState(false);
 
-    useEffect
-    (() => {
-    console.log("🔥 현재 kakaoId 값:", profile.kakaoId);
-    }, [profile]);
+    /**
+     * @function toggleCurrentPasswordVisibility
+     * @description 현재 비밀번호의 표시 상태를 토글합니다.
+     */
+    const toggleCurrentPasswordVisibility = () => {
+        setShowCurrentPassword(!showCurrentPassword);
+    };
 
     useEffect(() => {
     fetchUserProfile(); // ✅ 페이지 진입 시 항상 최신 정보로
     }, []);
-
 
     /**
      * @function handleSubmit
@@ -310,9 +318,10 @@ const Profile = () => {
                         <div>
                             <label htmlFor="currentPassword" className="block text-sm font-medium text-gray-600 mb-1">현재 비밀번호</label>
                             <div className="relative">
+                                {/* showCurrentPassword 값에 따라 input type 변경 */}
                                 <input
                                     id="currentPassword"
-                                    type="password"
+                                    type={showCurrentPassword ? 'text' : 'password'}
                                     value={currentPassword}
                                     onChange={handleCurrentPasswordChange}
                                     className="w-full p-3 pr-10 border border-gray-300 rounded-lg 
@@ -322,10 +331,11 @@ const Profile = () => {
                                     title="현재 비밀번호"
                                 />
                                 <span className="absolute inset-y-0 right-0 pr-3 flex items-center text-sm leading-5">
-                                    <button
+                                   {/* 버튼 클릭 시 상태를 토글하는 함수 연결 */}
+                                   <button
                                         type="button"
                                         className="text-gray-500 hover:text-gray-700"
-                                        onClick={() => { console.log('비밀번호 보기/숨기기 토글') }} // 실제 토글 함수를 여기에 연결
+                                        onClick={toggleCurrentPasswordVisibility}
                                         title="현재 비밀번호 보기/숨기기"
                                     >
                                         <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
@@ -423,30 +433,31 @@ const Profile = () => {
                     {error && <p className="text-center mt-5 p-3 rounded-lg text-base font-medium bg-red-100 text-red-600">{error}</p>}
                     {passwordChangeMessage && <p className="text-center mt-5 p-3 rounded-lg text-base font-medium bg-green-100 text-green-600">{passwordChangeMessage}</p>}
 
-                {/* 버튼 섹션 */}
-                    <div className="flex justify-between mt-12">
-                        {/* 회원 탈퇴 버튼 */}
+             {/* 버튼 섹션 */}
+                    <div className="flex justify-between items-center mt-12">
+                        {/* 취소 버튼 (왼쪽) */}
                         <button
                             type="button"
-                            onClick={handleWithdrawal}
-                            className="py-2 px-3 text-red-600 text-sm font-semibold hover:text-[#67080b] transition-colors duration-200 whitespace-nowrap"
->
-                            회원 탈퇴
+                            onClick={handleCancel}
+                            className="py-2 px-3 text-gray-700 text-base font-semibold hover:text-gray-900 transition-colors duration-200 whitespace-nowrap"
+                        >
+                            취소
                         </button>
-                        <div className="flex justify-center gap-4 w-full">
-                            <button
-                                type="submit"
-                                className="px-6 py-1 border-none rounded-lg text-base font-semibold cursor-pointer transition duration-300 ease-in-out min-w-32 text-center hover:-translate-y-0.5 text-white bg-careeyes"
-                            >
-                                정보 수정
-                            </button>
-                            {/* 취소 버튼 */}
+                        {/* 정보 수정 버튼 (가운데) */}
+                        <button
+                            type="submit"
+                            className="px-6 py-2 border-none rounded-lg text-base font-semibold cursor-pointer transition duration-300 ease-in-out min-w-32 text-center hover:-translate-y-0.5 text-white bg-careeyes"
+                        >
+                            정보 수정
+                        </button>
+                        {/* 회원 탈퇴 버튼 (오른쪽, 배경 박스) */}
+                        <div className="bg-red-100 rounded-md">
                             <button
                                 type="button"
-                                onClick={handleCancel}
-                                className="px-5 py-1 border border-gray-300 rounded-lg text-base font-semibold cursor-pointer transition duration-300 ease-in-out whitespace-nowrap text-center hover:bg-gray-100 text-gray-700"
+                                onClick={handleWithdrawal}
+                                className="py-2 px-3 text-red-600 text-sm font-semibold hover:text-[#67080b] transition-colors duration-200 whitespace-nowrap"
                             >
-                                취소
+                                회원 탈퇴
                             </button>
                         </div>
                     </div>

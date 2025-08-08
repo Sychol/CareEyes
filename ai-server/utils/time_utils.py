@@ -1,6 +1,6 @@
 # utils/time_utils.py
 import time
-from config import SUPPRESSION_SECONDS
+from common.config_state import config_state
 from common.cache import cache
 
 def should_send_event(class_name, cctv_id):
@@ -13,8 +13,8 @@ def should_send_event(class_name, cctv_id):
 
     with cache.send_lock:
         last_time = cache.last_sent_time.get(key)
-        if last_time is None or now - last_time >= SUPPRESSION_SECONDS:
+        if last_time is None or now - last_time >= config_state.suppression_seconds:
             cache.last_sent_time[key] = now
             return True
-        print(f"⏱️ {cctv_id}의 '{class_name}'는 {SUPPRESSION_SECONDS}초 이내에 전송됨 → 생략")
+        print(f"⏱️ {cctv_id}의 '{class_name}'는 {config_state.suppression_seconds}초 이내에 전송됨 → 생략")
     return False

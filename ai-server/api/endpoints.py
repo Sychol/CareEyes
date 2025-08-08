@@ -1,11 +1,11 @@
 # api/endpoints.py
-from flask import Response, request, send_file, abort
+from flask import Response, request, send_file, abort, jsonify
 from detect.detect_loop import get_cached_frame
 from config import IMAGE_SAVE_DIR, DELAY
 import cv2
 import os
 import time
-
+from common.config_state import config_state
 
 def register_routes(app):
     @app.route('/ai/video_feed')
@@ -72,3 +72,33 @@ def register_routes(app):
             </body>
         </html>
         '''
+
+    @app.route("/ai/config", methods=["GET", "POST"])
+    def config():
+        if request.method == "GET":
+            return jsonify({
+                "suppression_seconds": config_state.suppression_seconds,
+                "delay": config_state.delay,
+                "conf_threshold": config_state.conf_threshold,
+                "save_route": config_state.save_route,
+                "save_classes": list(config_state.save_classes),
+            })
+
+        elif request.method == "POST":
+            data = request.get_json()
+
+            if "suppression_seconds" in data:
+                config_state.suppression_seconds = float(data["suppression_seconds"])
+            if "delay" in data:
+                config_state.delay = float(data["delay"])
+            if "conf_threshold" in data:
+                config_state.conf_threshold = float(data["conf_threshold"])
+            if "save_route" in data:
+                if data["save_route"] in {"None", "ncloud", "local"}:
+                    config_state.save_route = data["save_route"]
+            if "save_classes" in data and isinstance(data["save_classes"], list):
+                valid_classes = {"person", "vehicle", "bird", "mammal"}
+                config_state.save_classes = set(filter(lambda x: x in valid_classes, data["save_classes"]))
+
+            return jsonify({"status": "✅ 설정이 업데이트되었습니다."})
+

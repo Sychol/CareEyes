@@ -10,8 +10,9 @@ from api import send_to_spring
 from datetime import datetime
 from zoneinfo import ZoneInfo
 from common.cache import cache
+from common.config_state import config_state
 
-def detect_loop(cctv_id, url, delay=DELAY, save_type="ncloud"):
+def detect_loop(cctv_id, url, delay=DELAY, save_route="ncloud"):
     """ 
     감지 루프: 주어진 URL에서 프레임을 가져와 YOLO 모델로 객체 감지 후,
     Spring 서버로 전송하는 무한 루프
@@ -48,7 +49,7 @@ def detect_loop(cctv_id, url, delay=DELAY, save_type="ncloud"):
             save_path = None
             if filtered_counts and should_save:
                 # save_path : DB에 저장되는 경로
-                save_path = save_detection_image(annotated_img, object_counts, cctv_id, date_str, time_str, save_type)
+                save_path = save_detection_image(annotated_img, object_counts, cctv_id, date_str, time_str, save_route)
 
             # YOLO 감지 완료 후 주석 이미지 저장
             with cache.frame_lock:
@@ -71,7 +72,7 @@ def start_detection_threads():
     for cctv_id, url in TARGET_CCTV:
         threading.Thread(
             target=detect_loop,
-            args=(cctv_id, url, DELAY, "ncloud"),
+            args=(cctv_id, url, config_state.delay, config_state.save_route),
             daemon=True
         ).start()
 

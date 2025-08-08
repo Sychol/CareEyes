@@ -7,13 +7,13 @@ from config import IMAGE_SAVE_DIR
 from storage.upload_ncloud import upload_to_ncloud
 
 
-def save_detection_image(annotated_img, object_counts, cctv_id, date_str, time_str, save_type="ncloud"):
+def save_detection_image(annotated_img, object_counts, cctv_id, date_str, time_str, save_route="ncloud"):
     """
     감지 결과 이미지를 저장하거나 Ncloud에 업로드
     return: 저장 경로 (로컬 상대경로 또는 Ncloud URL)
     """
     # Ncloud에 업로드
-    if save_type == "ncloud":
+    if save_route == "ncloud":
         success, buffer = cv2.imencode('.jpg', annotated_img)
         if not success:
             raise RuntimeError("❌ 이미지 인코딩 실패")
@@ -21,7 +21,7 @@ def save_detection_image(annotated_img, object_counts, cctv_id, date_str, time_s
         return upload_to_ncloud(image_stream, f"{cctv_id}/{date_str}/{time_str}.jpg")
 
     # 로컬에 저장
-    elif save_type == "local":
+    elif save_route == "local":
         # 저장 디렉토리 생성
         save_dir = f"{IMAGE_SAVE_DIR}/{cctv_id}/{date_str}"
         os.makedirs(save_dir, exist_ok=True)
@@ -36,5 +36,5 @@ def save_detection_image(annotated_img, object_counts, cctv_id, date_str, time_s
         return f"{cctv_id}/{date_str}/{time_str}.jpg"
 
     else:
-        print(f"⚠️ 알 수 없는 저장 방식: {save_type} → 저장 생략")
+        print(f"⚠️ 알 수 없는 저장 방식: {save_route} → 저장 생략")
         return None

@@ -300,9 +300,14 @@ const AirportDashboard = () => {
             KAKAO_ID: userInfo.kakaoId // 카카오 연동 ID
           });
           if (typeof userInfo.alertState === "number") {
-            setSelectedNotification(userInfo.alertState === 1 ? "general" : "emergency");
-          } else {
-            setSelectedNotification("general");
+            // 사용자가 방금 일시정지 설정한 경우, 갱신 막기
+            setSelectedNotification((prev) => {
+              if (prev === "emergency" && userInfo.alertState === 1) {
+                // 강제로 유지
+                return "emergency";
+              }
+              return userInfo.alertState === 1 ? "general" : "emergency";
+            });
           }
 
 
@@ -387,30 +392,30 @@ const AirportDashboard = () => {
 
     // 사용자 정보 갱신 함수
     const fetchUserInfo = () => {
-  axios
-    .get(USER_INFO_API_URL)
-    .then((res) => {
-      const userInfo = res.data;
-      if (userInfo && userInfo.memberName) {
-        setUserData({
-          MEMBER_NAME: userInfo.memberName,
-          DEPARTMENT: userInfo.department,
-          MEMBER_ID: userInfo.memberId,
-          ALERT_STATE: userInfo.alertState,
-        });
+      axios
+        .get(USER_INFO_API_URL)
+        .then((res) => {
+          const userInfo = res.data;
+          if (userInfo && userInfo.memberName) {
+            setUserData({
+              MEMBER_NAME: userInfo.memberName,
+              DEPARTMENT: userInfo.department,
+              MEMBER_ID: userInfo.memberId,
+              ALERT_STATE: userInfo.alertState,
+            });
 
-        // ✅ 이 조건만 유지해야 함
-        if (typeof userInfo.alertState === "number") {
-          setSelectedNotification(userInfo.alertState === 1 ? "general" : "emergency");
-        } else {
-          setSelectedNotification("general");
-        }
-      }
-    })
-    .catch((error) => {
-      console.error("사용자 정보 갱신 실패:", error);
-    });
-};
+            // ✅ 이 조건만 유지해야 함
+            if (typeof userInfo.alertState === "number") {
+              setSelectedNotification(userInfo.alertState === 1 ? "general" : "emergency");
+            } else {
+              setSelectedNotification("general");
+            }
+          }
+        })
+        .catch((error) => {
+          console.error("사용자 정보 갱신 실패:", error);
+        });
+    };
 
     // 초기 로드
     fetchEvents();
@@ -561,14 +566,17 @@ const AirportDashboard = () => {
 
       toast({
         title: "일시정지 설정 완료",
-        description: `${minutes}분 동안 알림이 일시정지됩니다.`,
+        description:
+          minutes >= 60
+            ? `${Math.floor(minutes / 60)}시간 동안 알림이 일시정지됩니다.`
+            : `${minutes}분 동안 알림이 일시정지됩니다.`,
         className: `
-          fixed top-6 left-1/2 -translate-x-1/2 z-[9999]
-          min-w-[280px] max-w-[380px] w-[80vw]
-          rounded-xl shadow-2xl px-4 py-3
-          bg-white border-2 border-primary/60
-          text-black
-        `,
+    fixed top-6 left-1/2 -translate-x-1/2 z-[9999]
+    min-w-[280px] max-w-[380px] w-[80vw]
+    rounded-xl shadow-2xl px-4 py-3
+    bg-white border-2 border-primary/60
+    text-black
+  `,
         duration: 1500,
       });
     } catch (error) {
