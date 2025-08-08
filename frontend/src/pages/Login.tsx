@@ -1,4 +1,4 @@
-import React, { useState, useEffect, FormEvent, useCallback } from 'react';
+import React, { useState, useEffect, FormEvent, useCallback, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import axios, { AxiosError } from 'axios';
 import { useContext } from "react";
@@ -24,7 +24,7 @@ const Login = () => {
   const [memberPw, setMemberPw] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-
+  const passwordInputRef = useRef<HTMLInputElement>(null);
   const [memberIdError, setMemberIdError] = useState('');
   const [memberPwError, setMemberPwError] = useState('');
   const [kakaoLoginUrl, setKakaoLoginUrl] = useState<string | null>(null);
@@ -149,6 +149,20 @@ const Login = () => {
     navigate('/worker');
   };
 
+  useEffect(() => {
+    // 비밀번호 입력 필드 요소에 접근
+    const inputElement = passwordInputRef.current;
+    
+    // 요소가 존재하면 커서 위치를 조정
+    if (inputElement) {
+        // "비밀번호" 4글자의 중간 지점인 2번째 글자 뒤에 커서를 위치시킵니다.
+        const midpoint = 2;
+        
+        inputElement.selectionStart = midpoint;
+        inputElement.selectionEnd = midpoint;
+    }
+}, []);
+
   return (
     // 로그인 페이지 전체 컨테이너
      <div className="scroll-container">
@@ -183,6 +197,8 @@ const Login = () => {
                 placeholder="비밀번호"
                 value={memberPw}
                 onChange={(e) => setMemberPw(e.target.value)}
+                ref={passwordInputRef} // 비밀번호 입력 필드에 ref 설정
+                name="memberPw"
               />
               <span className="icon eye-icon" onClick={togglePasswordVisibility}>
                 <i className={showPassword ? "fas fa-eye" : "fas fa-eye-slash"}></i>
