@@ -9,21 +9,7 @@ from storage import save_detection_image
 from api import send_to_spring
 from datetime import datetime
 from zoneinfo import ZoneInfo
-
-from collections import defaultdict
-
-# 마지막 전송 시간 기록: { (cctv_id, class_name): timestamp }
-last_sent_time = {}
-send_lock = threading.Lock()
-
-# 동적 스트림 URL 관리: { youtube_url: VideoCapture 객체 }
-stream_caps = {}
-cap_lock = threading.Lock()
-
-# 최신 YOLO 주석 프레임 캐시: { cctv_id: np.ndarray(프레임) }
-latest_annotated_frame = {}
-frame_lock = threading.Lock()
-
+from common.cache import cache
 
 def detect_loop(cctv_id, url, delay=DELAY, save_type="ncloud"):
     """ 
@@ -35,7 +21,7 @@ def detect_loop(cctv_id, url, delay=DELAY, save_type="ncloud"):
             # 캡처 객체 가져오기 또는 열기
             if url and cctv_id:
                 #print(f"🔄 {cctv_id} 스트림 캡처 열기: {url}")
-                with cap_lock:
+                with cache.cap_lock:
                     cap = get_or_open_capture(url)
             else:
                 raise ValueError("❌ 유효한 YouTube URL과 CCTV ID가 필요합니다.")
@@ -55,18 +41,18 @@ def detect_loop(cctv_id, url, delay=DELAY, save_type="ncloud"):
             date_str = now.strftime("%Y-%m-%d")
             time_str = now.strftime("%H-%M-%S")
 
+            # 유효 객체 필터링
+            filtered_counts = {cls: count for cls, count in object_counts.items() if should_send_event(cls, cctv_id)}
+
             # 저장 조건 확인 및 이미지 저장
             save_path = None
-            if should_save:
+            if filtered_counts and should_save:
                 # save_path : DB에 저장되는 경로
                 save_path = save_detection_image(annotated_img, object_counts, cctv_id, date_str, time_str, save_type)
 
             # YOLO 감지 완료 후 주석 이미지 저장
-            with frame_lock:
-                latest_annotated_frame[cctv_id] = annotated_img.copy()
-
-            # 유효 객체 필터링
-            filtered_counts = {cls: count for cls, count in object_counts.items() if should_send_event(cls, cctv_id)}
+            with cache.frame_lock:
+                cache.latest_annotated_frame[cctv_id] = annotated_img.copy()
 
             # 유효 객체가 있다면 전송
             if filtered_counts and save_path:
@@ -85,11 +71,11 @@ def start_detection_threads():
     for cctv_id, url in TARGET_CCTV:
         threading.Thread(
             target=detect_loop,
-            args=(cctv_id, url, DELAY, "local"),
+            args=(cctv_id, url, DELAY, "ncloud"),
             daemon=True
         ).start()
 
 
 def get_cached_frame(cctv_id):
-    with frame_lock:
-        return latest_annotated_frame.get(cctv_id)
+    with cache.frame_lock:
+        return cache.latest_annotated_frame.get(cctv_id)

@@ -18,7 +18,7 @@ const USER_INFO_API_URL = "/api/member/userinfo";
 
 const pageNames: Record<string, string> = {
   "/": "Dashboard",
-  "/cctv": "CCTV List", 
+  "/cctv": "CCTV List",
   "/alerts": "Alert History",
   "/analytics": "Data Analytics",
   "/worker": "Worker Management",
@@ -69,7 +69,7 @@ export function Header() {
   };
 
   return (
-    <div className="h-16 bg-[#5F69C7] flex items-center justify-between px-6 shadow-md">
+<div className="h-16 bg-[#5F69C7] flex items-center justify-between px-6 shadow-md box-border border-l border-[#5F69C7]">
       {/* Breadcrumb */}
       <div className="flex items-center text-white/90">
         <span className="text-sm">Pages</span>

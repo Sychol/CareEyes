@@ -357,17 +357,17 @@ def video_feed():
                     frame = latest_annotated_frame.get(cctv_id)
                 if frame is None:
                     print(f"⏳ {cctv_id}의 YOLO 감지 이미지 없음")
-                    time.sleep(1)
                     continue
 
                 _, buffer = cv2.imencode('.jpg', frame)
                 frame_bytes = buffer.tobytes()
+                time.sleep(DELAY)
 
                 yield (b'--frame\r\n'
                        b'Content-Type: image/jpeg\r\n\r\n' + frame_bytes + b'\r\n')
             except Exception as e:
                 print(f"⚠️ 스트리밍 오류: {e}")
-                time.sleep(1)
+                time.sleep(DELAY)
 
     return Response(generate(), # 비디오 스트림 생성기 호출
                     mimetype='multipart/x-mixed-replace; boundary=frame') # 멀티파트 스트림 반환

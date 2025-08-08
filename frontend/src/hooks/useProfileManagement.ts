@@ -3,7 +3,6 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { UserProfile, DEFAULT_USER_PROFILE } from '../types/src/types/user';
 import axios from 'axios';
-import { toast } from 'sonner';
 
 /**
  * @function useProfileManagement

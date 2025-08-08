@@ -1,6 +1,6 @@
 # stream/upload_ncloud.py
 import boto3
-from config import ENDPOINT, BUCKET_NAME, NCLOUD_ACCESS_KEY, NCLOUD_SECRET_KEY
+from config import ENDPOINT, BUCKET_NAME, NCLOUD_ACCESS_KEY, NCLOUD_SECRET_KEY, REGION_NAME
 
 
 def upload_to_ncloud(image_stream, object_key):
@@ -20,6 +20,7 @@ def upload_to_ncloud(image_stream, object_key):
         s3 = boto3.client(
             service_name='s3',
             endpoint_url=ENDPOINT,
+            region_name=REGION_NAME,
             aws_access_key_id=NCLOUD_ACCESS_KEY,
             aws_secret_access_key=NCLOUD_SECRET_KEY
         )

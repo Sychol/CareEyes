@@ -2,9 +2,7 @@
 import cv2
 import subprocess
 import shutil
-
-# VideoCapture 객체를 재사용하기 위한 캐시
-stream_caps = {}
+from common.cache import cache
 
 def get_or_open_capture(youtube_url):
     """
@@ -12,21 +10,21 @@ def get_or_open_capture(youtube_url):
     return : VideoCapture 객체
     """
     # 이미 열려있는 캡처 객체가 있으면 재사용
-    if youtube_url in stream_caps:
-        cap = stream_caps[youtube_url]
+    if youtube_url in cache.stream_caps:
+        cap = cache.stream_caps[youtube_url]
         if cap.isOpened():
             return cap # 이미 열려있으면 기존 객체 반환
         else:
             cap.release() # 캡처 객체가 닫혀있으면 해제
-            del stream_caps[youtube_url] # 해제한 후 딕셔너리에서 제거
+            del cache.stream_caps[youtube_url] # 해제한 후 딕셔너리에서 제거
             print(f"🔁 {youtube_url} 스트림 재연결")
 
     # 새 캡처 객체 열기
     print(f"🔄 {youtube_url} 연결 시도")
     stream_url = get_stream_url(youtube_url) # YouTube URL을 ffmpeg 스트림 URL로 변환
-    stream_caps[youtube_url] = open_video_capture(stream_url) # VideoCapture 객체 열기
+    cache.stream_caps[youtube_url] = open_video_capture(stream_url) # VideoCapture 객체 열기
 
-    return stream_caps[youtube_url]
+    return cache.stream_caps[youtube_url]
 
 
 def get_stream_url(youtube_url):

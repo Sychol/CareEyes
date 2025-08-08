@@ -207,7 +207,7 @@ public class MemberController {
 	        return ResponseEntity.badRequest().body("잘못된 요청입니다.");
 	    }
 
-	    memberMapper.pauseAlert(memberId, 1, null); // ON 설정 및 만료 시간 제거
+	    memberMapper.resumeAlert(memberId, 1); // ON 설정 및 만료 시간 제거
 	    return ResponseEntity.ok(Map.of("message", "알림이 다시 활성화되었습니다."));
 	}
 }

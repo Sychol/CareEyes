@@ -2,6 +2,9 @@ ai-server/detect_images
 ai-server/predict
 ai-server/runs
 
+.venv
+.vscode
+
 __pycache__/
 *.pyc
 

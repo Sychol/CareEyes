@@ -37,7 +37,7 @@ export default defineConfig(({ mode }) => ({
         secure: false,
       },
       '/ai': {
-        target: process.env.VITE_BACKEND_SERVER || 'http://223.130.138.9:5000',
+        target: process.env.VITE_BACKEND_SERVER || 'http://192.168.219.60:5000',
         changeOrigin: true,
         secure: false,
       }
