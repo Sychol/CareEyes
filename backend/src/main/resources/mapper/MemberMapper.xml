@@ -59,9 +59,16 @@
 		WHERE MEMBER_ID = #{memberId}
 	</update>
 	
+	<!-- 카카오 연동 해지 -->
+	<update id="disconnectKakao">
+		UPDATE MEMBERS
+		SET KAKAO_ID = NULL
+		WHERE MEMBER_ID = #{memberId}
+	</update>
+	
 	<!-- 작업자 리스트 -->
 	<select id="getWorkerList" resultMap="memberResultMap">
-		SELECT MEMBER_NAME, COMPANY, DEPARTMENT, ALERT_STATE, MEMBER_ROLE
+		SELECT MEMBER_ID, MEMBER_NAME, COMPANY, DEPARTMENT, ALERT_STATE, MEMBER_ROLE
 		FROM MEMBERS
 		WHERE MEMBER_ROLE = 'WORKER'
 	</select>
@@ -89,6 +96,12 @@
 	    WHERE ALERT_STATE = 0
 	      AND PAUSE_EXPIRE_TIME &lt;= NOW() <!-- ('<' 기호 엔티티 문자로 변환 ( '<' -> '%lt') -->
 	</select>
+	<update id="updateAlertState">
+	    UPDATE MEMBERS
+	    SET ALERT_STATE = 1,
+	        PAUSE_EXPIRE_TIME = NULL
+	    WHERE MEMBER_ID = #{memberId}
+	</update>
 	
 	<!-- 알림 켜져있는 멤버 찾기 -->
     <select id="findMembersToNotify" resultType="Members">

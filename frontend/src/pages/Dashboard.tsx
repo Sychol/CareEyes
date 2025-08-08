@@ -80,29 +80,53 @@ export default function Dashboard() {
     itemType: [],
     date: null,
   });
-  const topStats = useMemo(() => {
-    const sortedAlerts = [...alertHistory].sort(
-      (a, b) =>
-        new Date(`${b.eventDate}T${b.eventTime}`).getTime() -
-        new Date(`${a.eventDate}T${a.eventTime}`).getTime()
-    );
+  const normalizeItemType = (type: string) => {
+  switch (type.toLowerCase()) {
+    case "vehicle":
+    case "차량":
+      return "차량";
+    case "person":
+    case "사람":
+      return "사람";
+    case "bird":
+    case "조류":
+      return "조류";
+    case "mammal":
+    case "포유류":
+      return "포유류";
+    case "airplane":
+    case "비행기":
+      return "비행기";
+    default:
+      return type;
+  }
+};
 
-    const latest = sortedAlerts[0] || null;
+const topStats = useMemo(() => {
+  const sortedAlerts = [...alertHistory].sort(
+    (a, b) =>
+      new Date(`${b.eventDate}T${b.eventTime}`).getTime() -
+      new Date(`${a.eventDate}T${a.eventTime}`).getTime()
+  );
 
-    const counts: Record<string, number> = {};
-    alertHistory.forEach((alert) => {
-      counts[alert.itemType] = (counts[alert.itemType] || 0) + 1;
-    });
+  const latest = sortedAlerts[0] || null;
 
-    const mostType = Object.entries(counts).sort((a, b) => b[1] - a[1])[0] || ["없음", 0];
+  const counts: Record<string, number> = {};
+  alertHistory.forEach((alert) => {
+    const normalizedType = normalizeItemType(alert.itemType);
+    counts[normalizedType] = (counts[normalizedType] || 0) + 1;
+  });
 
-    return {
-      alertCount: alertHistory.length,
-      cctvCount: cctvs.length,
-      latestDetection: latest,
-      mostDetectedType: mostType,
-    };
-  }, [alertHistory, cctvs]);
+  const mostType = Object.entries(counts).sort((a, b) => b[1] - a[1])[0] || ["없음", 0];
+
+  return {
+    alertCount: alertHistory.length,
+    cctvCount: cctvs.length,
+    latestDetection: latest,
+    mostDetectedType: mostType,
+  };
+}, [alertHistory, cctvs]);
+
 
   // 데이터 fetch 함수 분리
   const fetchData = () => {

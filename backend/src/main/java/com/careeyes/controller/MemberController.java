@@ -13,9 +13,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.careeyes.config.KakaoApi;
@@ -82,10 +84,13 @@ public class MemberController {
 
 	    Map<String, Object> result = Stream.of(
 	            Map.entry("memberId", loginMember.getMemberId()),
+	            Map.entry("memberPw", loginMember.getMemberPw()),
 	            Map.entry("memberName", loginMember.getMemberName()),
 	            Map.entry("memberRole", loginMember.getMemberRole()),
 	            Map.entry("department", loginMember.getDepartment()),
 	            Map.entry("email", loginMember.getEmail()),
+	            Map.entry("phone", loginMember.getPhone()),
+	            Map.entry("company", loginMember.getCompany()),
 	            Map.entry("alertState", loginMember.getAlertState()),
 	            Optional.ofNullable(loginMember.getKakaoId())
 	                    .map(id -> Map.entry("kakaoId", id))
@@ -162,6 +167,12 @@ public class MemberController {
 	        e.printStackTrace();
 	        return ResponseEntity.status(500).body("카카오 연동 실패");
 	    }
+	}
+	
+	@PatchMapping("/kakao/disconnect")
+	public ResponseEntity<?> disconnectKakao(@RequestParam String memberId) {
+	    memberMapper.disconnectKakao(memberId);
+	    return ResponseEntity.ok(Map.of("message", "카카오 연동이 해제되었습니다."));
 	}
 	
 	// 작업자 리스트 받아오기

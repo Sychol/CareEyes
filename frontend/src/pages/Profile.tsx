@@ -118,7 +118,7 @@ const Profile = () => {
                                 <img src={KakaoLogo} alt="카카오 로고" className="w-8 h-8" />
                                 <span className="text-base font-medium text-gray-700">카카오</span>
                             </div>
-                            {profile.kakaoId ? (
+                            {profile.kakaoId != null ? (    
                                 <button
                                     type="button"
                                     className="px-5 py-2 bg-red-600 text-white border-none rounded-lg cursor-pointer text-base font-medium transition duration-300 ease-in-out whitespace-nowrap hover:bg-red-700"

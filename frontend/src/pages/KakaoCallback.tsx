@@ -2,9 +2,12 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { useProfileManagement } from '../hooks/useProfileManagement';
 
 const KakaoCallback = () => {
   const navigate = useNavigate();
+  const { fetchUserProfile } = useProfileManagement();
+  
 
   useEffect(() => {
     const fetchKakaoUser = async () => {
@@ -21,6 +24,7 @@ const KakaoCallback = () => {
         if (state === 'link') {
           // ✅ 연동 로직
           await axios.post('/api/member/account/link-kakao', { code }, { withCredentials: true });
+                    await fetchUserProfile();
           alert('카카오 계정이 연동되었습니다!');
           navigate('/profile'); // 연동 후 이동할 곳
         } else {

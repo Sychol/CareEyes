@@ -41,18 +41,18 @@ def detect_loop(cctv_id, url, delay=DELAY, save_type="ncloud"):
             date_str = now.strftime("%Y-%m-%d")
             time_str = now.strftime("%H-%M-%S")
 
+            # 유효 객체 필터링
+            filtered_counts = {cls: count for cls, count in object_counts.items() if should_send_event(cls, cctv_id)}
+
             # 저장 조건 확인 및 이미지 저장
             save_path = None
-            if should_save:
+            if filtered_counts and should_save:
                 # save_path : DB에 저장되는 경로
                 save_path = save_detection_image(annotated_img, object_counts, cctv_id, date_str, time_str, save_type)
 
             # YOLO 감지 완료 후 주석 이미지 저장
             with cache.frame_lock:
                 cache.latest_annotated_frame[cctv_id] = annotated_img.copy()
-
-            # 유효 객체 필터링
-            filtered_counts = {cls: count for cls, count in object_counts.items() if should_send_event(cls, cctv_id)}
 
             # 유효 객체가 있다면 전송
             if filtered_counts and save_path:
@@ -71,7 +71,7 @@ def start_detection_threads():
     for cctv_id, url in TARGET_CCTV:
         threading.Thread(
             target=detect_loop,
-            args=(cctv_id, url, DELAY, "local"),
+            args=(cctv_id, url, DELAY, "ncloud"),
             daemon=True
         ).start()
 

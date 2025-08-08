@@ -8,5 +8,5 @@ opencv-python-headless
 ultralytics
 flask
 requests
-boto3
+boto3==1.6.19
 streamlink
