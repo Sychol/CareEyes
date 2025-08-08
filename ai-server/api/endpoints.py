@@ -1,11 +1,11 @@
 # api/endpoints.py
-from flask import Response, request, send_file, abort
+from flask import Response, request, send_file, abort, jsonify
 from detect.detect_loop import get_cached_frame
 from config import IMAGE_SAVE_DIR, DELAY
 import cv2
 import os
 import time
-
+from common.config_state import config_state
 
 def register_routes(app):
     @app.route('/ai/video_feed')
@@ -72,3 +72,23 @@ def register_routes(app):
             </body>
         </html>
         '''
+
+    @app.route("/ai/config", methods=["GET", "POST"])
+    def config():
+        if request.method == "GET":
+            return jsonify({
+                "suppression_seconds": config_state.suppression_seconds,
+                "delay": config_state.delay,
+                "conf_threshold": config_state.conf_threshold
+            })
+
+        elif request.method == "POST":
+            data = request.get_json()
+            if "suppression_seconds" in data:
+                config_state.suppression_seconds = float(data["suppression_seconds"])
+            if "delay" in data:
+                config_state.delay = float(data["delay"])
+            if "conf_threshold" in data:
+                config_state.conf_threshold = float(data["conf_threshold"])
+            return jsonify({"status": "✅ 설정이 업데이트되었습니다."})
+
