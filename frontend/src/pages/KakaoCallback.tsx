@@ -7,12 +7,12 @@ import { useProfileManagement } from '../hooks/useProfileManagement';
 const KakaoCallback = () => {
   const navigate = useNavigate();
   const { fetchUserProfile } = useProfileManagement();
-  
 
   useEffect(() => {
-    const fetchKakaoUser = async () => {
-      const code = new URL(window.location.href).searchParams.get('code');
-      const state = new URL(window.location.href).searchParams.get('state'); // 'link'면 연동
+    const run = async () => {
+      const url = new URL(window.location.href);
+      const code = url.searchParams.get('code');
+      const state = url.searchParams.get('state'); // 'link'면 계정 연동
 
       if (!code) {
         alert('인가 코드가 없습니다.');
@@ -22,56 +22,33 @@ const KakaoCallback = () => {
 
       try {
         if (state === 'link') {
-          // ✅ 연동 로직
+          // ✅ 계정 연동: code만 서버에 전달, 교환/매핑은 백엔드에서 처리
           await axios.post('/api/member/account/link-kakao', { code }, { withCredentials: true });
+          await fetchUserProfile();
           alert('카카오 계정이 연동되었습니다!');
-          navigate('/profile'); // 연동 후 이동할 곳
-        } else {
-        // access_token 요청
-        const tokenRes = await axios.post(
-          'https://kauth.kakao.com/oauth/token',
-          new URLSearchParams({
-            grant_type: 'authorization_code',
-            client_id: '99b61a29a2963e3f58d79a6f2e9eccb6',
-            redirect_uri: 'http://49.50.134.171/kakao/callback', // 배포시 주소 교체
-            code,
-          }),
-          {
-            // 카카오가 요구하는 Content-Type
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-          }
-        );
+          navigate('/profile');
+          return;
+        }
 
-        const accessToken = tokenRes.data.access_token;
-
-        // 사용자 정보 요청
-        const kakaoRes = await axios.get('https://kapi.kakao.com/v2/user/me', {
-          headers: { Authorization: `Bearer ${accessToken}` },
+        // ✅ 로그인: 토큰 교환/유저조회/세션 생성 모두 백엔드에서 1회 처리
+        await axios.get(`/api/auth/kakao/callback?code=${encodeURIComponent(code)}`, {
+          withCredentials: true,
         });
 
-        const kakaoId = kakaoRes.data.id;
-
-        // 우리 서버에 kakaoId 보내기
-        const serverRes = await axios.post('/api/member/kakao-login', { kakaoId });
-
-        if (serverRes.data.status === 'NEW_USER') {
-          alert('회원가입이 필요합니다.');
-          navigate('/join', { state: { kakaoId } });
-        } else {
-          const member = serverRes.data.member;
-          sessionStorage.setItem('loginMember', JSON.stringify(member));
-            navigate(member.memberRole === 'ADMIN' ? '/' : '/airport');
-          }
-        }
-      } catch (error) {
-        console.error('카카오 처리 실패:', error);
+        // 세션 확인 후 라우팅
+        const me = await axios.get('/api/member/userinfo', { withCredentials: true });
+        console.log('✅ 로그인 유저 정보:', me.data);
+        const role = me.data.memberRole;
+        navigate(role === 'ADMIN' ? '/' : '/airport');
+      } catch (err: any) {
+        console.error('카카오 처리 실패:', err?.response?.data || err?.message);
         alert('카카오 로그인/연동 실패');
         navigate('/login');
       }
     };
 
-    fetchKakaoUser();
-  }, [navigate]);
+    run();
+  }, [navigate, fetchUserProfile]);
 
   return <div>카카오 로그인 처리 중입니다...</div>;
 };

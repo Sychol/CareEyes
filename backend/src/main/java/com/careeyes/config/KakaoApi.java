@@ -94,6 +94,15 @@ public class KakaoApi {
 	        // 다 읽은 거 String으로 변환해서 result에 넣기
 	        String result = responseSb.toString();
 	        log.info("responseBody = {}", result);
+	     // ... 위에서 result 만들고 나서 바로 아래에 추가!
+	        log.info("[KakaoApi.getAccessToken] responseCode = {}", responseCode);
+	        if (responseCode != HttpURLConnection.HTTP_OK) {
+	            // 카카오가 내려준 에러 JSON 그대로 찍기 (invalid_grant, redirect mismatch 등)
+	            log.error("[KakaoApi.getAccessToken] TOKEN ERROR status={} body={} redirect_uri={} code={}",
+	                    responseCode, result, kakaoRedirectUri, code);
+	            throw new RuntimeException("Kakao token exchange failed: " + result);
+	        }
+
 	        
 	        // Json 문자열 파싱해서 element로 변환
 	        JsonElement element = JsonParser.parseString(result);
