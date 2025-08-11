@@ -358,7 +358,7 @@ export const useProfileManagement = () => {
      */
 const handleKakaoConnect = useCallback(() => {
     const clientId = '99b61a29a2963e3f58d79a6f2e9eccb6'; // 실제 REST API 키로 변경
-    const redirectUri = 'http://localhost:5173/kakao/callback'; // 배포 시 변경 필요
+    const redirectUri = 'http://49.50.134.171/kakao/callback'; // 배포 시 변경 필요
     const kakaoAuthUrl = `https://kauth.kakao.com/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code&state=link`;
     
     // ✅ 카카오 로그인 페이지로 리다이렉트 (연동용 state=link 포함)
