@@ -589,29 +589,45 @@ export default function Analytics() {
         datasets: [],
       };
     
-    const locations = Array.from(new Set(list.map(e => e.location)));
-    const colors = ['#7987FF', '#FFA5CB'];
+    // cctvId를 기준으로 데이터 그룹화하되, 차트 라벨은 'location-cctvId' 형태로 표시
+    const cctvGroups = new Map<string, { cctvId: number; location: string; label: string; count: number }>();
+    
+    list.forEach(event => {
+      const key = `${event.location}-${event.cctvId}`;
+      if (cctvGroups.has(key)) {
+        cctvGroups.get(key)!.count++;
+      } else {
+        cctvGroups.set(key, {
+          cctvId: event.cctvId,
+          location: event.location,
+          label: key,
+          count: 1
+        });
+      }
+    });
+    
+    const cctvData = Array.from(cctvGroups.values());
+    const colors = ['#7987FF', '#E697FF', '#FFA5CB', '#FF6B6B', '#4ECDC4'];
     
     // 총 개수 계산
     const total = list.length;
     
-    // location별 퍼센트 계산 및 정렬
-    const locationData = locations.map(location => {
-      const count = list.filter(e => e.location === location).length;
-      const percentage = total > 0 ? (count / total) * 100 : 0;
-      return { location, count, percentage };
+    // cctv별 퍼센트 계산 및 정렬
+    const cctvPercentageData = cctvData.map(cctv => {
+      const percentage = total > 0 ? (cctv.count / total) * 100 : 0;
+      return { ...cctv, percentage };
     });
     
     // 퍼센트 높은 순으로 내림차순 정렬
-    locationData.sort((a, b) => b.percentage - a.percentage);
+    cctvPercentageData.sort((a, b) => b.percentage - a.percentage);
     
     return {
-      labels: locationData.map(item => item.location),
+      labels: cctvPercentageData.map(item => item.label),
       datasets: [{
-        label: '위치별 비율',
-        data: locationData.map(item => item.percentage),
-        backgroundColor: locationData.map((_, index) => colors[index % colors.length]),
-        borderColor: locationData.map((_, index) => colors[index % colors.length]),
+        label: 'CCTV별 비율',
+        data: cctvPercentageData.map(item => item.percentage),
+        backgroundColor: cctvPercentageData.map((_, index) => colors[index % colors.length]),
+        borderColor: cctvPercentageData.map((_, index) => colors[index % colors.length]),
         borderWidth: 1,
       }],
     };
@@ -625,17 +641,31 @@ export default function Analytics() {
         datasets: [],
       };
     
-    const locations = Array.from(new Set(list.map(e => e.location)));
+    // cctvId를 기준으로 데이터 그룹화하되, 차트 라벨은 'location-cctvId' 형태로 표시
+    const cctvGroups = new Map<string, { cctvId: number; location: string; label: string }>();
+    
+    list.forEach(event => {
+      const key = `${event.location}-${event.cctvId}`;
+      if (!cctvGroups.has(key)) {
+        cctvGroups.set(key, {
+          cctvId: event.cctvId,
+          location: event.location,
+          label: key
+        });
+      }
+    });
+    
+    const cctvData = Array.from(cctvGroups.values());
     const colors = ['#7987FF', '#E697FF', '#FFA5CB', '#FF6B6B', '#4ECDC4'];
     
     // 필터에 따라 x축 라벨과 데이터 생성 로직 결정
     let labels: string[] = [];
-    let dataGenerationLogic: (location: string, index: number) => number;
+    let dataGenerationLogic: (cctvKey: string, index: number) => number;
     
     if (dateRange === '오늘') {
       // Today: 00시 ~ 24시 (현재 그대로)
       labels = ['00시', '04시', '08시', '12시', '16시', '20시', '24시'];
-      dataGenerationLogic = (location: string, timeIndex: number) => {
+      dataGenerationLogic = (cctvKey: string, timeIndex: number) => {
         const startHour = timeIndex * 4;
         const endHour = timeIndex === 6 ? 24 : (timeIndex + 1) * 4;
         
@@ -644,7 +674,8 @@ export default function Analytics() {
             const timeParts = e.eventTime.split(':');
             const hour = parseInt(timeParts[0]);
             const adjustedHour = hour === 0 && timeIndex === 6 ? 24 : hour;
-            return adjustedHour >= startHour && adjustedHour < endHour && e.location === location;
+            const eventKey = `${e.location}-${e.cctvId}`;
+            return adjustedHour >= startHour && adjustedHour < endHour && eventKey === cctvKey;
           } catch (error) {
             console.error('eventTime 파싱 오류:', e.eventTime, error);
             return false;
@@ -671,12 +702,13 @@ export default function Analytics() {
         return `${month}/${day} ${dayName}`;
       });
       
-      dataGenerationLogic = (location: string, dayIndex: number) => {
+      dataGenerationLogic = (cctvKey: string, dayIndex: number) => {
         const targetDate = weekDates[dayIndex];
         const targetDateStr = targetDate.toISOString().split('T')[0];
         
         return list.filter(e => {
-          return e.eventDate === targetDateStr && e.location === location;
+          const eventKey = `${e.location}-${e.cctvId}`;
+          return e.eventDate === targetDateStr && eventKey === cctvKey;
         }).length;
       };
     } else if (dateRange === '한 달') {
@@ -696,7 +728,7 @@ export default function Analytics() {
         labels.push(`${startDay}일~${endDay}일`);
       }
       
-      dataGenerationLogic = (location: string, segmentIndex: number) => {
+      dataGenerationLogic = (cctvKey: string, segmentIndex: number) => {
         const startDay = segmentIndex * 4 + 1;
         const endDay = Math.min((segmentIndex + 1) * 4, daysInMonth);
         
@@ -704,7 +736,8 @@ export default function Analytics() {
           try {
             const eventDate = new Date(e.eventDate);
             const eventDay = eventDate.getDate();
-            return eventDay >= startDay && eventDay <= endDay && e.location === location;
+            const eventKey = `${e.location}-${e.cctvId}`;
+            return eventDay >= startDay && eventDay <= endDay && eventKey === cctvKey;
           } catch (error) {
             console.error('날짜 파싱 오류:', e.eventDate, error);
             return false;
@@ -723,7 +756,7 @@ export default function Analytics() {
         if (diffDays === 1) {
           // 1일: 시간별로 분할 (오늘과 동일)
           labels = ['00시', '04시', '08시', '12시', '16시', '20시', '24시'];
-          dataGenerationLogic = (location: string, timeIndex: number) => {
+          dataGenerationLogic = (cctvKey: string, timeIndex: number) => {
             const startHour = timeIndex * 4;
             const endHour = timeIndex === 6 ? 24 : (timeIndex + 1) * 4;
             
@@ -732,7 +765,8 @@ export default function Analytics() {
                 const timeParts = e.eventTime.split(':');
                 const hour = parseInt(timeParts[0]);
                 const adjustedHour = hour === 0 && timeIndex === 6 ? 24 : hour;
-                return adjustedHour >= startHour && adjustedHour < endHour && e.location === location;
+                const eventKey = `${e.location}-${e.cctvId}`;
+                return adjustedHour >= startHour && adjustedHour < endHour && eventKey === cctvKey;
               } catch (error) {
                 console.error('eventTime 파싱 오류:', e.eventTime, error);
                 return false;
@@ -757,12 +791,13 @@ export default function Analytics() {
             return `${month}/${day} ${dayName}`;
           });
           
-          dataGenerationLogic = (location: string, dayIndex: number) => {
+          dataGenerationLogic = (cctvKey: string, dayIndex: number) => {
             const targetDate = dates[dayIndex];
             const targetDateStr = targetDate.toISOString().split('T')[0];
             
             return list.filter(e => {
-              return e.eventDate === targetDateStr && e.location === location;
+              const eventKey = `${e.location}-${e.cctvId}`;
+              return e.eventDate === targetDateStr && eventKey === cctvKey;
             }).length;
           };
         } else if (diffDays <= 30) {
@@ -776,7 +811,7 @@ export default function Analytics() {
             labels.push(`${startDay}일~${endDay}일`);
           }
           
-          dataGenerationLogic = (location: string, segmentIndex: number) => {
+          dataGenerationLogic = (cctvKey: string, segmentIndex: number) => {
             const startDay = segmentIndex * 4 + 1;
             const endDay = Math.min((segmentIndex + 1) * 4, diffDays);
             
@@ -786,7 +821,8 @@ export default function Analytics() {
                 const startDateObj = new Date(startDate);
                 const daysDiff = Math.floor((eventDate.getTime() - startDateObj.getTime()) / (1000 * 60 * 60 * 24));
                 const adjustedDay = daysDiff + 1; // 1부터 시작
-                return adjustedDay >= startDay && adjustedDay <= endDay && e.location === location;
+                const eventKey = `${e.location}-${e.cctvId}`;
+                return adjustedDay >= startDay && adjustedDay <= endDay && eventKey === cctvKey;
               } catch (error) {
                 console.error('날짜 파싱 오류:', e.eventDate, error);
                 return false;
@@ -806,7 +842,7 @@ export default function Analytics() {
             labels.push(`${startDay}일~${endDay}일`);
           }
           
-          dataGenerationLogic = (location: string, segmentIndex: number) => {
+          dataGenerationLogic = (cctvKey: string, segmentIndex: number) => {
             const startDay = segmentIndex * daysPerSegment + 1;
             const endDay = Math.min((segmentIndex + 1) * daysPerSegment, diffDays);
             
@@ -816,7 +852,8 @@ export default function Analytics() {
                 const startDateObj = new Date(startDate);
                 const daysDiff = Math.floor((eventDate.getTime() - startDateObj.getTime()) / (1000 * 60 * 60 * 24));
                 const adjustedDay = daysDiff + 1; // 1부터 시작
-                return adjustedDay >= startDay && adjustedDay <= endDay && e.location === location;
+                const eventKey = `${e.location}-${e.cctvId}`;
+                return adjustedDay >= startDay && adjustedDay <= endDay && eventKey === cctvKey;
               } catch (error) {
                 console.error('날짜 파싱 오류:', e.eventDate, error);
                 return false;
@@ -847,7 +884,7 @@ export default function Analytics() {
     } else {
       // 기본값: Today와 동일
       labels = ['00시', '04시', '08시', '12시', '16시', '20시', '24시'];
-      dataGenerationLogic = (location: string, timeIndex: number) => {
+      dataGenerationLogic = (cctvKey: string, timeIndex: number) => {
         const startHour = timeIndex * 4;
         const endHour = timeIndex === 6 ? 24 : (timeIndex + 1) * 4;
         
@@ -856,7 +893,8 @@ export default function Analytics() {
             const timeParts = e.eventTime.split(':');
             const hour = parseInt(timeParts[0]);
             const adjustedHour = hour === 0 && timeIndex === 6 ? 24 : hour;
-            return adjustedHour >= startHour && adjustedHour < endHour && e.location === location;
+            const eventKey = `${e.location}-${e.cctvId}`;
+            return adjustedHour >= startHour && adjustedHour < endHour && eventKey === cctvKey;
           } catch (error) {
             console.error('eventTime 파싱 오류:', e.eventTime, error);
             return false;
@@ -865,13 +903,13 @@ export default function Analytics() {
       };
     }
     
-    const datasets = locations.map((location, index) => {
+    const datasets = cctvData.map((cctv, index) => {
       const data = labels.map((_, labelIndex) => {
-        return dataGenerationLogic(location, labelIndex);
+        return dataGenerationLogic(cctv.label, labelIndex);
       });
       
       return {
-        label: location,
+        label: cctv.label,
         data,
         borderColor: colors[index % colors.length],
         backgroundColor: colors[index % colors.length] + '20',
@@ -886,7 +924,7 @@ export default function Analytics() {
     };
   };
 
-  // CCTV/유형별 탐지 빈도 차트 데이터
+  // CCTV별/유형별 탐지 빈도 차트 데이터 (위치-CCTV번호 그룹별)
   const getDetectionFrequencyChartData = (list: EventItem[], dateRange: string): ChartData => {
     if (!list.length)
       return {
@@ -894,264 +932,41 @@ export default function Analytics() {
         datasets: [],
       };
     
-    // API에서 받아온 실제 location들 사용
-    const locations = Array.from(new Set(list.map(e => e.location)));
-    const itemTypes = Array.from(new Set(list.map(e => e.itemType)));
-    const colors = ['#7987FF', '#E697FF', '#FFA5CB', '#FF6B6B', '#4ECDC4'];
+    // location-cctvId 조합으로 그룹화
+    const cctvGroups = new Map<string, { cctvId: number; location: string; label: string }>();
     
-    // 필터에 따라 x축 라벨과 데이터 생성 로직 결정
-    let labels: string[] = [];
-    let dataGenerationLogic: (location: string, itemType: string, index: number) => number;
-    
-    if (dateRange === '오늘') {
-      // Today: 00시 ~ 24시 (현재 그대로)
-      labels = ['00시', '04시', '08시', '12시', '16시', '20시', '24시'];
-      dataGenerationLogic = (location: string, itemType: string, timeIndex: number) => {
-        const startHour = timeIndex * 4;
-        const endHour = timeIndex === 6 ? 24 : (timeIndex + 1) * 4;
-        
-        return list.filter(e => {
-          try {
-            const timeParts = e.eventTime.split(':');
-            const hour = parseInt(timeParts[0]);
-            const adjustedHour = hour === 0 && timeIndex === 6 ? 24 : hour;
-            return adjustedHour >= startHour && adjustedHour < endHour && e.location === location && e.itemType === itemType;
-          } catch (error) {
-            console.error('eventTime 파싱 오류:', e.eventTime, error);
-            return false;
-          }
-        }).length;
-      };
-    } else if (dateRange === '이번 주') {
-      // This Week: 6일전부터 오늘까지 (오늘이 마지막)
-      const today = new Date();
-      const dayNames = ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일'];
-      
-      // 6일전부터 오늘까지의 날짜들 생성
-      const weekDates = [];
-      for (let i = 6; i >= 0; i--) {
-        const date = new Date(today);
-        date.setDate(today.getDate() - i);
-        weekDates.push(date);
+    list.forEach(event => {
+      const key = `${event.location}-${event.cctvId}`;
+      if (!cctvGroups.has(key)) {
+        cctvGroups.set(key, {
+          cctvId: event.cctvId,
+          location: event.location,
+          label: key
+        });
       }
-      
-      labels = weekDates.map(date => {
-        const dayName = dayNames[date.getDay()];
-        const month = date.getMonth() + 1;
-        const day = date.getDate();
-        return `${month}/${day} ${dayName}`;
-      });
-      
-      dataGenerationLogic = (location: string, itemType: string, dayIndex: number) => {
-        const targetDate = weekDates[dayIndex];
-        const targetDateStr = targetDate.toISOString().split('T')[0];
-        
-        return list.filter(e => {
-          return e.eventDate === targetDateStr && e.location === location && e.itemType === itemType;
-        }).length;
-      };
-    } else if (dateRange === '한 달') {
-      // This Month: 이번달 일수를 4개씩 구분
-      const today = new Date();
-      const year = today.getFullYear();
-      const month = today.getMonth();
-      const daysInMonth = new Date(year, month + 1, 0).getDate();
-      
-      // 4개씩 구분하여 라벨 생성
-      const segments = Math.ceil(daysInMonth / 4);
-      labels = [];
-      
-      for (let i = 0; i < segments; i++) {
-        const startDay = i * 4 + 1;
-        const endDay = Math.min((i + 1) * 4, daysInMonth);
-        labels.push(`${startDay}일~${endDay}일`);
-      }
-      
-      dataGenerationLogic = (location: string, itemType: string, segmentIndex: number) => {
-        const startDay = segmentIndex * 4 + 1;
-        const endDay = Math.min((segmentIndex + 1) * 4, daysInMonth);
-        
-        return list.filter(e => {
-          try {
-            const eventDate = new Date(e.eventDate);
-            const eventDay = eventDate.getDate();
-            return eventDay >= startDay && eventDay <= endDay && e.location === location && e.itemType === itemType;
-          } catch (error) {
-            console.error('날짜 파싱 오류:', e.eventDate, error);
-            return false;
-          }
-        }).length;
-      };
-    } else if (dateRange === '사용자 지정') {
-      // 사용자 지정 날짜 범위에 따른 동적 x축 조정
-      const { customDateRange } = globalFilter;
-      if (customDateRange.start && customDateRange.end) {
-        const startDate = new Date(customDateRange.start);
-        const endDate = new Date(customDateRange.end);
-        const diffTime = Math.abs(endDate.getTime() - startDate.getTime());
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1; // 포함된 날짜 수
-        
-        if (diffDays === 1) {
-          // 1일: 시간별로 분할 (오늘과 동일)
-          labels = ['00시', '04시', '08시', '12시', '16시', '20시', '24시'];
-          dataGenerationLogic = (location: string, itemType: string, timeIndex: number) => {
-            const startHour = timeIndex * 4;
-            const endHour = timeIndex === 6 ? 24 : (timeIndex + 1) * 4;
-            
-            return list.filter(e => {
-              try {
-                const timeParts = e.eventTime.split(':');
-                const hour = parseInt(timeParts[0]);
-                const adjustedHour = hour === 0 && timeIndex === 6 ? 24 : hour;
-                return adjustedHour >= startHour && adjustedHour < endHour && e.location === location && e.itemType === itemType;
-              } catch (error) {
-                console.error('eventTime 파싱 오류:', e.eventTime, error);
-                return false;
-              }
-            }).length;
-          };
-        } else if (diffDays <= 7) {
-          // 7일 이하: 일별로 분할 (이번주와 동일)
-          const dayNames = ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일'];
-          const dates = [];
-          
-          for (let i = 0; i < diffDays; i++) {
-            const date = new Date(startDate);
-            date.setDate(startDate.getDate() + i);
-            dates.push(date);
-          }
-          
-          labels = dates.map(date => {
-            const dayName = dayNames[date.getDay()];
-            const month = date.getMonth() + 1;
-            const day = date.getDate();
-            return `${month}/${day} ${dayName}`;
-          });
-          
-          dataGenerationLogic = (location: string, itemType: string, dayIndex: number) => {
-            const targetDate = dates[dayIndex];
-            const targetDateStr = targetDate.toISOString().split('T')[0];
-            
-            return list.filter(e => {
-              return e.eventDate === targetDateStr && e.location === location && e.itemType === itemType;
-            }).length;
-          };
-        } else if (diffDays <= 30) {
-          // 30일 이하: 4일씩 구분 (한달과 동일)
-          const segments = Math.ceil(diffDays / 4);
-          labels = [];
-          
-          for (let i = 0; i < segments; i++) {
-            const startDay = i * 4 + 1;
-            const endDay = Math.min((i + 1) * 4, diffDays);
-            labels.push(`${startDay}일~${endDay}일`);
-          }
-          
-          dataGenerationLogic = (location: string, itemType: string, segmentIndex: number) => {
-            const startDay = segmentIndex * 4 + 1;
-            const endDay = Math.min((segmentIndex + 1) * 4, diffDays);
-            
-            return list.filter(e => {
-              try {
-                const eventDate = new Date(e.eventDate);
-                const startDateObj = new Date(startDate);
-                const daysDiff = Math.floor((eventDate.getTime() - startDateObj.getTime()) / (1000 * 60 * 60 * 24));
-                const adjustedDay = daysDiff + 1; // 1부터 시작
-                return adjustedDay >= startDay && adjustedDay <= endDay && e.location === location && e.itemType === itemType;
-              } catch (error) {
-                console.error('날짜 파싱 오류:', e.eventDate, error);
-                return false;
-              }
-            }).length;
-          };
-        } else {
-          // 30일 초과: 적절한 세그먼트로 분할 (최대 8개 세그먼트)
-          const maxSegments = 8;
-          const segments = Math.min(maxSegments, Math.ceil(diffDays / 7)); // 주 단위로 분할하되 최대 8개
-          const daysPerSegment = Math.ceil(diffDays / segments);
-          
-          labels = [];
-          for (let i = 0; i < segments; i++) {
-            const startDay = i * daysPerSegment + 1;
-            const endDay = Math.min((i + 1) * daysPerSegment, diffDays);
-            labels.push(`${startDay}일~${endDay}일`);
-          }
-          
-          dataGenerationLogic = (location: string, itemType: string, segmentIndex: number) => {
-            const startDay = segmentIndex * daysPerSegment + 1;
-            const endDay = Math.min((segmentIndex + 1) * daysPerSegment, diffDays);
-            
-            return list.filter(e => {
-              try {
-                const eventDate = new Date(e.eventDate);
-                const startDateObj = new Date(startDate);
-                const daysDiff = Math.floor((eventDate.getTime() - startDateObj.getTime()) / (1000 * 60 * 60 * 24));
-                const adjustedDay = daysDiff + 1; // 1부터 시작
-                return adjustedDay >= startDay && adjustedDay <= endDay && e.location === location && e.itemType === itemType;
-              } catch (error) {
-                console.error('날짜 파싱 오류:', e.eventDate, error);
-                return false;
-              }
-            }).length;
-          };
-        }
-      } else {
-        // 사용자 지정 날짜가 설정되지 않은 경우 기본값
-        labels = ['00시', '04시', '08시', '12시', '16시', '20시', '24시'];
-        dataGenerationLogic = (location: string, itemType: string, timeIndex: number) => {
-          const startHour = timeIndex * 4;
-          const endHour = timeIndex === 6 ? 24 : (timeIndex + 1) * 4;
-          
-          return list.filter(e => {
-            try {
-              const timeParts = e.eventTime.split(':');
-              const hour = parseInt(timeParts[0]);
-              const adjustedHour = hour === 0 && timeIndex === 6 ? 24 : hour;
-              return adjustedHour >= startHour && adjustedHour < endHour && e.location === location && e.itemType === itemType;
-            } catch (error) {
-              console.error('eventTime 파싱 오류:', e.eventTime, error);
-              return false;
-            }
-          }).length;
-        };
-      }
-    } else {
-      // 기본값: Today와 동일
-      labels = ['00시', '04시', '08시', '12시', '16시', '20시', '24시'];
-      dataGenerationLogic = (location: string, itemType: string, timeIndex: number) => {
-        const startHour = timeIndex * 4;
-        const endHour = timeIndex === 6 ? 24 : (timeIndex + 1) * 4;
-        
-        return list.filter(e => {
-          try {
-            const timeParts = e.eventTime.split(':');
-            const hour = parseInt(timeParts[0]);
-            const adjustedHour = hour === 0 && timeIndex === 6 ? 24 : hour;
-            return adjustedHour >= startHour && adjustedHour < endHour && e.location === location && e.itemType === itemType;
-          } catch (error) {
-            console.error('eventTime 파싱 오류:', e.eventTime, error);
-            return false;
-          }
-        }).length;
-      };
-    }
-    
-    // Calculate total count for each itemType across all locations for sorting
-    const itemTypeTotals = itemTypes.map(itemType => {
-      const totalCount = list.filter(e => e.itemType === itemType).length;
-      return { itemType, totalCount };
     });
     
-    // Sort itemTypes by their total count in descending order
-    itemTypeTotals.sort((a, b) => b.totalCount - a.totalCount);
+    // cctvData를 배열로 변환하고 정렬
+    const cctvData = Array.from(cctvGroups.values());
+    cctvData.sort((a, b) => {
+      // location으로 먼저 정렬, 그 다음 cctvId로 정렬
+      if (a.location !== b.location) {
+        return a.location.localeCompare(b.location);
+      }
+      return a.cctvId - b.cctvId;
+    });
     
-    // Use the sorted itemTypes to create datasets
-    const sortedItemTypes = itemTypeTotals.map(item => item.itemType);
+    // itemType 정의 (고정된 순서)
+    const itemTypes = ['bird', 'vehicle', 'mammal', 'person'];
+    const colors = ['#7987FF', '#E697FF', '#FFA5CB', '#FF6B6B'];
     
-    // 각 itemType별로 데이터셋 생성 (필터에 따른 라벨 순서로)
-    const datasets = sortedItemTypes.map((itemType, index) => {
-      const data = labels.map((_, labelIndex) => {
-        return dataGenerationLogic(locations[0], itemType, labelIndex); // location은 고정하고 itemType별로 데이터 생성
+    // 각 itemType별로 데이터셋 생성
+    const datasets = itemTypes.map((itemType, index) => {
+      const data = cctvData.map(cctv => {
+        // 해당 cctv와 itemType에 대한 총 탐지 건수 계산
+        return list.filter(e => 
+          `${e.location}-${e.cctvId}` === cctv.label && e.itemType === itemType
+        ).length;
       });
       
       return {
@@ -1164,7 +979,7 @@ export default function Analytics() {
     });
     
     return {
-      labels, // 필터에 따른 라벨을 X축에 표시
+      labels: cctvData.map(cctv => cctv.label), // X축: location-cctvId
       datasets,
     };
   };
@@ -1489,27 +1304,45 @@ export default function Analytics() {
               <div className="w-32 ml-4">
                 {(() => {
                   const filteredEvents = getFilteredEvents();
-                  const locations = Array.from(new Set(filteredEvents.map(e => e.location)));
-                  const colors = ['#7987FF', '#FFA5CB'];
-                  const total = filteredEvents.length;
+                  // cctvId를 기준으로 데이터 그룹화하되, 차트 라벨은 'location-cctvId' 형태로 표시
+                  const cctvGroups = new Map<string, { cctvId: number; location: string; label: string; count: number }>();
                   
-                  const locationData = locations.map(location => {
-                    const count = filteredEvents.filter(e => e.location === location).length;
-                    const percentage = total > 0 ? (count / total) * 100 : 0;
-                    return { location, count, percentage };
+                  filteredEvents.forEach(event => {
+                    const key = `${event.location}-${event.cctvId}`;
+                    if (cctvGroups.has(key)) {
+                      cctvGroups.get(key)!.count++;
+                    } else {
+                      cctvGroups.set(key, {
+                        cctvId: event.cctvId,
+                        location: event.location,
+                        label: key,
+                        count: 1
+                      });
+                    }
                   });
                   
-                  locationData.sort((a, b) => b.percentage - a.percentage);
+                  const cctvData = Array.from(cctvGroups.values());
+                  const colors = ['#7987FF', '#E697FF', '#FFA5CB', '#FF6B6B', '#4ECDC4'];
+                  const total = filteredEvents.length;
                   
-                  return locationData.map((item, index) => {
+                  // cctv별 퍼센트 계산 및 정렬
+                  const cctvPercentageData = cctvData.map(cctv => {
+                    const percentage = total > 0 ? (cctv.count / total) * 100 : 0;
+                    return { ...cctv, percentage };
+                  });
+                  
+                  // 퍼센트 높은 순으로 내림차순 정렬
+                  cctvPercentageData.sort((a, b) => b.percentage - a.percentage);
+                  
+                  return cctvPercentageData.map((item, index) => {
                     return (
-                      <div key={item.location} className="flex items-center mb-2">
+                      <div key={item.label} className="flex items-center mb-2">
                         <div 
                           className="w-4 h-4 rounded-full mr-2" 
                           style={{ backgroundColor: colors[index % colors.length] }}
                         />
                         <div className="text-base">
-                          <div className="font-medium">{item.location}</div>
+                          <div className="font-medium">{item.label}</div>
                           <div className="text-gray-500">{item.percentage.toFixed(1)}%</div>
                         </div>
                       </div>
@@ -1526,7 +1359,7 @@ export default function Analytics() {
           <CardHeader>
             <div className="flex justify-between items-center">
               <div>
-                <CardTitle>CCTV별/시간별 탐지 추세</CardTitle>
+                <CardTitle>CCTV별/시간별 탐지 추세 그래프</CardTitle>
               </div>
             </div>
           </CardHeader>
@@ -1582,7 +1415,7 @@ export default function Analytics() {
           <CardHeader>
             <div className="flex justify-between items-center">
               <div>
-                <CardTitle>CCTV/유형별 탐지 빈도 그래프</CardTitle>
+                <CardTitle>CCTV별/유형별 탐지 빈도 그래프</CardTitle>
               </div>
             </div>
           </CardHeader>

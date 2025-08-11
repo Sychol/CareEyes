@@ -23,6 +23,7 @@ import {
   Cat,
   XCircle,
   Plane,
+  ChevronDown,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
@@ -154,21 +155,21 @@ const ItemTypeIcon = ({ type }: { type: string }) => {
   switch (type) {
     case "차량":
     case "vehicle":
-      return <Car className="h-10 w-10 text-black" />;
+      return <Car className="h-8 w-8 sm:h-10 sm:w-10 text-black" />;
     case "사람":
     case "person":
-      return <User className="h-10 w-10 text-black" />;
+      return <User className="h-8 w-8 sm:h-10 sm:w-10 text-black" />;
     case "조류":
     case "bird":
-      return <Bird className="h-10 w-10 text-black" />;
+      return <Bird className="h-8 w-8 sm:h-10 sm:w-10 text-black" />;
     case "포유류":
     case "mammal":
-      return <Cat className="h-10 w-10 text-black" />;
+      return <Cat className="h-8 w-8 sm:h-10 sm:w-10 text-black" />;
     case "비행기":
     case "airplane":
-      return <Plane className="h-10 w-10 text-black" />;
+      return <Plane className="h-8 w-8 sm:h-10 sm:w-10 text-black" />;
     default:
-      return <XCircle className="h-10 w-10 text-black" />;
+      return <XCircle className="h-8 w-8 sm:h-10 sm:w-10 text-black" />;
   }
 };
 
@@ -189,11 +190,11 @@ const StatusBadge = ({
     <Badge
       className={
         manage === "미처리"
-          ? "bg-red-400 text-white py-2 px-2 w-20 text-center whitespace-nowrap flex items-center justify-center"
+          ? "bg-red-400 text-white py-1.5 sm:py-2 px-2 w-16 sm:w-20 text-center whitespace-nowrap flex items-center justify-center text-xs sm:text-sm"
           : manage === "처리중"
-          ? "bg-yellow-400 text-black py-2 px-2 w-20 text-center whitespace-nowrap flex items-center justify-center"
+          ? "bg-yellow-400 text-black py-1.5 sm:py-2 px-2 w-16 sm:w-20 text-center whitespace-nowrap flex items-center justify-center text-xs sm:text-sm"
           : manage === "처리완료"
-          ? "bg-green-400 text-white py-2 px-2 w-20 text-center whitespace-nowrap flex items-center justify-center"
+          ? "bg-green-400 text-white py-1.5 sm:py-2 px-2 w-16 sm:w-20 text-center whitespace-nowrap flex items-center justify-center text-xs sm:text-sm"
           : ""
       }
     >
@@ -217,15 +218,15 @@ const StatusChangePopup = ({
 }) => {
   if (!visible || !targetEvent) return null;
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 transition-all">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 transition-all p-4">
       <div
-        className="bg-white rounded-xl shadow-2xl border-2 border-primary/60 p-6 min-w-[240px] transition-all duration-200"
+        className="bg-white rounded-xl shadow-2xl border-2 border-primary/60 p-4 sm:p-6 w-full max-w-[280px] sm:min-w-[240px] transition-all duration-200"
         style={{
           boxShadow:
             "0 8px 24px rgba(60,60,100,0.18), 0 1.5px 6px rgba(70,120,180,0.10)",
         }}
       >
-        <div className="font-bold mb-3 text-black border-b pb-2 border-border/40">
+        <div className="font-bold mb-3 text-black border-b pb-2 border-border/40 text-sm sm:text-base">
           작업 상태 변경
         </div>
         {STATUS_ENUM.map((label, idx) => {
@@ -234,7 +235,7 @@ const StatusChangePopup = ({
           return (
             <button
               key={label}
-              className={`block w-full rounded-lg px-4 py-2 mb-2 text-left border-2 transition-all duration-150
+              className={`block w-full rounded-lg px-3 sm:px-4 py-2 mb-2 text-left border-2 transition-all duration-150 text-sm sm:text-base
                 ${
                   isCurrent
                     ? `${style.bg} text-black font-bold ${style.border}`
@@ -252,7 +253,7 @@ const StatusChangePopup = ({
           );
         })}
         <button
-          className="mt-2 w-full text-gray-400 hover:text-primary font-medium rounded-lg transition"
+          className="mt-2 w-full text-gray-400 hover:text-primary font-medium rounded-lg transition text-sm sm:text-base"
           onClick={onClose}
           style={{ background: "none", border: "none" }}
         >
@@ -277,6 +278,7 @@ const AirportDashboard = () => {
     "general" | "emergency" | "none"
   >("general");
   const [filterStatus, setFilterStatus] = useState<string>("all");
+  const [showFilterDropdown, setShowFilterDropdown] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<DetectionEvent | null>(
     null
   );
@@ -362,6 +364,75 @@ const AirportDashboard = () => {
       });
   }, [toast]);
 
+  // 드롭다운 외부 클릭 감지
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Element;
+      if (!target.closest('.filter-container')) {
+        setShowFilterDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  // 사용자 정보 갱신 함수
+  const fetchUserInfo = () => {
+    const axiosInstance = axios.create({
+      headers: {
+        'Cache-Control': 'no-cache, no-store, must-revalidate, max-age=0',
+        'Pragma': 'no-cache',
+        'Expires': '0',
+        'If-Modified-Since': '0',
+        'If-None-Match': '0',
+        'X-Requested-With': 'XMLHttpRequest'
+      }
+    });
+
+    // 항상 userinfo API를 사용하여 현재 사용자의 최신 상태를 가져옴
+    axiosInstance
+      .get("/api/member/userinfo", { 
+        withCredentials: true,
+        // URL에 타임스탬프와 랜덤 값 추가하여 캐시 무효화
+        params: {
+          _t: Date.now(),
+          _v: Math.random().toString(36).substring(7),
+          _r: Math.random().toString(36).substring(7)
+        }
+      })
+      .then((res) => {
+        const userInfo = res.data;
+        if (userInfo && userInfo.memberName) {
+          const newAlertState = userInfo.alertState;
+          console.log("서버에서 받은 alertState:", newAlertState);
+          console.log("현재 로컬 alertState:", userData.ALERT_STATE);
+          
+          // 상태가 실제로 변경되었는지 확인
+          if (Number(userData.ALERT_STATE) !== newAlertState) {
+            console.log("alertState 변경 감지:", userData.ALERT_STATE, "->", newAlertState);
+            setUserData({
+              MEMBER_NAME: userInfo.memberName,
+              DEPARTMENT: userInfo.department,
+              MEMBER_ID: userInfo.memberId,
+              ALERT_STATE: newAlertState,
+              KAKAO_ID: userInfo.kakaoId,
+            });
+            // alertState에 따라 알림 상태 설정
+            setSelectedNotification(newAlertState === 1 ? "general" : "emergency");
+          } else {
+            console.log("alertState 변경 없음:", newAlertState);
+          }
+        }
+      })
+      .catch((error) => {
+        console.error("사용자 정보 갱신 실패:", error);
+        // 에러 발생 시 현재 상태 유지
+      });
+  };
+
   // 2. 이벤트 리스트 불러오기 (10초마다 갱신)
   useEffect(() => {
     const fetchEvents = () => {
@@ -394,44 +465,6 @@ const AirportDashboard = () => {
             `,
             duration: 1500,
           });
-        });
-    };
-
-    // 사용자 정보 갱신 함수
-    const fetchUserInfo = () => {
-      // 항상 userinfo API를 사용하여 현재 사용자의 최신 상태를 가져옴
-      axios
-        .get("/api/member/userinfo", { 
-          withCredentials: true,
-          headers: {
-            'Cache-Control': 'no-cache, no-store, must-revalidate',
-            'Pragma': 'no-cache',
-            'Expires': '0'
-          },
-          // URL에 타임스탬프 추가하여 캐시 무효화
-          params: {
-            _t: Date.now()
-          }
-        })
-        .then((res) => {
-          const userInfo = res.data;
-          if (userInfo && userInfo.memberName) {
-            const newAlertState = userInfo.alertState;
-            console.log("서버에서 받은 alertState:", newAlertState);
-            setUserData({
-              MEMBER_NAME: userInfo.memberName,
-              DEPARTMENT: userInfo.department,
-              MEMBER_ID: userInfo.memberId,
-              ALERT_STATE: newAlertState,
-              KAKAO_ID: userInfo.kakaoId,
-            });
-            // alertState에 따라 알림 상태 설정
-            setSelectedNotification(newAlertState === 1 ? "general" : "emergency");
-          }
-        })
-        .catch((error) => {
-          console.error("사용자 정보 갱신 실패:", error);
-          // 에러 발생 시 현재 상태 유지
         });
     };
 
@@ -522,6 +555,8 @@ const AirportDashboard = () => {
     try {
       if (!userData.MEMBER_ID) throw new Error("사용자 ID가 없습니다.");
 
+      console.log("알림 상태 변경 요청 시작 - 현재 alertState:", userData.ALERT_STATE, "새로운 상태:", newKey);
+
       let response;
       if (newKey === "general") {
         // 알림받기 활성화
@@ -550,44 +585,29 @@ const AirportDashboard = () => {
 
       // 서버 응답 확인 후 상태 업데이트
       if (response.data && response.data.success !== false) {
+        console.log("알림 상태 변경 API 응답 성공:", response.data);
+        
+        // 로컬 상태 즉시 업데이트
         setSelectedNotification(newKey);
-        setUserData((prev) =>
-          prev ? { ...prev, ALERT_STATE: newKey === "general" ? 1 : 0 } : prev
-        );
+        setUserData((prev) => {
+          if (prev) {
+            const newAlertState = newKey === "general" ? 1 : 0;
+            console.log("로컬 상태 업데이트:", prev.ALERT_STATE, "->", newAlertState);
+            return { ...prev, ALERT_STATE: newAlertState };
+          }
+          return prev;
+        });
         setShowPausePopup(false);
 
-        // 상태 변경 후 즉시 서버에서 최신 상태 확인
+        // 즉시 서버에서 최신 상태 확인 (여러 번 시도)
+        console.log("fetchUserInfo 호출 시작");
+        fetchUserInfo();
+        
+        // 추가로 1초 후에도 한 번 더 확인
         setTimeout(() => {
-          axios
-            .get("/api/member/userinfo", { 
-              withCredentials: true,
-              headers: {
-                'Cache-Control': 'no-cache, no-store, must-revalidate',
-                'Pragma': 'no-cache',
-                'Expires': '0'
-              },
-              params: {
-                _t: Date.now()
-              }
-            })
-            .then((res) => {
-              const userInfo = res.data;
-              if (userInfo && userInfo.memberName) {
-                console.log("상태 변경 후 서버 상태 확인:", userInfo.alertState);
-                setUserData({
-                  MEMBER_NAME: userInfo.memberName,
-                  DEPARTMENT: userInfo.department,
-                  MEMBER_ID: userInfo.memberId,
-                  ALERT_STATE: userInfo.alertState,
-                  KAKAO_ID: userInfo.kakaoId,
-                });
-                setSelectedNotification(userInfo.alertState === 1 ? "general" : "emergency");
-              }
-            })
-            .catch((error) => {
-              console.error("상태 변경 후 확인 실패:", error);
-            });
-        }, 1000); // 1초 후 확인
+          console.log("1초 후 추가 fetchUserInfo 호출");
+          fetchUserInfo();
+        }, 1000);
 
         toast({
           title: `알림 상태 변경됨`,
@@ -630,6 +650,8 @@ const AirportDashboard = () => {
     try {
       if (!userData.MEMBER_ID) throw new Error("사용자 ID가 없습니다.");
 
+      console.log("일시정지 요청 시작 - 현재 alertState:", userData.ALERT_STATE);
+
       const response = await axios.post(`/api/member/pause-alert`, {
         memberId: userData.MEMBER_ID,
         alertState: 0, // 일시정지 상태
@@ -644,42 +666,28 @@ const AirportDashboard = () => {
 
       // 서버 응답 확인 후 상태 업데이트
       if (response.data && response.data.success !== false) {
+        console.log("일시정지 API 응답 성공:", response.data);
+        
+        // 로컬 상태 즉시 업데이트
         setSelectedNotification("emergency");
-        setUserData((prev) => (prev ? { ...prev, ALERT_STATE: 0 } : prev));
+        setUserData((prev) => {
+          if (prev) {
+            console.log("로컬 상태 업데이트:", prev.ALERT_STATE, "->", 0);
+            return { ...prev, ALERT_STATE: 0 };
+          }
+          return prev;
+        });
         setShowPausePopup(false);
 
-        // 일시정지 설정 후 즉시 서버에서 최신 상태 확인
+        // 즉시 서버에서 최신 상태 확인 (여러 번 시도)
+        console.log("fetchUserInfo 호출 시작");
+        fetchUserInfo();
+        
+        // 추가로 1초 후에도 한 번 더 확인
         setTimeout(() => {
-          axios
-            .get("/api/member/userinfo", { 
-              withCredentials: true,
-              headers: {
-                'Cache-Control': 'no-cache, no-store, must-revalidate',
-                'Pragma': 'no-cache',
-                'Expires': '0'
-              },
-              params: {
-                _t: Date.now()
-              }
-            })
-            .then((res) => {
-              const userInfo = res.data;
-              if (userInfo && userInfo.memberName) {
-                console.log("일시정지 후 서버 상태 확인:", userInfo.alertState);
-                setUserData({
-                  MEMBER_NAME: userInfo.memberName,
-                  DEPARTMENT: userInfo.department,
-                  MEMBER_ID: userInfo.memberId,
-                  ALERT_STATE: userInfo.alertState,
-                  KAKAO_ID: userInfo.kakaoId,
-                });
-                setSelectedNotification(userInfo.alertState === 1 ? "general" : "emergency");
-              }
-            })
-            .catch((error) => {
-              console.error("일시정지 후 상태 확인 실패:", error);
-            });
-        }, 1000); // 1초 후 확인
+          console.log("1초 후 추가 fetchUserInfo 호출");
+          fetchUserInfo();
+        }, 1000);
 
         toast({
           title: "일시정지 설정 완료",
@@ -740,82 +748,83 @@ const AirportDashboard = () => {
   // =================== UI ===================
   return (
     <div className="h-screen overflow-y-auto bg-gradient-to-br from-background via-background to-primary/5 flex justify-center">
-      <div
-        className="w-full max-w-[430px] min-h-[932px] p-4 space-y-2"
-        style={{ width: "430px", minWidth: "430px" }}
-      >
+      <div className="w-full max-w-[430px] min-h-[932px] p-3 sm:p-4 space-y-3 sm:space-y-2">
         {/* 프로필/환경설정 */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <Avatar className="h-12 w-12 ring-2 ring-primary/20">
-              <AvatarImage src={profileMan1} />
-              <AvatarFallback className="bg-primary text-primary-foreground font-semibold">
-                {userData.MEMBER_NAME
-                  ? userData.MEMBER_NAME.slice(0, 2)
-                  : "한경"}
-              </AvatarFallback>
-            </Avatar>
-            <div>
-              <h1 className="text-xl font-bold text-foreground">
-                {userData.MEMBER_NAME}
-              </h1>
-              <p className="text-sm text-muted-foreground">
-                {userData.DEPARTMENT}
-              </p>
+        <div className="shadow-soft border-0 bg-card/50 backdrop-blur-sm rounded-xl pt-8 pb-4 px-4">
+          <div className="flex items-center justify-between w-full">
+            <div className="flex items-center space-x-2 flex-1 min-w-0">
+              <Avatar className="h-10 w-10 sm:h-12 sm:w-12 ring-2 ring-primary/20 flex-shrink-0">
+                <AvatarImage src={profileMan1} />
+                <AvatarFallback className="bg-primary text-primary-foreground font-semibold text-sm sm:text-base">
+                  {userData.MEMBER_NAME
+                    ? userData.MEMBER_NAME.slice(0, 2)
+                    : "한경"}
+                </AvatarFallback>
+              </Avatar>
+              <div className="flex-1 min-w-0 ml-2">
+                <h1 className="text-base sm:text-lg font-bold text-foreground truncate">
+                  {userData.MEMBER_NAME}
+                </h1>
+                <p className="text-xs sm:text-sm text-muted-foreground truncate">
+                  {userData.DEPARTMENT}
+                </p>
+              </div>
+            </div>
+            <div className="flex-shrink-0 ml-2">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="rounded-full shadow-soft h-9 w-9 sm:h-10 sm:w-10"
+                  >
+                    <Settings className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+
+                <DropdownMenuContent
+                  className="w-40 sm:w-48 bg-white shadow-md rounded-md"
+                  align="end"
+                  forceMount
+                >
+                  <DropdownMenuItem
+                    onClick={() => navigate("/profile")}
+                    className="hover:bg-primary/20 cursor-pointer transition-colors duration-150 rounded-md flex items-center text-sm"
+                  >
+                    <User className="mr-2 h-4 w-4" />
+                    <span>Profile</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    onClick={handleSignOut}
+                    className="hover:bg-primary/20 cursor-pointer transition-colors duration-150 rounded-md flex items-center text-sm"
+                  >
+                    <Settings className="mr-2 h-4 w-4" />
+                    <span>Logout</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="outline"
-                size="icon"
-                className="rounded-full shadow-soft"
-              >
-                <Settings className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-
-            <DropdownMenuContent
-              className="w-48 bg-white shadow-md rounded-md"
-              align="end"
-              forceMount
-            >
-              <DropdownMenuItem
-                onClick={() => navigate("/profile")}
-                className="hover:bg-primary/20 cursor-pointer transition-colors duration-150 rounded-md flex items-center"
-              >
-                <User className="mr-2 h-4 w-4" />
-                <span>Profile</span>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onClick={handleSignOut}
-                className="hover:bg-primary/20 cursor-pointer transition-colors duration-150 rounded-md flex items-center"
-              >
-                <Settings className="mr-2 h-4 w-4" />
-                <span>Logout</span>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
         </div>
 
         {/* 알림 설정 카드 */}
         <Card className="shadow-soft border-0 bg-card/50 backdrop-blur-sm">
-          <CardHeader className="pb-4">
-            <CardTitle className="flex items-center space-x-2 text-lg">
-              <Bell className="h-5 w-5 text-primary" />
+          <CardHeader className="pb-3 sm:pb-4">
+            <CardTitle className="flex items-center space-x-2 text-base sm:text-lg">
+              <Bell className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
               <span>알림 설정</span>
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+          <CardContent className="space-y-3 sm:space-y-4">
+            <div className="grid grid-cols-2 gap-3 sm:gap-4">
               {NOTIFICATION_TYPES.map(
                 ({ key, label, bg, text, icon: Icon }) => {
                   const selected = selectedNotification === key;
                   return (
                     <div
                       key={key}
-                      className={`flex flex-col items-center space-y-2 p-4 rounded-xl cursor-pointer transition-all
+                      className={`flex flex-col items-center space-y-2 p-3 sm:p-4 rounded-xl cursor-pointer transition-all
                         ${
                           selected
                             ? `${bg} text-white border-2 border-[${bg.replace(
@@ -839,10 +848,10 @@ const AirportDashboard = () => {
                       }}
                     >
                       <Icon
-                        className={`h-8 w-8 ${selected ? "text-white" : text}`}
+                        className={`h-6 w-6 sm:h-8 sm:w-8 ${selected ? "text-white" : text}`}
                       />
                       <span
-                        className={`text-sm font-medium ${
+                        className={`text-xs sm:text-sm font-medium ${
                           selected ? "text-white" : text
                         }`}
                       >
@@ -858,58 +867,84 @@ const AirportDashboard = () => {
 
         {/* 이상물체 탐지 알림 내역 */}
         <Card className="shadow-soft border-0 bg-card/50 backdrop-blur-sm">
-          <CardHeader className="pb-4">
+          <CardHeader className="pb-3 sm:pb-4">
             <div className="flex items-center justify-between">
-              <CardTitle className="flex items-center space-x-2 text-lg">
+              <CardTitle className="flex items-center space-x-2 text-base sm:text-lg">
                 <span>이상물체 탐지 알림 내역</span>
               </CardTitle>
-              <div className="flex items-center space-x-2">
-                <Filter className="h-2 w-4 text-muted-foreground" />
-                <select
-                  value={filterStatus}
-                  onChange={(e) => setFilterStatus(e.target.value)}
-                  className="text-sm border rounded-md px-2 py-1 bg-background border-border focus:ring-2 focus:ring-primary/20 focus:border-primary"
+              <div className="relative filter-container">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-2"
+                  onClick={() => setShowFilterDropdown((prev) => !prev)}
                 >
-                  <option value="all">전체</option>
-                  {STATUS_ENUM.map((status) => (
-                    <option key={status} value={status}>
-                      {status}
-                    </option>
-                  ))}
-                </select>
+                  <Filter className="w-4 h-4" />
+                  {filterStatus === "all" ? "전체" : filterStatus}
+                  <ChevronDown className="w-4 h-4" />
+                </Button>
+                {showFilterDropdown && (
+                  <div className="absolute right-0 z-10 mt-2 bg-white border rounded-md shadow-lg w-56">
+                    <button
+                      className={`w-full px-4 py-2 text-left text-sm hover:bg-gray-100 ${
+                        filterStatus === "all" ? "bg-gray-100 font-semibold" : ""
+                      }`}
+                      onClick={() => {
+                        setFilterStatus("all");
+                        setShowFilterDropdown(false);
+                      }}
+                    >
+                      전체
+                    </button>
+                    {STATUS_ENUM.map((status) => (
+                      <button
+                        key={status}
+                        className={`w-full px-4 py-2 text-left text-sm hover:bg-gray-100 ${
+                          filterStatus === status ? "bg-gray-100 font-semibold" : ""
+                        }`}
+                        onClick={() => {
+                          setFilterStatus(status);
+                          setShowFilterDropdown(false);
+                        }}
+                      >
+                        {status}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3 max-h-[265px] overflow-y-auto">
+            <div className="space-y-2 sm:space-y-3 max-h-[265px] overflow-y-auto">
               {filteredEvents.map((ev, index) => {
                 const firstItemType = ev.ITEMS?.[0]?.ITEM_TYPE;
                 return (
                   <div
                     key={`${ev.EVENT_ID}-${firstItemType}-${index}`}
                     className={[
-                      "flex items-center p-4 rounded-xl border cursor-pointer transition-colors h-20",
+                      "flex items-center p-3 sm:p-4 rounded-xl border cursor-pointer transition-colors h-16 sm:h-20",
                       selectedEvent?.EVENT_ID === ev.EVENT_ID
                         ? "bg-primary/10 border-primary/30"
                         : "bg-background/50 border-border/50 hover:bg-accent/50",
                     ].join(" ")}
                     onClick={() => handleEventSelect(ev)}
                   >
-                    <div className="flex items-center space-x-4 w-full h-full">
+                    <div className="flex items-center space-x-3 sm:space-x-4 w-full h-full">
                       <div className="flex-shrink-0">
                         {firstItemType && <ItemTypeIcon type={firstItemType} />}
                       </div>
                       <div className="flex-1 min-w-0 h-full flex items-center">
                         <div className="flex items-center justify-between w-full">
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium text-foreground truncate">
+                            <p className="text-xs sm:text-sm font-medium text-foreground truncate">
                               위치: {ev.LOCATION} - {ev.CCTV_ID}
                             </p>
                             <p className="text-xs text-muted-foreground mt-1 truncate">
                               일시: {ev.EVENT_DATE} {ev.EVENT_TIME}
                             </p>
                           </div>
-                          <div className="flex-shrink-0 ml-4">
+                          <div className="flex-shrink-0 ml-2 sm:ml-4">
                             <StatusBadge
                               manage={ev.MANAGE}
                               onClick={() => setStatusPopupTarget(ev)}
@@ -942,10 +977,10 @@ const AirportDashboard = () => {
 
         {/* 일시정지 팝업 */}
         {showPausePopup && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 transition-all">
-            <div className="bg-white rounded-xl shadow-2xl border-2 border-primary/60 p-6 min-w-[280px] transition-all duration-200">
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 transition-all p-4">
+            <div className="bg-white rounded-xl shadow-2xl border-2 border-primary/60 p-4 sm:p-6 w-full max-w-[320px] sm:min-w-[280px] transition-all duration-200">
               <div className="flex items-center justify-between mb-4">
-                <div className="font-bold text-lg text-black">
+                <div className="font-bold text-base sm:text-lg text-black">
                   일시정지 시간 선택
                 </div>
                 <button
@@ -960,7 +995,7 @@ const AirportDashboard = () => {
                   ×
                 </button>
               </div>
-              <div className="space-y-3">
+              <div className="space-y-2 sm:space-y-3">
                 {[
                   { label: "10분", minutes: 10 },
                   { label: "30분", minutes: 30 },
@@ -970,18 +1005,18 @@ const AirportDashboard = () => {
                 ].map(({ label, minutes }) => (
                   <button
                     key={minutes}
-                    className="block w-full rounded-lg px-4 py-3 text-left border-2 transition-all duration-150 bg-white text-black border-gray-200 hover:bg-primary/10 hover:border-primary/30"
+                    className="block w-full rounded-lg px-3 sm:px-4 py-2 sm:py-3 text-left border-2 transition-all duration-150 bg-white text-black border-gray-200 hover:bg-primary/10 hover:border-primary/30"
                     onClick={() => handlePauseAlert(minutes)}
                   >
-                    <div className="font-medium">{label}</div>
-                    <div className="text-sm text-gray-500">
+                    <div className="font-medium text-sm sm:text-base">{label}</div>
+                    <div className="text-xs sm:text-sm text-gray-500">
                       알림이 일시정지됩니다
                     </div>
                   </button>
                 ))}
               </div>
               <button
-                className="mt-4 w-full text-gray-400 hover:text-primary font-medium rounded-lg transition py-2"
+                className="mt-3 sm:mt-4 w-full text-gray-400 hover:text-primary font-medium rounded-lg transition py-2 text-sm sm:text-base"
                 onClick={() => setShowPausePopup(false)}
                 style={{ background: "none", border: "none" }}
               >
@@ -996,9 +1031,9 @@ const AirportDashboard = () => {
           ref={cctvSectionRef}
           className="shadow-soft border-0 bg-card/50 backdrop-blur-sm"
         >
-          <CardHeader className="pb-4">
-            <CardTitle className="flex items-center space-x-2 text-lg">
-              <Monitor className="h-5 w-5 text-primary" />
+          <CardHeader className="pb-3 sm:pb-4">
+            <CardTitle className="flex items-center space-x-2 text-base sm:text-lg">
+              <Monitor className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
               <span>
                 {selectedEvent
                   ? `${
@@ -1009,7 +1044,7 @@ const AirportDashboard = () => {
                   : "이상물체 탐지현황"}
               </span>
             </CardTitle>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-xs sm:text-sm text-muted-foreground">
               {selectedEvent
                 ? ""
                 : "알림 선택시 이상물체 탐지 이미지를 볼 수 있습니다"}
@@ -1032,7 +1067,7 @@ const AirportDashboard = () => {
                           )}`
                     }
                     alt={`${selectedEvent.CCTV_ID} 이미지`}
-                    className="rounded-xl w-full h-64 object-cover bg-black"
+                    className="rounded-xl w-full h-48 sm:h-64 object-cover bg-black"
                   />
                   {selectedEvent.ITEMS?.length > 0 && (
                     <div
@@ -1044,7 +1079,7 @@ const AirportDashboard = () => {
                         color: "white",
                         paddingLeft: 12,
                         paddingRight: 12,
-                        fontSize: 20,
+                        fontSize: "clamp(16px, 4vw, 20px)",
                         textShadow: "0 0 5px rgba(0,0,0,0.85)",
                         backgroundColor: "transparent",
                         borderRadius: 0,
@@ -1061,8 +1096,8 @@ const AirportDashboard = () => {
                   )}
                 </>
               ) : (
-                <div className="w-full h-64 flex items-center justify-center bg-muted/20">
-                  <p className="text-muted-foreground">
+                <div className="w-full h-48 sm:h-64 flex items-center justify-center bg-muted/20">
+                  <p className="text-xs sm:text-sm text-muted-foreground text-center px-4">
                     목록 선택시 이미지 표시 가능합니다
                   </p>
                 </div>
