@@ -75,23 +75,25 @@ public class SecurityConfig {
 			.formLogin(AbstractHttpConfigurer::disable)
 			.httpBasic(AbstractHttpConfigurer::disable)
 			
-			.authorizeHttpRequests((request)
-					// 람다식 기술(권한에 대한 설정 진행 메서드)
-					// 포워드 방식으로 이동한 요청 허용
-					-> request.dispatcherTypeMatchers(DispatcherType.FORWARD)
-					// 포워드 방식으로 이동한 요청은 인증 없이 이동 허용
-					.permitAll()
-					// 특정 URL에 대해서는 인증받지 않더라도 접근 허용
-//					.requestMatchers("/join", "/join-process").permitAll()
-					.requestMatchers("/api/**").permitAll()
-					.requestMatchers("/oauth/**").permitAll()
-					.requestMatchers("/kakao/**").permitAll()
-					// 특정 권한에 따라서 부여되는 페이지 접근 권한
-					.requestMatchers("/admin").hasRole("관리자")
-					.requestMatchers("/user").hasRole("사용자")
-					//어떤 요청이 들어와도 인증 받도록 함
-					.anyRequest().authenticated()
-				)
+			.authorizeHttpRequests(req -> req.anyRequest().permitAll())
+//					// 람다식 기술(권한에 대한 설정 진행 메서드)
+//					// 포워드 방식으로 이동한 요청 허용
+//					-> request.dispatcherTypeMatchers(DispatcherType.FORWARD)
+//					// 포워드 방식으로 이동한 요청은 인증 없이 이동 허용
+//					.permitAll()
+//					// 특정 URL에 대해서는 인증받지 않더라도 접근 허용
+////					.requestMatchers("/join", "/join-process").permitAll()
+//					 .dispatcherTypeMatchers(DispatcherType.FORWARD, DispatcherType.ERROR).permitAll() // ✅ 추가
+//					.requestMatchers("/api/**").permitAll()
+//					.requestMatchers("/oauth/**").permitAll()
+//					.requestMatchers("/kakao/**").permitAll()
+//					.requestMatchers("/error").permitAll()
+//					// 특정 권한에 따라서 부여되는 페이지 접근 권한
+//					.requestMatchers("/admin").hasRole("관리자")
+//					.requestMatchers("/user").hasRole("사용자")
+//					//어떤 요청이 들어와도 인증 받도록 함
+//					.anyRequest().authenticated()
+//				)
 
 		
 			.logout(AbstractHttpConfigurer::disable);
