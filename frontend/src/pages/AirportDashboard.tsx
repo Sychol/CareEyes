@@ -624,9 +624,6 @@ const AirportDashboard = () => {
           console.log("1초 후 추가 fetchUserInfo 호출");
           fetchUserInfo();
         }, 1000);
-          console.log("1초 후 추가 fetchUserInfo 호출");
-          fetchUserInfo();
-        }, 1000);
 
         toast({
           title: `알림 상태 변경됨`,
@@ -671,8 +668,6 @@ const AirportDashboard = () => {
 
       console.log("일시정지 요청 시작 - 현재 alertState:", userData.ALERT_STATE);
 
-      console.log("일시정지 요청 시작 - 현재 alertState:", userData.ALERT_STATE);
-
       const response = await axios.post(`/api/member/pause-alert`, {
         memberId: userData.MEMBER_ID,
         alertState: 0, // 일시정지 상태
@@ -687,9 +682,6 @@ const AirportDashboard = () => {
 
       // 서버 응답 확인 후 상태 업데이트
       if (response.data && response.data.success !== false) {
-        console.log("일시정지 API 응답 성공:", response.data);
-        
-        // 로컬 상태 즉시 업데이트
         console.log("일시정지 API 응답 성공:", response.data);
         
         // 로컬 상태 즉시 업데이트
@@ -721,9 +713,6 @@ const AirportDashboard = () => {
         
         // 추가로 1초 후에도 한 번 더 확인
         setTimeout(() => {
-          console.log("1초 후 추가 fetchUserInfo 호출");
-          fetchUserInfo();
-        }, 1000);
           console.log("1초 후 추가 fetchUserInfo 호출");
           fetchUserInfo();
         }, 1000);
