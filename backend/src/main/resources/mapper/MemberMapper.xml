@@ -73,11 +73,18 @@
 		WHERE MEMBER_ROLE = 'WORKER'
 	</select>
 	
-	<!-- 알림 일시정지 -->
+	<!-- 알림 일시정지 (시간 설정 O)-->
 	<update id="pauseAlert">
 	    UPDATE MEMBERS
 	    SET ALERT_STATE = #{alertState},
 	        PAUSE_EXPIRE_TIME = #{expireTime}
+	    WHERE MEMBER_ID = #{memberId}
+	</update>
+	
+	<!-- 알림 일시정지 (시간 설정 X)-->
+	<update id="pauseAlertForever">
+	    UPDATE MEMBERS
+	    SET ALERT_STATE = #{alertState}
 	    WHERE MEMBER_ID = #{memberId}
 	</update>
 

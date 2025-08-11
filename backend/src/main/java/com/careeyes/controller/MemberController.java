@@ -93,11 +93,13 @@ public class MemberController {
 	            Map.entry("company", loginMember.getCompany()),
 	            Map.entry("alertState", loginMember.getAlertState()),
 	            Optional.ofNullable(loginMember.getKakaoId())
-	                    .map(id -> Map.entry("kakaoId", id))
-	                    .orElse(null)
-	        )
-	        .filter(Objects::nonNull) // null (예: kakaoId=null) 제거
-	        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+                .map(id -> Map.entry("kakaoId", id))
+                .orElse(null)
+			    )
+			    .filter(Objects::nonNull) // null (예: kakaoId=null) 제거
+			    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+	    
+	    result.putIfAbsent("kakaoId", null);
 
 	    return ResponseEntity.ok(result);
 	}
@@ -162,6 +164,8 @@ public class MemberController {
 	        }
 
 	        memberMapper.updateKakaoId(loginMember.getMemberId(), kakaoId);
+	        Members updated = memberMapper.findById(loginMember.getMemberId());
+	        session.setAttribute("loginMember", updated);
 	        return ResponseEntity.ok("카카오 계정 연동 완료");
 	    } catch (Exception e) {
 	        e.printStackTrace();
@@ -170,8 +174,13 @@ public class MemberController {
 	}
 	
 	@PatchMapping("/kakao/disconnect")
-	public ResponseEntity<?> disconnectKakao(@RequestParam String memberId) {
+	public ResponseEntity<?> disconnectKakao(@RequestParam String memberId, HttpSession session) {
 	    memberMapper.disconnectKakao(memberId);
+	    Members loginMember = (Members) session.getAttribute("loginMember");
+	    if (loginMember != null && memberId.equals(loginMember.getMemberId())) {
+	        loginMember.setKakaoId(null); // 세션 객체에서도 null 처리
+	        session.setAttribute("loginMember", loginMember);
+	    }
 	    return ResponseEntity.ok(Map.of("message", "카카오 연동이 해제되었습니다."));
 	}
 	
@@ -196,6 +205,20 @@ public class MemberController {
 	    memberMapper.pauseAlert(memberId, 0, Timestamp.valueOf(expireTime));  // alertState 0으로 설정
 
 	    return ResponseEntity.ok(Map.of("message", "알림이 " + pauseMinutes + "분간 일시정지 됩니다."));
+	}
+	
+	// 알림 일시정지
+	@PostMapping("/pause-alert-forever")
+	public ResponseEntity<?> pauseAlertForever(@RequestBody Map<String, Object> body) {
+		String memberId = (String) body.get("memberId");
+		
+		if (memberId == null) {
+			return ResponseEntity.badRequest().body("잘못된 요청입니다.");
+		}
+		
+		memberMapper.pauseAlertForever(memberId, 0);
+		
+		return ResponseEntity.ok(Map.of("message", "알림이 " + "일시정지 됩니다."));
 	}
 	
 	// 알림 재개

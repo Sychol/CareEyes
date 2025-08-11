@@ -1,6 +1,6 @@
 // 회원 정보 페이지 v1.9
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useProfileManagement } from '../hooks/useProfileManagement';
 
 // 이미지 에셋 import
@@ -50,6 +50,7 @@ const Profile = () => {
         handleGoogleConnect,
         handleGoogleDisconnect,
         handleWithdrawal,
+        fetchUserProfile,
     } = useProfileManagement();
     
     // 현재 비밀번호 표시 상태 관리
@@ -65,6 +66,10 @@ const Profile = () => {
     const toggleCurrentPasswordVisibility = () => {
         setShowCurrentPassword(!showCurrentPassword);
     };
+
+    useEffect(() => {
+    fetchUserProfile(); // ✅ 페이지 진입 시 항상 최신 정보로
+    }, []);
 
     /**
      * @function handleSubmit
@@ -118,7 +123,7 @@ const Profile = () => {
                                 <img src={KakaoLogo} alt="카카오 로고" className="w-8 h-8" />
                                 <span className="text-base font-medium text-gray-700">카카오</span>
                             </div>
-                            {profile.kakaoId != null ? (    
+                            {profile.kakaoId != null && profile.kakaoId !== undefined ?(    
                                 <button
                                     type="button"
                                     className="px-5 py-2 bg-red-600 text-white border-none rounded-lg cursor-pointer text-base font-medium transition duration-300 ease-in-out whitespace-nowrap hover:bg-red-700"

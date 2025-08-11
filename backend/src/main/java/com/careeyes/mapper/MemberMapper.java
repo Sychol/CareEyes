@@ -31,6 +31,9 @@ public interface MemberMapper {
             	@Param("alertState") int alertState,
             	@Param("expireTime") Timestamp expireTime);
 	
+	public void pauseAlertForever(@Param("memberId") String memberId,
+        	@Param("alertState") int alertState);
+	
 	public void resumeAlert(@Param("memberId") String memberId,
             	@Param("alertState") int alertState);
 	

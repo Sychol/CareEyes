@@ -61,7 +61,7 @@ export const AlertTable = () => {
 
     const request =
       currentState === 1
-        ? axios.post("/api/member/pause-alert", { memberId, pauseMinutes: 10   })
+        ? axios.post("/api/member/pause-alert-forever", { memberId })
         : axios.post("/api/member/resume-alert", { memberId });
 
     request

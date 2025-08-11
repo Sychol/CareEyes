@@ -141,8 +141,8 @@ const mapApiEvent = (apiEvent) => ({
       ? apiEvent.manage === 0
         ? "미처리"
         : apiEvent.manage === 1
-          ? "처리중"
-          : "처리완료"
+        ? "처리중"
+        : "처리완료"
       : apiEvent.MANAGE ?? "미처리",
   ITEMS: apiEvent.itemType
     ? [{ ITEM_TYPE: apiEvent.itemType, ITEM_COUNT: apiEvent.itemCount }]
@@ -191,10 +191,10 @@ const StatusBadge = ({
         manage === "미처리"
           ? "bg-red-400 text-white py-2 px-2 w-20 text-center whitespace-nowrap flex items-center justify-center"
           : manage === "처리중"
-            ? "bg-yellow-400 text-black py-2 px-2 w-20 text-center whitespace-nowrap flex items-center justify-center"
-            : manage === "처리완료"
-              ? "bg-green-400 text-white py-2 px-2 w-20 text-center whitespace-nowrap flex items-center justify-center"
-              : ""
+          ? "bg-yellow-400 text-black py-2 px-2 w-20 text-center whitespace-nowrap flex items-center justify-center"
+          : manage === "처리완료"
+          ? "bg-green-400 text-white py-2 px-2 w-20 text-center whitespace-nowrap flex items-center justify-center"
+          : ""
       }
     >
       {manage}
@@ -235,9 +235,10 @@ const StatusChangePopup = ({
             <button
               key={label}
               className={`block w-full rounded-lg px-4 py-2 mb-2 text-left border-2 transition-all duration-150
-                ${isCurrent
-                  ? `${style.bg} text-black font-bold ${style.border}`
-                  : `bg-white text-black border-gray-200 ${style.hover}`
+                ${
+                  isCurrent
+                    ? `${style.bg} text-black font-bold ${style.border}`
+                    : `bg-white text-black border-gray-200 ${style.hover}`
                 }`}
               onClick={() => onChange(idx)}
               disabled={isCurrent}
@@ -284,11 +285,20 @@ const AirportDashboard = () => {
     useState<DetectionEvent | null>(null);
   const [showPausePopup, setShowPausePopup] = useState(false);
 
-
   // 1. 로그인한 사용자 정보 가져오기 + ALERT_STATE 처리
   useEffect(() => {
     axios
-      .get(USER_INFO_API_URL, { withCredentials: true })
+      .get(USER_INFO_API_URL, { 
+        withCredentials: true,
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        },
+        params: {
+          _t: Date.now()
+        }
+      })
       .then((res) => {
         const userInfo = res.data;
         if (userInfo && userInfo.memberName) {
@@ -297,20 +307,11 @@ const AirportDashboard = () => {
             DEPARTMENT: userInfo.department,
             MEMBER_ID: userInfo.memberId,
             ALERT_STATE: userInfo.alertState, // 0/1 서버값 그대로
-            KAKAO_ID: userInfo.kakaoId // 카카오 연동 ID
+            KAKAO_ID: userInfo.kakaoId, // 카카오 연동 ID
           });
-          if (typeof userInfo.alertState === "number") {
-            // 사용자가 방금 일시정지 설정한 경우, 갱신 막기
-            setSelectedNotification((prev) => {
-              if (prev === "emergency" && userInfo.alertState === 1) {
-                // 강제로 유지
-                return "emergency";
-              }
-              return userInfo.alertState === 1 ? "general" : "emergency";
-            });
-          }
-
-
+          setSelectedNotification(
+            userInfo.alertState === 1 ? "general" : "emergency"
+          );
           toast({
             title: "로그인 성공",
             description: `${userInfo.memberName}님 환영합니다.`,
@@ -365,7 +366,13 @@ const AirportDashboard = () => {
   useEffect(() => {
     const fetchEvents = () => {
       axios
-        .get(API_URL)
+        .get(API_URL, {
+          headers: {
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0'
+          }
+        })
         .then((res) => {
           if (Array.isArray(res.data)) {
             setEvents(res.data.map(mapApiEvent));
@@ -392,28 +399,39 @@ const AirportDashboard = () => {
 
     // 사용자 정보 갱신 함수
     const fetchUserInfo = () => {
+      // 항상 userinfo API를 사용하여 현재 사용자의 최신 상태를 가져옴
       axios
-        .get(USER_INFO_API_URL)
+        .get("/api/member/userinfo", { 
+          withCredentials: true,
+          headers: {
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0'
+          },
+          // URL에 타임스탬프 추가하여 캐시 무효화
+          params: {
+            _t: Date.now()
+          }
+        })
         .then((res) => {
           const userInfo = res.data;
           if (userInfo && userInfo.memberName) {
+            const newAlertState = userInfo.alertState;
+            console.log("서버에서 받은 alertState:", newAlertState);
             setUserData({
               MEMBER_NAME: userInfo.memberName,
               DEPARTMENT: userInfo.department,
               MEMBER_ID: userInfo.memberId,
-              ALERT_STATE: userInfo.alertState,
+              ALERT_STATE: newAlertState,
+              KAKAO_ID: userInfo.kakaoId,
             });
-
-            // ✅ 이 조건만 유지해야 함
-            if (typeof userInfo.alertState === "number") {
-              setSelectedNotification(userInfo.alertState === 1 ? "general" : "emergency");
-            } else {
-              setSelectedNotification("general");
-            }
+            // alertState에 따라 알림 상태 설정
+            setSelectedNotification(newAlertState === 1 ? "general" : "emergency");
           }
         })
         .catch((error) => {
           console.error("사용자 정보 갱신 실패:", error);
+          // 에러 발생 시 현재 상태 유지
         });
     };
 
@@ -421,11 +439,11 @@ const AirportDashboard = () => {
     fetchEvents();
     fetchUserInfo();
 
-    // 120초마다 갱신
+    // 5초마다 갱신 (더 빠른 동기화)
     const interval = setInterval(() => {
       fetchEvents();
       fetchUserInfo();
-    }, 10000);
+    }, 5000);
 
     // 컴포넌트 언마운트 시 인터벌 정리
     return () => clearInterval(interval);
@@ -445,7 +463,13 @@ const AirportDashboard = () => {
   // 상태 변경 함수 (이상물체 처리 상태)
   const handleStatusChange = async (event: DetectionEvent, num: number) => {
     try {
-      await axios.patch(`/api/event/${event.EVENT_ID}/status`, { status: num });
+      await axios.patch(`/api/event/${event.EVENT_ID}/status`, { status: num }, {
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        }
+      });
       setEvents((prev) =>
         prev.map((ev) =>
           ev.EVENT_ID === event.EVENT_ID
@@ -495,44 +519,96 @@ const AirportDashboard = () => {
 
   // 알림 상태 변경 시 서버 동기화 함수
   const handleNotificationChange = async (newKey: "general" | "emergency") => {
-    setSelectedNotification(newKey);
-
     try {
       if (!userData.MEMBER_ID) throw new Error("사용자 ID가 없습니다.");
 
+      let response;
       if (newKey === "general") {
         // 알림받기 활성화
-        await axios.post(`/api/member/resume-alert`, {
+        response = await axios.post(`/api/member/resume-alert`, {
           memberId: userData.MEMBER_ID,
+        }, {
+          headers: {
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0'
+          }
         });
       } else {
         // 일시정지 설정
-        await axios.post(`/api/member/pause-alert`, {
+        response = await axios.post(`/api/member/pause-alert`, {
           memberId: userData.MEMBER_ID,
           alertState: 0, // 일시정지 상태
+        }, {
+          headers: {
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0'
+          }
         });
       }
 
-      setSelectedNotification(newKey);
-      setUserData((prev) => (prev ? { ...prev, ALERT_STATE: newKey === "general" ? 1 : 0 } : prev));
-      setShowPausePopup(false);
+      // 서버 응답 확인 후 상태 업데이트
+      if (response.data && response.data.success !== false) {
+        setSelectedNotification(newKey);
+        setUserData((prev) =>
+          prev ? { ...prev, ALERT_STATE: newKey === "general" ? 1 : 0 } : prev
+        );
+        setShowPausePopup(false);
 
-      toast({
-        title: `알림 상태 변경됨`,
-        description:
-          newKey === "general"
-            ? "알림받기가 활성화되었습니다."
-            : "일시정지가 설정되었습니다.",
-        className: `
-          fixed top-6 left-1/2 -translate-x-1/2 z-[9999]
-          min-w-[280px] max-w-[380px] w-[80vw]
-          rounded-xl shadow-2xl px-4 py-3
-          bg-white border-2 border-primary/60
-          text-black
-        `,
-        duration: 1500,
-      });
+        // 상태 변경 후 즉시 서버에서 최신 상태 확인
+        setTimeout(() => {
+          axios
+            .get("/api/member/userinfo", { 
+              withCredentials: true,
+              headers: {
+                'Cache-Control': 'no-cache, no-store, must-revalidate',
+                'Pragma': 'no-cache',
+                'Expires': '0'
+              },
+              params: {
+                _t: Date.now()
+              }
+            })
+            .then((res) => {
+              const userInfo = res.data;
+              if (userInfo && userInfo.memberName) {
+                console.log("상태 변경 후 서버 상태 확인:", userInfo.alertState);
+                setUserData({
+                  MEMBER_NAME: userInfo.memberName,
+                  DEPARTMENT: userInfo.department,
+                  MEMBER_ID: userInfo.memberId,
+                  ALERT_STATE: userInfo.alertState,
+                  KAKAO_ID: userInfo.kakaoId,
+                });
+                setSelectedNotification(userInfo.alertState === 1 ? "general" : "emergency");
+              }
+            })
+            .catch((error) => {
+              console.error("상태 변경 후 확인 실패:", error);
+            });
+        }, 1000); // 1초 후 확인
+
+        toast({
+          title: `알림 상태 변경됨`,
+          description:
+            newKey === "general"
+              ? "알림받기가 활성화되었습니다."
+              : "일시정지가 설정되었습니다.",
+          className: `
+            fixed top-6 left-1/2 -translate-x-1/2 z-[9999]
+            min-w-[280px] max-w-[380px] w-[80vw]
+            rounded-xl shadow-2xl px-4 py-3
+            bg-white border-2 border-primary/60
+            text-black
+          `,
+          duration: 1500,
+        });
+      } else {
+        throw new Error("서버에서 상태 변경을 거부했습니다.");
+      }
     } catch (err) {
+      console.error("알림 상태 변경 실패:", err);
       toast({
         title: "알림 상태 변경 실패",
         description: "서버 오류 또는 네트워크 문제입니다.",
@@ -554,31 +630,75 @@ const AirportDashboard = () => {
     try {
       if (!userData.MEMBER_ID) throw new Error("사용자 ID가 없습니다.");
 
-      await axios.post(`/api/member/pause-alert`, {
+      const response = await axios.post(`/api/member/pause-alert`, {
         memberId: userData.MEMBER_ID,
         alertState: 0, // 일시정지 상태
         pauseMinutes: minutes,
+      }, {
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        }
       });
 
-      setSelectedNotification("emergency");
-      setUserData((prev) => (prev ? { ...prev, ALERT_STATE: 0 } : prev));
-      setShowPausePopup(false);
+      // 서버 응답 확인 후 상태 업데이트
+      if (response.data && response.data.success !== false) {
+        setSelectedNotification("emergency");
+        setUserData((prev) => (prev ? { ...prev, ALERT_STATE: 0 } : prev));
+        setShowPausePopup(false);
 
-      toast({
-        title: "일시정지 설정 완료",
-        description:
-          minutes >= 60
-            ? `${Math.floor(minutes / 60)}시간 동안 알림이 일시정지됩니다.`
-            : `${minutes}분 동안 알림이 일시정지됩니다.`,
-        className: `
-    fixed top-6 left-1/2 -translate-x-1/2 z-[9999]
-    min-w-[280px] max-w-[380px] w-[80vw]
-    rounded-xl shadow-2xl px-4 py-3
-    bg-white border-2 border-primary/60
-    text-black
-  `,
-        duration: 1500,
-      });
+        // 일시정지 설정 후 즉시 서버에서 최신 상태 확인
+        setTimeout(() => {
+          axios
+            .get("/api/member/userinfo", { 
+              withCredentials: true,
+              headers: {
+                'Cache-Control': 'no-cache, no-store, must-revalidate',
+                'Pragma': 'no-cache',
+                'Expires': '0'
+              },
+              params: {
+                _t: Date.now()
+              }
+            })
+            .then((res) => {
+              const userInfo = res.data;
+              if (userInfo && userInfo.memberName) {
+                console.log("일시정지 후 서버 상태 확인:", userInfo.alertState);
+                setUserData({
+                  MEMBER_NAME: userInfo.memberName,
+                  DEPARTMENT: userInfo.department,
+                  MEMBER_ID: userInfo.memberId,
+                  ALERT_STATE: userInfo.alertState,
+                  KAKAO_ID: userInfo.kakaoId,
+                });
+                setSelectedNotification(userInfo.alertState === 1 ? "general" : "emergency");
+              }
+            })
+            .catch((error) => {
+              console.error("일시정지 후 상태 확인 실패:", error);
+            });
+        }, 1000); // 1초 후 확인
+
+        toast({
+          title: "일시정지 설정 완료",
+          description:
+            minutes >= 60
+              ? `${Math.floor(minutes / 60)}시간 동안 알림이 일시정지됩니다.`
+              : `${minutes}분 동안 알림이 일시정지됩니다.`,
+          className: `
+      fixed top-6 left-1/2 -translate-x-1/2 z-[9999]
+      min-w-[280px] max-w-[380px] w-[80vw]
+      rounded-xl shadow-2xl px-4 py-3
+      bg-white border-2 border-primary/60
+      text-black
+    `,
+          duration: 1500,
+        });
+      } else {
+        throw new Error("서버에서 일시정지 설정을 거부했습니다.");
+      }
     } catch (error) {
       console.error("일시정지 설정 오류:", error);
       toast({
@@ -599,10 +719,18 @@ const AirportDashboard = () => {
 
   // 로그아웃 함수
   const handleSignOut = () => {
-    axios.post('/api/member/logout', {}, { withCredentials: true })
+    axios
+      .post("/api/member/logout", {}, { 
+        withCredentials: true,
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        }
+      })
       .then(() => {
         console.log("로그아웃 성공");
-        navigate('/login'); // 로그인 페이지로 이동
+        navigate("/login"); // 로그인 페이지로 이동
       })
       .catch((error) => {
         console.error("로그아웃 실패:", error);
@@ -647,13 +775,23 @@ const AirportDashboard = () => {
               </Button>
             </DropdownMenuTrigger>
 
-            <DropdownMenuContent className="w-48 bg-white shadow-md rounded-md" align="end" forceMount>
-              <DropdownMenuItem onClick={() => navigate('/profile')}>
+            <DropdownMenuContent
+              className="w-48 bg-white shadow-md rounded-md"
+              align="end"
+              forceMount
+            >
+              <DropdownMenuItem
+                onClick={() => navigate("/profile")}
+                className="hover:bg-primary/20 cursor-pointer transition-colors duration-150 rounded-md flex items-center"
+              >
                 <User className="mr-2 h-4 w-4" />
                 <span>Profile</span>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleSignOut}>
+              <DropdownMenuItem
+                onClick={handleSignOut}
+                className="hover:bg-primary/20 cursor-pointer transition-colors duration-150 rounded-md flex items-center"
+              >
                 <Settings className="mr-2 h-4 w-4" />
                 <span>Logout</span>
               </DropdownMenuItem>
@@ -678,15 +816,16 @@ const AirportDashboard = () => {
                     <div
                       key={key}
                       className={`flex flex-col items-center space-y-2 p-4 rounded-xl cursor-pointer transition-all
-                        ${selected
-                          ? `${bg} text-white border-2 border-[${bg.replace(
-                            "bg-",
-                            ""
-                          )}]`
-                          : `${bg}/10 border border-[${bg.replace(
-                            "bg-",
-                            ""
-                          )}]/20 hover:${bg}/20`
+                        ${
+                          selected
+                            ? `${bg} text-white border-2 border-[${bg.replace(
+                                "bg-",
+                                ""
+                              )}]`
+                            : `${bg}/10 border border-[${bg.replace(
+                                "bg-",
+                                ""
+                              )}]/20 hover:${bg}/20`
                         }`}
                       onClick={() => {
                         if (key === "emergency") {
@@ -703,8 +842,9 @@ const AirportDashboard = () => {
                         className={`h-8 w-8 ${selected ? "text-white" : text}`}
                       />
                       <span
-                        className={`text-sm font-medium ${selected ? "text-white" : text
-                          }`}
+                        className={`text-sm font-medium ${
+                          selected ? "text-white" : text
+                        }`}
                       >
                         {label}
                       </span>
@@ -860,10 +1000,11 @@ const AirportDashboard = () => {
               <Monitor className="h-5 w-5 text-primary" />
               <span>
                 {selectedEvent
-                  ? `${selectedEvent.LOCATION
-                    ? selectedEvent.LOCATION + " - "
-                    : ""
-                  }${selectedEvent.CCTV_ID}`
+                  ? `${
+                      selectedEvent.LOCATION
+                        ? selectedEvent.LOCATION + " - "
+                        : ""
+                    }${selectedEvent.CCTV_ID}`
                   : "이상물체 탐지현황"}
               </span>
             </CardTitle>
@@ -878,9 +1019,17 @@ const AirportDashboard = () => {
               {selectedEvent ? (
                 <>
                   <img
-                    src={`/ai/get_image?path=${encodeURIComponent(
-                      selectedEvent.IMG_PATH
-                    )}`}
+                    src={
+                      selectedEvent.IMG_PATH.startsWith("https")
+                        ? selectedEvent.IMG_PATH
+                        : selectedEvent.IMG_PATH.startsWith("/")
+                        ? `/ai/get_image?path=${encodeURIComponent(
+                            selectedEvent.IMG_PATH
+                          )}`
+                        : `/ai/get_image?path=${encodeURIComponent(
+                            selectedEvent.IMG_PATH.slice(2)
+                          )}`
+                    }
                     alt={`${selectedEvent.CCTV_ID} 이미지`}
                     className="rounded-xl w-full h-64 object-cover bg-black"
                   />
@@ -903,7 +1052,8 @@ const AirportDashboard = () => {
                       탐지된 물체 :{" "}
                       {selectedEvent.ITEMS.map(
                         (item) =>
-                          `${translateItemType(item.ITEM_TYPE)} ${item.ITEM_COUNT
+                          `${translateItemType(item.ITEM_TYPE)} ${
+                            item.ITEM_COUNT
                           }`
                       ).join(", ")}
                     </div>
