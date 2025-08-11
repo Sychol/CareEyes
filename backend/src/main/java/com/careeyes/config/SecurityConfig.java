@@ -38,7 +38,10 @@ public class SecurityConfig {
 	public CorsConfigurationSource corsConfigurationSource() {
 	    CorsConfiguration config = new CorsConfiguration();
 	    config.setAllowCredentials(true); // 쿠키, 세션 등 인증정보 포함 허용 시 true
-	    config.setAllowedOriginPatterns(List.of("http://localhost:5173")); // 또는 "*"
+	    config.setAllowedOriginPatterns(List.of(
+	            "http://49.50.134.171",  // ← 이거 추가
+	            "http://localhost:5173"
+	        ));
 	    config.addAllowedHeader("*"); // 어떤 HTTP 헤더를 허용할지(Authorization, Content-Type 등)
 	    config.addAllowedMethod("*"); // 어떤 Method를 허용할지(GET, POST, PUT, DELETE, OPTIONS 등)
 
