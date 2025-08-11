@@ -44,7 +44,7 @@ export function AppSidebar({ isCollapsed, setIsCollapsed }: AppSidebarProps) {
 
   return (
     <Sidebar
-      className={`${isCollapsed ? "w-16" : "w-52"} bg-card border-r border-border transition-all duration-300`}
+      className={`${isCollapsed ? "w-16" : "w-52"} bg-card transition-all duration-300 shadow-md`}
     >
       <SidebarContent className="p-0 h-full flex flex-col">
         {/* ✅ 로고 + 접기 버튼 */}
@@ -116,7 +116,6 @@ export function AppSidebar({ isCollapsed, setIsCollapsed }: AppSidebarProps) {
         <div className="mt-auto border-t border-border">
           {!isCollapsed && (
             <div className="p-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
-              ACCOUNT PAGES
             </div>
           )}
           <SidebarGroup className="p-0">

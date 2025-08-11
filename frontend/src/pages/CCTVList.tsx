@@ -196,33 +196,21 @@ export default function CCTVList() {
         </Card>
 
         {/* 선택된 CCTV 피드 */}
-        <Card ref={videoRef} className="lg:col-span-2 w-full bg-gradient-card border-0 shadow-lg">
-          <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="text-lg">
-                  {selectedFeed?.title || "선택된 CCTV"}
-                </CardTitle>
-                <p className="text-sm text-muted-foreground">
-                  {selectedFeed?.subtitle || "탐지된 물체 정보 없음"}
-                </p>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-success rounded-full" />
-                <span className="text-sm text-muted-foreground">Live</span>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="relative w-full aspect-video rounded-lg overflow-hidden">
-              <img
-                src={selectedFeed?.youtubeUrl}
-                className="w-full h-full object-cover"
-                alt="CCTV 영상"
-              />
-            </div>
-          </CardContent>
-        </Card>
+      <Card ref={videoRef} className="lg:col-span-2 w-full bg-gradient-card border-0 shadow-lg">
+        <CardHeader>
+        
+        </CardHeader>
+        <CardContent>
+          <div className="relative w-full aspect-video rounded-lg overflow-hidden">
+            <img
+              key={selectedId}
+              src={selectedFeed?.youtubeUrl}
+              className="w-full h-full object-cover"
+              alt="CCTV 영상"
+            />
+          </div>
+        </CardContent>
+      </Card>
       </div>
 
       {/* 기타 CCTV 피드 */}

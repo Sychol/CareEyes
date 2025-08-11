@@ -53,7 +53,6 @@ export const AlertTable = () => {
     const newState = currentState === 1 ? 0 : 1;
     console.log("🔁 상태 바꾸기 시도:", newState);
 
-    // 👉 화면에 먼저 상태 적용 (낙관적 업데이트)
     setAlerts((prev) =>
       prev.map((a) =>
         a.memberId === memberId ? { ...a, alertState: newState } : a

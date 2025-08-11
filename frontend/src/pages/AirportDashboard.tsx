@@ -724,7 +724,6 @@ const AirportDashboard = () => {
                 <span>이상물체 탐지 알림 내역</span>
               </CardTitle>
               <div className="flex items-center space-x-2">
-                <Filter className="h-2 w-4 text-muted-foreground" />
                 <select
                   value={filterStatus}
                   onChange={(e) => setFilterStatus(e.target.value)}
