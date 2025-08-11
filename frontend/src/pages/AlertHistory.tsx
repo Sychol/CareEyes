@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
+import DEFAULT_IMG from "../assets/default_image.jpg";
 import { AlertFilterPanel } from "./AlertFilterPanel";
 import axios from "axios";
 import {
@@ -43,9 +44,7 @@ interface MergedCCTV {
   lastDetection: string;
   manage: string;
 }
-const [selectedId, setSelectedId] = useState<string | null>(null);
- const [mergedFeeds, setMergedFeeds] = useState<MergedCCTV[]>([]);
-  const selectedFeed = mergedFeeds.find((feed) => feed.title === selectedId) || null;
+
 
 
 // ✅ API 응답 → DetectionEvent 타입으로 변환
@@ -191,6 +190,9 @@ const StatusUpdateModal = ({ alert, onClose, onUpdate }: StatusUpdateModalProps)
 
 
 export default function AlertHistory() {
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [mergedFeeds, setMergedFeeds] = useState<MergedCCTV[]>([]);
+  const selectedFeed = mergedFeeds.find((feed) => feed.title === selectedId) || null;
   const [alerts, setAlerts] = useState<DetectionEvent[]>([]);
   const [filters, setFilters] = useState<{
     level: string[];
@@ -415,9 +417,13 @@ export default function AlertHistory() {
             {selectedAlert ? (
                 selectedAlert.IMG_PATH ? (
                 (() => {
-                    const imageSrc = selectedAlert.IMG_PATH.startsWith("https")
-                        ? selectedAlert.IMG_PATH
-                        : `/ai/get_image?path=${encodeURIComponent(selectedAlert.IMG_PATH)}`;
+                    const rawPath = selectedAlert.IMG_PATH || "";
+                    const isHttpUrl = /^https?:\/\//i.test(rawPath);
+                    const imageSrc = isHttpUrl
+                      ? rawPath
+                      : rawPath
+                        ? `/ai/get_image?path=${encodeURIComponent(rawPath)}`
+                        : DEFAULT_IMG;
                     return (
                     <img
                         src={imageSrc}

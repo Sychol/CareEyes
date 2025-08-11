@@ -1,7 +1,7 @@
 # Dockerfile.base
 
 # 1. PyTorch CPU 기반 경량 이미지
-FROM python:3.13-slim
+FROM python:3.9-slim
 
 # 2. 작업 디렉토리 생성
 WORKDIR /app
@@ -26,8 +26,11 @@ RUN apt-get update && \
 # 4. Git LFS 초기화
 RUN git lfs install
 
+COPY requirements.txt .
+
 # 5. PyTorch CPU 버전 설치
-RUN pip install --upgrade pip && \
-    pip install torch==2.2.0+cpu torchvision --index-url https://download.pytorch.org/whl/cpu
+RUN --mount=type=cache,target=/root/.cache/pip \
+    pip install --upgrade pip setuptools wheel && \
+    pip install --no-cache-dir -r requirements.txt
 
 # docker build -f Dockerfile.base -t sychol/careeyes-aiserver-base:latest .
