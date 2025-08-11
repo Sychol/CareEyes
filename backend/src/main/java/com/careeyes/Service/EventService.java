@@ -58,7 +58,8 @@ public class EventService {
 			    "[경고] 활주로에 이상 객체 %d개 감지!\n" +
 			    "📍 CCTV ID: %d\n" +
 			    "🕒 시간: %s %s\n" +
-			    "🔍 객체 내역: %s",
+			    "🔍 객체 내역: %s\n" +
+			    "\nhttp://careeyes.kro.kr/",
 			    totalCount,
 			    event.getCctvId(),
 			    event.getEventDate(),

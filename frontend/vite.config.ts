@@ -2,7 +2,6 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
-import { componentTagger } from "lovable-tagger";
 import dotenv from "dotenv";
 
 // 환경변수 로드 (docker-compose에서도 반영됨)
@@ -13,7 +12,6 @@ dotenv.config();
 export default defineConfig(({ mode }) => ({
   plugins: [
     react(),
-    mode === 'development' && componentTagger(),
   ].filter(Boolean),
   resolve: {
     alias: {

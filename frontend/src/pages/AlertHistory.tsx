@@ -2,6 +2,7 @@ import { useEffect, useState, MouseEvent, useRef } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+
 import { AlertFilterPanel } from "./AlertFilterPanel";
 import axios from "axios";
 import {
@@ -13,11 +14,11 @@ import {
   XCircle,
   Plane,
 } from "lucide-react";
+type StatusType = "미처리" | "처리중" | "처리완료";
 
 // ==============================
 // 🔹 타입 및 상수 정의
 // ==============================
-type StatusType = "미처리" | "처리중" | "처리완료";
 
 interface Item {
   ITEM_TYPE: string;
@@ -34,8 +35,18 @@ interface DetectionEvent {
   ITEMS: Item[];
   LOCATION: string;
 }
+interface MergedCCTV {
+  title: string;
+  subtitle: string;
+  youtubeUrl: string;
+  location: string;
+  lastDetection: string;
+  manage: string;
+}
+const [selectedId, setSelectedId] = useState<string | null>(null);
+ const [mergedFeeds, setMergedFeeds] = useState<MergedCCTV[]>([]);
+  const selectedFeed = mergedFeeds.find((feed) => feed.title === selectedId) || null;
 
-const STATUS_ENUM: StatusType[] = ["미처리", "처리중", "처리완료"];
 
 // ✅ API 응답 → DetectionEvent 타입으로 변환
 const mapApiEvent = (apiEvent: any): DetectionEvent => ({
@@ -118,10 +129,32 @@ const ItemTypeIcon = ({ type }: { type: string }) => {
 
 
 interface StatusUpdateModalProps {
-  alert: DetectionEvent;
+  alert: DetectionEvent; 
   onClose: () => void;
-  onUpdate: (eventId: string, newStatus: StatusType) => void;
+  onUpdate: (eventId: string, newStatus: StatusType) => void; 
 }
+
+const STATUS_ENUM: StatusType[] = ["미처리", "처리중", "처리완료"];
+
+const getStatusClasses = (currentStatus: string, buttonStatus: string): string => {
+  const unselectedClasses = 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300';
+
+  if (currentStatus !== buttonStatus) {
+    return unselectedClasses;
+  }
+  
+  // 선택된 버튼의 경우, 상태에 따라 다른 색을 반환
+  switch (buttonStatus) {
+    case "미처리":
+      return 'bg-red-500 text-white font-bold shadow-md';    // 🔴 빨간색
+    case "처리중":
+      return 'bg-yellow-400 text-black font-bold shadow-md'; // 🟡 노란색
+    case "처리완료":
+      return 'bg-green-500 text-white font-bold shadow-md';  // 🟢 초록색
+    default:
+      return unselectedClasses;
+  }
+};
 
 const StatusUpdateModal = ({ alert, onClose, onUpdate }: StatusUpdateModalProps) => {
   return (
@@ -136,10 +169,8 @@ const StatusUpdateModal = ({ alert, onClose, onUpdate }: StatusUpdateModalProps)
               key={status}
               onClick={() => onUpdate(alert.EVENT_ID, status)}
               className={`w-full text-center py-3 px-4 rounded-lg transition-colors duration-200 text-base
-                ${alert.MANAGE === status
-                  ? 'bg-red-500 text-white font-bold shadow-md'
-                  : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300'
-                }`}
+                ${getStatusClasses(alert.MANAGE, status)} 
+              `}
             >
               {status}
             </button>
@@ -248,9 +279,7 @@ export default function AlertHistory() {
     try {
       const statusToNumber = newStatus === "미처리" ? 0 : newStatus === "처리중" ? 1 : 2;
 
-      // =======================================================
-      // ❗❗❗ 바로 여기가 핵심 수정 포인트요, 형님! 'manage'를 'status'로 바꿨소 ❗❗❗
-      // =======================================================
+     
       await axios.patch(`/api/event/${eventId}/status`, {
         status: statusToNumber, 
       });
@@ -388,9 +417,7 @@ export default function AlertHistory() {
                 (() => {
                     const imageSrc = selectedAlert.IMG_PATH.startsWith("https")
                         ? selectedAlert.IMG_PATH
-                        : selectedAlert.IMG_PATH.startsWith("/")
-                        ? `/ai/get_image?path=${encodeURIComponent(selectedAlert.IMG_PATH)}`
-                        : `/ai/get_image?path=${encodeURIComponent(selectedAlert.IMG_PATH.slice(2))}`;
+                        : `/ai/get_image?path=${encodeURIComponent(selectedAlert.IMG_PATH)}`;
                     return (
                     <img
                         src={imageSrc}
@@ -422,7 +449,8 @@ export default function AlertHistory() {
         <CardContent className="flex justify-center py-6">
             <div className="w-[960px] h-[540px] bg-black rounded-md overflow-hidden shadow-md">
             <img
-                src="/ai/video_feed?url=https://www.youtube.com/watch?v=91PfFoqvuUk&cctv_id=101"
+                key={selectedId}
+                src={selectedFeed?.youtubeUrl}
                 alt="CCTV 영상"
                 className="w-full h-full object-cover"
             />

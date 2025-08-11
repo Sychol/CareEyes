@@ -1,17 +1,14 @@
-// Dashboard.tsx
-
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import axios from "axios";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import airportGroundMap from "@/components/airport-ground-map.png";
 import newCctvIcon from "@/components/cctv-default.png";
 import { Bell } from "lucide-react";
-
 import { Car, User, Bird, Cat, XCircle, Plane } from "lucide-react";
-import { useMemo } from "react";
 
+// --- 인터페이스 정의 (기존과 동일) ---
 interface AlertEvent {
   eventId: number;
   eventDate: string;
@@ -23,21 +20,25 @@ interface AlertEvent {
   itemType: string;
   itemCount: number;
 }
-
 interface Worker {
+  memberId: number;
   memberName: string;
   company: string;
   department: string;
   alertState: number;
 }
-
 interface Cctv {
   id: number;
   top: string;
   left: string;
   detected: boolean;
-  location: string;
+  location:string;
 }
+
+// ✅ 1. 이미지 파일들을 순서대로 불러와서 배열에 담아둠
+const profileImagePaths = Object.values(
+  import.meta.glob("@/assets/profile/man*.png", { eager: true, as: "url" })
+);
 
 
 const ItemTypeIcon = ({ type }: { type: string }) => {
@@ -68,7 +69,9 @@ export default function Dashboard() {
   const [recentAlerts, setRecentAlerts] = useState<Worker[]>([]);
   const [cctvs, setCctvs] = useState<Cctv[]>([]);
   const [selectedAlertId, setSelectedAlertId] = useState<number | null>(null);
-  const [selectedAlertImage, setSelectedAlertImage] = useState<string | null>(null);
+  const [selectedAlertImage, setSelectedAlertImage] = useState<string | null>(
+    null
+  );
   const [filters, setFilters] = useState<{
     status: number[];
     location: string[];
@@ -81,54 +84,75 @@ export default function Dashboard() {
     date: null,
   });
   const normalizeItemType = (type: string) => {
-  switch (type.toLowerCase()) {
-    case "vehicle":
-    case "차량":
-      return "차량";
-    case "person":
-    case "사람":
-      return "사람";
-    case "bird":
-    case "조류":
-      return "조류";
-    case "mammal":
-    case "포유류":
-      return "포유류";
-    case "airplane":
-    case "비행기":
-      return "비행기";
-    default:
-      return type;
-  }
-};
-
-const topStats = useMemo(() => {
-  const sortedAlerts = [...alertHistory].sort(
-    (a, b) =>
-      new Date(`${b.eventDate}T${b.eventTime}`).getTime() -
-      new Date(`${a.eventDate}T${a.eventTime}`).getTime()
-  );
-
-  const latest = sortedAlerts[0] || null;
-
-  const counts: Record<string, number> = {};
-  alertHistory.forEach((alert) => {
-    const normalizedType = normalizeItemType(alert.itemType);
-    counts[normalizedType] = (counts[normalizedType] || 0) + 1;
-  });
-
-  const mostType = Object.entries(counts).sort((a, b) => b[1] - a[1])[0] || ["없음", 0];
-
-  return {
-    alertCount: alertHistory.length,
-    cctvCount: cctvs.length,
-    latestDetection: latest,
-    mostDetectedType: mostType,
+    switch (type.toLowerCase()) {
+      case "vehicle":
+      case "차량":
+        return "차량";
+      case "person":
+      case "사람":
+        return "사람";
+      case "bird":
+      case "조류":
+        return "조류";
+      case "mammal":
+      case "포유류":
+        return "포유류";
+      case "airplane":
+      case "비행기":
+        return "비행기";
+      default:
+        return type;
+    }
   };
-}, [alertHistory, cctvs]);
 
+  const topStats = useMemo(() => {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, "0");
+    const day = String(today.getDate()).padStart(2, "0");
+    const todayString = `${year}-${month}-${day}`;
+    const todayAlerts = alertHistory.filter(
+      (alert) => alert.eventDate === todayString
+    );
 
-  // 데이터 fetch 함수 분리
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(today.getDate() - 7);
+    sevenDaysAgo.setHours(0, 0, 0, 0);
+
+    const lastWeekAlerts = alertHistory.filter((alert) => {
+      const alertDate = new Date(alert.eventDate);
+      return alertDate >= sevenDaysAgo;
+    });
+
+    const lastWeekCounts: Record<string, number> = {};
+    lastWeekAlerts.forEach((alert) => {
+      const normalizedType = normalizeItemType(alert.itemType);
+      lastWeekCounts[normalizedType] =
+        (lastWeekCounts[normalizedType] || 0) + 1;
+    });
+
+    const mostTypeLastWeek =
+      Object.entries(lastWeekCounts).sort((a, b) => b[1] - a[1])[0] || [
+        "없음",
+        0,
+      ];
+
+    const sortedAlerts = [...alertHistory].sort(
+      (a, b) =>
+        new Date(`${b.eventDate}T${b.eventTime}`).getTime() -
+        new Date(`${a.eventDate}T${a.eventTime}`).getTime()
+    );
+
+    const latest = sortedAlerts[0] || null;
+
+    return {
+      alertCount: todayAlerts.length,
+      cctvCount: cctvs.length,
+      latestDetection: latest,
+      mostDetectedType: mostTypeLastWeek,
+    };
+  }, [alertHistory, cctvs]);
+
   const fetchData = () => {
     axios
       .get("/api/eventlist")
@@ -152,12 +176,11 @@ const topStats = useMemo(() => {
       .catch((err) => console.error("❌ cctvs.json 에러:", err));
   };
 
-  // 초기 및 10초마다 데이터 갱신
   useEffect(() => {
     fetchData();
     const interval = setInterval(() => {
       fetchData();
-    }, 10000); // 10초마다 호출
+    }, 10000);
 
     return () => clearInterval(interval);
   }, []);
@@ -188,29 +211,20 @@ const topStats = useMemo(() => {
   const [highlightedCctvId, setHighlightedCctvId] = useState<number | null>(
     null
   );
-  const [activeCctvs, setActiveCctvs] = useState<{ [key: string]: number | null }>(
-    {
-      EAST: null,
-      WEST: null,
-    }
-  );
+  const [activeCctvs, setActiveCctvs] = useState<{
+    [key: string]: number | null;
+  }>({
+    EAST: null,
+    WEST: null,
+  });
 
   const handleCctvClick = (id: number) => {
     const clicked = cctvs.find((c) => c.id === id);
     if (!clicked) return;
 
-    const location = clicked.location;
-    const cctvId = clicked.id;
-
-    console.log("📌 클릭된 CCTV ID:", cctvId, "Location:", location);
-
     const matchedAlerts = alertHistory.filter(
-      (alert) =>
-        String(alert.cctvId) === String(cctvId) &&
-        String(alert.location).trim().toUpperCase() === String(location).trim().toUpperCase()
+      (alert) => String(alert.cctvId) === String(id)
     );
-
-    console.log("🔍 해당 CCTV에 매칭되는 알림 수:", matchedAlerts.length);
 
     const latestAlert = matchedAlerts.sort(
       (a, b) =>
@@ -219,33 +233,28 @@ const topStats = useMemo(() => {
     )[0];
 
     if (latestAlert?.imgPath) {
-      const cleanPath = latestAlert.imgPath.replace(/^\.\//, "");
-      console.log("📷 선택된 이미지 경로:", cleanPath);
-      setSelectedAlertImage(cleanPath);
+      setSelectedAlertImage(latestAlert.imgPath);
     } else {
-      console.log("❌ 해당 CCTV의 최신 알림이 없습니다.");
       setSelectedAlertImage(null);
     }
 
     setActiveCctvs({
-      EAST: location === "EAST" ? cctvId : null,
-      WEST: location === "WEST" ? cctvId : null,
+      EAST: clicked.location === "EAST" ? id : null,
+      WEST: clicked.location === "WEST" ? id : null,
     });
-    setHighlightedCctvId(cctvId);
+    setHighlightedCctvId(id);
   };
-
-
-
-
-
 
   const filteredAlerts = alertHistory
     .filter((alert) => {
       const manageNum = Number(alert.manage);
       return (
-        (filters.status.length === 0 || filters.status.includes(manageNum)) &&
-        (filters.location.length === 0 || filters.location.includes(alert.location)) &&
-        (filters.itemType.length === 0 || filters.itemType.includes(alert.itemType)) &&
+        (filters.status.length === 0 ||
+          filters.status.includes(manageNum)) &&
+        (filters.location.length === 0 ||
+          filters.location.includes(alert.location)) &&
+        (filters.itemType.length === 0 ||
+          filters.itemType.includes(alert.itemType)) &&
         (!filters.date || alert.eventDate === filters.date)
       );
     })
@@ -260,28 +269,39 @@ const topStats = useMemo(() => {
       <div className="bg-[#5F69C7] rounded-2xl px-6 py-6">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <div className="bg-white rounded-xl shadow-md p-5">
-            <div className="text-sm text-muted-foreground">이상물체 탐지 수 (일)</div>
-            <div className="text-2xl font-bold mt-2">{topStats.alertCount}건</div>
+            <div className="text-sm text-muted-foreground">
+              이상물체 탐지 수 (일)
+            </div>
+            <div className="text-2xl font-bold mt-2">
+              {topStats.alertCount}건
+            </div>
           </div>
           <div className="bg-white rounded-xl shadow-md p-5">
-            <div className="text-sm text-muted-foreground">실시간 CCTV 수</div>
-            <div className="text-2xl font-bold mt-2">{topStats.cctvCount}대</div>
+            <div className="text-sm text-muted-foreground">
+              실시간 CCTV 수
+            </div>
+            <div className="text-2xl font-bold mt-2">
+              {topStats.cctvCount}대
+            </div>
           </div>
           <div className="bg-white rounded-xl shadow-md p-5">
             <div className="text-sm text-muted-foreground">최근 탐지 내역</div>
             {topStats.latestDetection ? (
               <>
                 <div className="text-lg font-semibold mt-2">
-                  {topStats.latestDetection.location} - CCTV {topStats.latestDetection.cctvId}
+                  {topStats.latestDetection.location} - CCTV{" "}
+                  {topStats.latestDetection.cctvId}
                 </div>
                 <div className="text-xs text-muted-foreground">
-                  {topStats.latestDetection.eventDate} {topStats.latestDetection.eventTime}
+                  {topStats.latestDetection.eventDate}{" "}
+                  {topStats.latestDetection.eventTime}
                 </div>
               </>
             ) : (
-              <div className="text-sm mt-2 text-muted-foreground">데이터 없음</div>
+              <div className="text-sm mt-2 text-muted-foreground">
+                데이터 없음
+              </div>
             )}
-
           </div>
           <div className="bg-white rounded-xl shadow-md p-5">
             <div className="text-sm text-muted-foreground">최다 탐지 유형</div>
@@ -312,21 +332,27 @@ const topStats = useMemo(() => {
                 const isSelected = highlightedCctvId === cctv.id;
 
                 const matchedAlerts = alertHistory.filter(
-                  (alert) => alert.cctvId === cctv.id && alert.location === cctv.location
+                  (alert) => alert.cctvId === cctv.id
                 );
 
-                const hasUnprocessed = matchedAlerts.some(alert => alert.manage === 0);
-                const hasProcessing = matchedAlerts.some(alert => alert.manage === 1);
-                const hasCompleted = matchedAlerts.some(alert => alert.manage === 2);
+                const hasUnprocessed = matchedAlerts.some(
+                  (alert) => alert.manage === 0
+                );
+                const hasProcessing = matchedAlerts.some(
+                  (alert) => alert.manage === 1
+                );
+                const hasCompleted = matchedAlerts.some(
+                  (alert) => alert.manage === 2
+                );
 
                 let statusBorderColor = "border-black";
 
                 if (hasUnprocessed) {
-                  statusBorderColor = "border-red-500";       // 🔴 미처리
+                  statusBorderColor = "border-red-500";
                 } else if (hasProcessing) {
-                  statusBorderColor = "border-yellow-400";    // 🟡 처리중
+                  statusBorderColor = "border-yellow-400";
                 } else if (hasCompleted) {
-                  statusBorderColor = "border-green-500";     // 🟢 처리완료
+                  statusBorderColor = "border-green-500";
                 }
 
                 return (
@@ -336,26 +362,27 @@ const topStats = useMemo(() => {
                     style={{ top: cctv.top, left: cctv.left }}
                   >
                     {isActive && (
-                      <div className="absolute -top-8 left-1/2 -translate-x-1/2 text-4xl text-red-600 drop-shadow-lg animate-bounce">
+                      <div className="absolute -top-8 left-1 -translate-x-1/2 text-4xl text-red-600 drop-shadow-lg animate-bounce">
                         ⬇
                       </div>
                     )}
                     <button
                       onClick={() => handleCctvClick(cctv.id)}
-                      className={`w-10 h-10 p-1 rounded-full border-4 flex items-center justify-center ${statusBorderColor} ${isSelected ? "ring-4 ring-black/30" : ""
-                        } bg-white`}
+                      className={`w-10 h-10 p-1 rounded-full border-4 flex items-center justify-center ${statusBorderColor} ${
+                        isSelected ? "ring-4 ring-black/30" : ""
+                      } bg-white`}
                     >
                       <img
                         src={newCctvIcon}
                         alt="CCTV"
-                        className={`w-full h-full object-contain rounded-full p-0.5 ${cctv.location === "EAST" ? "scale-x-[-1]" : ""
-                          }`}
+                        className={`w-full h-full object-contain rounded-full p-0.5 ${
+                          cctv.location === "EAST" ? "scale-x-[-1]" : ""
+                        }`}
                       />
                     </button>
                   </div>
                 );
               })}
-
             </div>
           </CardContent>
         </Card>
@@ -372,11 +399,10 @@ const topStats = useMemo(() => {
                   src={
                     selectedAlertImage.startsWith("https")
                       ? selectedAlertImage
-                      : selectedAlertImage.startsWith("/")
-                        ? `/ai/get_image?path=${encodeURIComponent(selectedAlertImage)}`
-                        : `/ai/get_image?path=${encodeURIComponent(selectedAlertImage.slice(2))}`
+                      : `/ai/get_image?path=${encodeURIComponent(
+                          selectedAlertImage
+                        )}`
                   }
-
                   alt="이상물체 이미지"
                   className="w-full h-full object-cover rounded-md"
                 />
@@ -385,11 +411,9 @@ const topStats = useMemo(() => {
                   알림을 선택하면 이미지가 표시됩니다
                 </div>
               )}
-
             </div>
           </CardContent>
         </Card>
-
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -407,10 +431,11 @@ const topStats = useMemo(() => {
                   return (
                     <button
                       key={label}
-                      className={`px-3 py-1 rounded-full text-sm border transition ${isSelected
-                        ? "bg-blue-600 text-white"
-                        : "bg-white text-gray-800 border-gray-300"
-                        }`}
+                      className={`px-3 py-1 rounded-full text-sm border transition ${
+                        isSelected
+                          ? "bg-blue-600 text-white"
+                          : "bg-white text-gray-800 border-gray-300"
+                      }`}
                       onClick={() => {
                         setFilters({
                           ...filters,
@@ -419,7 +444,8 @@ const topStats = useMemo(() => {
                         setSelectedAlertImage(null);
                         setHighlightedCctvId(null);
                         setActiveCctvs({ EAST: null, WEST: null });
-                        if (alertListRef.current) alertListRef.current.scrollTop = 0;
+                        if (alertListRef.current)
+                          alertListRef.current.scrollTop = 0;
                       }}
                     >
                       {label}
@@ -442,7 +468,11 @@ const topStats = useMemo(() => {
                   <div
                     key={alert.eventId}
                     className={`flex items-center justify-between p-4 rounded-lg transition cursor-pointer
-        ${isSelected ? "bg-blue-100 border border-blue-400 shadow" : "bg-gray-50 hover:bg-gray-100 hover:shadow"}`}
+                      ${
+                        isSelected
+                          ? "bg-blue-100 border border-blue-400 shadow"
+                          : "bg-gray-50 hover:bg-gray-100 hover:shadow"
+                      }`}
                     onClick={() => {
                       setSelectedAlertId(alert.eventId);
                       setSelectedAlertImage(alert.imgPath);
@@ -455,8 +485,10 @@ const topStats = useMemo(() => {
 
                       if (matchedCctv) {
                         setActiveCctvs({
-                          EAST: alert.location === "EAST" ? matchedCctv.id : null,
-                          WEST: alert.location === "WEST" ? matchedCctv.id : null,
+                          EAST:
+                            alert.location === "EAST" ? matchedCctv.id : null,
+                          WEST:
+                            alert.location === "WEST" ? matchedCctv.id : null,
                         });
                         setHighlightedCctvId(matchedCctv.id);
                       }
@@ -466,12 +498,14 @@ const topStats = useMemo(() => {
                       <ItemTypeIcon type={alert.itemType} />
                       <div>
                         <div className="text-sm font-semibold">
-                          탐지 유형: <span className="text-primary">{alert.itemType}</span> · 수량:{" "}
-                          <span>{alert.itemCount}</span>
+                          탐지 유형:{" "}
+                          <span className="text-primary">{alert.itemType}</span>{" "}
+                          · 수량: <span>{alert.itemCount}</span>
                         </div>
                         <div className="text-xs text-muted-foreground mt-1">
-                          위치: <span className="text-blue-600 font-medium">{`${alert.location}-CCTV ${alert.cctvId}`}</span> ·
-                          일시: {alert.eventDate} {alert.eventTime}
+                          위치:{" "}
+                          <span className="text-blue-600 font-medium">{`${alert.location}-CCTV ${alert.cctvId}`}</span>{" "}
+                          · 일시: {alert.eventDate} {alert.eventTime}
                         </div>
                       </div>
                     </div>
@@ -485,11 +519,11 @@ const topStats = useMemo(() => {
                   </div>
                 );
               })}
-
             </div>
           </CardContent>
         </Card>
 
+        {/* ✅ '현재 근무자' 카드 */}
         <Card className="bg-white rounded-xl shadow-md border border-border">
           <CardHeader>
             <CardTitle className="text-xl font-bold">현재 근무자</CardTitle>
@@ -498,25 +532,37 @@ const topStats = useMemo(() => {
             <div className="space-y-4">
               {recentAlerts
                 .filter((person) => person.alertState !== 0)
-                .map((person, index) => (
-                  <div key={index} className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <Avatar className="w-10 h-10">
-                        <AvatarFallback className="bg-muted text-base">
-                          {person.memberName.slice(0, 1)}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <div className="text-base font-semibold">{person.memberName}</div>
-                        <div className="text-sm text-muted-foreground">
-                          {person.company || "-"} · {person.department || "-"}
+                .map((person, index) => { // ✅ map에서 index를 받아옴
+                  
+                  // ✅ 2. index를 사용해서 순서대로 이미지를 할당
+                  const profileImg = profileImagePaths[index];
+                  
+                  return (
+                    <div
+                      key={index}
+                      className="flex items-center justify-between"
+                    >
+                      <div className="flex items-center gap-3">
+                        <Avatar className="w-10 h-10">
+                          <AvatarImage src={profileImg || ""} alt={person.memberName} />
+                          <AvatarFallback className="bg-muted text-base">
+                            {person.memberName.slice(0, 1)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <div className="text-base font-semibold">
+                            {person.memberName}
+                          </div>
+                          <div className="text-sm text-muted-foreground">
+                            {person.company || "-"} ·{" "}
+                            {person.department || "-"}
+                          </div>
                         </div>
                       </div>
+                      <Bell className="w-6 h-6 text-green-500" />
                     </div>
-                    <Bell className="w-6 h-6 text-green-500" />
-
-                  </div>
-                ))}
+                  );
+                })}
             </div>
           </CardContent>
         </Card>

@@ -38,7 +38,10 @@ public class SecurityConfig {
 	public CorsConfigurationSource corsConfigurationSource() {
 	    CorsConfiguration config = new CorsConfiguration();
 	    config.setAllowCredentials(true); // 쿠키, 세션 등 인증정보 포함 허용 시 true
-	    config.setAllowedOriginPatterns(List.of("http://localhost:5173")); // 또는 "*"
+	    config.setAllowedOriginPatterns(List.of(
+	            "http://49.50.134.171",  // ← 이거 추가
+	            "http://localhost:5173"
+	        ));
 	    config.addAllowedHeader("*"); // 어떤 HTTP 헤더를 허용할지(Authorization, Content-Type 등)
 	    config.addAllowedMethod("*"); // 어떤 Method를 허용할지(GET, POST, PUT, DELETE, OPTIONS 등)
 
@@ -72,23 +75,25 @@ public class SecurityConfig {
 			.formLogin(AbstractHttpConfigurer::disable)
 			.httpBasic(AbstractHttpConfigurer::disable)
 			
-			.authorizeHttpRequests((request)
-					// 람다식 기술(권한에 대한 설정 진행 메서드)
-					// 포워드 방식으로 이동한 요청 허용
-					-> request.dispatcherTypeMatchers(DispatcherType.FORWARD)
-					// 포워드 방식으로 이동한 요청은 인증 없이 이동 허용
-					.permitAll()
-					// 특정 URL에 대해서는 인증받지 않더라도 접근 허용
-//					.requestMatchers("/join", "/join-process").permitAll()
-					.requestMatchers("/api/**").permitAll()
-					.requestMatchers("/oauth/**").permitAll()
-					.requestMatchers("/kakao/**").permitAll()
-					// 특정 권한에 따라서 부여되는 페이지 접근 권한
-					.requestMatchers("/admin").hasRole("관리자")
-					.requestMatchers("/user").hasRole("사용자")
-					//어떤 요청이 들어와도 인증 받도록 함
-					.anyRequest().authenticated()
-				)
+			.authorizeHttpRequests(req -> req.anyRequest().permitAll())
+//					// 람다식 기술(권한에 대한 설정 진행 메서드)
+//					// 포워드 방식으로 이동한 요청 허용
+//					-> request.dispatcherTypeMatchers(DispatcherType.FORWARD)
+//					// 포워드 방식으로 이동한 요청은 인증 없이 이동 허용
+//					.permitAll()
+//					// 특정 URL에 대해서는 인증받지 않더라도 접근 허용
+////					.requestMatchers("/join", "/join-process").permitAll()
+//					 .dispatcherTypeMatchers(DispatcherType.FORWARD, DispatcherType.ERROR).permitAll() // ✅ 추가
+//					.requestMatchers("/api/**").permitAll()
+//					.requestMatchers("/oauth/**").permitAll()
+//					.requestMatchers("/kakao/**").permitAll()
+//					.requestMatchers("/error").permitAll()
+//					// 특정 권한에 따라서 부여되는 페이지 접근 권한
+//					.requestMatchers("/admin").hasRole("관리자")
+//					.requestMatchers("/user").hasRole("사용자")
+//					//어떤 요청이 들어와도 인증 받도록 함
+//					.anyRequest().authenticated()
+//				)
 
 		
 			.logout(AbstractHttpConfigurer::disable);

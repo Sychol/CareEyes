@@ -29,9 +29,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import profileMan1 from "@/assets/profile/man1.png";
 
-// ==========================
-// 타입/상수/유틸 - BEGIN
-// ==========================
+
 interface UserData {
   MEMBER_NAME: string;
   DEPARTMENT: string;
@@ -557,6 +555,8 @@ const AirportDashboard = () => {
 
       console.log("알림 상태 변경 요청 시작 - 현재 alertState:", userData.ALERT_STATE, "새로운 상태:", newKey);
 
+      console.log("알림 상태 변경 요청 시작 - 현재 alertState:", userData.ALERT_STATE, "새로운 상태:", newKey);
+
       let response;
       if (newKey === "general") {
         // 알림받기 활성화
@@ -588,7 +588,18 @@ const AirportDashboard = () => {
         console.log("알림 상태 변경 API 응답 성공:", response.data);
         
         // 로컬 상태 즉시 업데이트
+        console.log("알림 상태 변경 API 응답 성공:", response.data);
+        
+        // 로컬 상태 즉시 업데이트
         setSelectedNotification(newKey);
+        setUserData((prev) => {
+          if (prev) {
+            const newAlertState = newKey === "general" ? 1 : 0;
+            console.log("로컬 상태 업데이트:", prev.ALERT_STATE, "->", newAlertState);
+            return { ...prev, ALERT_STATE: newAlertState };
+          }
+          return prev;
+        });
         setUserData((prev) => {
           if (prev) {
             const newAlertState = newKey === "general" ? 1 : 0;
@@ -604,7 +615,15 @@ const AirportDashboard = () => {
         fetchUserInfo();
         
         // 추가로 1초 후에도 한 번 더 확인
+        // 즉시 서버에서 최신 상태 확인 (여러 번 시도)
+        console.log("fetchUserInfo 호출 시작");
+        fetchUserInfo();
+        
+        // 추가로 1초 후에도 한 번 더 확인
         setTimeout(() => {
+          console.log("1초 후 추가 fetchUserInfo 호출");
+          fetchUserInfo();
+        }, 1000);
           console.log("1초 후 추가 fetchUserInfo 호출");
           fetchUserInfo();
         }, 1000);
@@ -652,6 +671,8 @@ const AirportDashboard = () => {
 
       console.log("일시정지 요청 시작 - 현재 alertState:", userData.ALERT_STATE);
 
+      console.log("일시정지 요청 시작 - 현재 alertState:", userData.ALERT_STATE);
+
       const response = await axios.post(`/api/member/pause-alert`, {
         memberId: userData.MEMBER_ID,
         alertState: 0, // 일시정지 상태
@@ -669,7 +690,17 @@ const AirportDashboard = () => {
         console.log("일시정지 API 응답 성공:", response.data);
         
         // 로컬 상태 즉시 업데이트
+        console.log("일시정지 API 응답 성공:", response.data);
+        
+        // 로컬 상태 즉시 업데이트
         setSelectedNotification("emergency");
+        setUserData((prev) => {
+          if (prev) {
+            console.log("로컬 상태 업데이트:", prev.ALERT_STATE, "->", 0);
+            return { ...prev, ALERT_STATE: 0 };
+          }
+          return prev;
+        });
         setUserData((prev) => {
           if (prev) {
             console.log("로컬 상태 업데이트:", prev.ALERT_STATE, "->", 0);
@@ -684,7 +715,15 @@ const AirportDashboard = () => {
         fetchUserInfo();
         
         // 추가로 1초 후에도 한 번 더 확인
+        // 즉시 서버에서 최신 상태 확인 (여러 번 시도)
+        console.log("fetchUserInfo 호출 시작");
+        fetchUserInfo();
+        
+        // 추가로 1초 후에도 한 번 더 확인
         setTimeout(() => {
+          console.log("1초 후 추가 fetchUserInfo 호출");
+          fetchUserInfo();
+        }, 1000);
           console.log("1초 후 추가 fetchUserInfo 호출");
           fetchUserInfo();
         }, 1000);
