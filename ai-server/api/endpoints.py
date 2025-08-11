@@ -76,6 +76,13 @@ def register_routes(app):
     @app.route("/ai/config", methods=["GET", "POST"])
     def config():
         if request.method == "GET":
+            print(f"""설정값 전송 >>
+                  suppression_seconds: {config_state.suppression_seconds},
+                  delay: {config_state.delay},
+                  conf_threshold: {config_state.conf_threshold},
+                  save_route: {config_state.save_route},
+                  save_classes: {list(config_state.save_classes)}
+            """)
             return jsonify({
                 "suppression_seconds": config_state.suppression_seconds,
                 "delay": config_state.delay,
@@ -86,6 +93,14 @@ def register_routes(app):
 
         elif request.method == "POST":
             data = request.get_json()
+
+            print(f"""설정값 송신 >>
+                  suppression_seconds: {float(data["suppression_seconds"])},
+                  delay: {float(data["delay"])},
+                  conf_threshold: {float(data["conf_threshold"])},
+                  save_route: {data["save_route"]},
+                  save_classes: {data["save_classes"]}
+            """)
 
             if "suppression_seconds" in data:
                 config_state.suppression_seconds = float(data["suppression_seconds"])
