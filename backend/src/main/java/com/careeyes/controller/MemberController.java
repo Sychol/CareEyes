@@ -1,5 +1,6 @@
 package com.careeyes.controller;
 
+import java.lang.reflect.Member;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -193,7 +194,7 @@ public class MemberController {
 	
 	// 알림 일시정지
 	@PostMapping("/pause-alert")
-	public ResponseEntity<?> pauseAlert(@RequestBody Map<String, Object> body) {
+	public ResponseEntity<?> pauseAlert(@RequestBody Map<String, Object> body, HttpSession session) {
 	    String memberId = (String) body.get("memberId");
 	    Integer pauseMinutes = (Integer) body.get("pauseMinutes");
 
@@ -203,13 +204,16 @@ public class MemberController {
 
 	    LocalDateTime expireTime = LocalDateTime.now().plusMinutes(pauseMinutes); // 지금부터 + 설정 분
 	    memberMapper.pauseAlert(memberId, 0, Timestamp.valueOf(expireTime));  // alertState 0으로 설정
+	    
+	    Members updated = memberMapper.findById(memberId);
+	    session.setAttribute("loginMember", updated);
 
 	    return ResponseEntity.ok(Map.of("message", "알림이 " + pauseMinutes + "분간 일시정지 됩니다."));
 	}
 	
 	// 알림 일시정지
 	@PostMapping("/pause-alert-forever")
-	public ResponseEntity<?> pauseAlertForever(@RequestBody Map<String, Object> body) {
+	public ResponseEntity<?> pauseAlertForever(@RequestBody Map<String, Object> body, HttpSession session) {
 		String memberId = (String) body.get("memberId");
 		
 		if (memberId == null) {
@@ -218,12 +222,15 @@ public class MemberController {
 		
 		memberMapper.pauseAlertForever(memberId, 0);
 		
+	    Members updated = memberMapper.findById(memberId);
+	    session.setAttribute("loginMember", updated);
+		
 		return ResponseEntity.ok(Map.of("message", "알림이 " + "일시정지 됩니다."));
 	}
 	
 	// 알림 재개
 	@PostMapping("/resume-alert")
-	public ResponseEntity<?> resumeAlert(@RequestBody Map<String, Object> body) {
+	public ResponseEntity<?> resumeAlert(@RequestBody Map<String, Object> body, HttpSession session) {
 	    String memberId = (String) body.get("memberId");
 
 	    if (memberId == null) {
@@ -231,6 +238,10 @@ public class MemberController {
 	    }
 
 	    memberMapper.resumeAlert(memberId, 1); // ON 설정 및 만료 시간 제거
+	    
+	    Members updated = memberMapper.findById(memberId);
+	    session.setAttribute("loginMember", updated);
+	    
 	    return ResponseEntity.ok(Map.of("message", "알림이 다시 활성화되었습니다."));
 	}
 }
