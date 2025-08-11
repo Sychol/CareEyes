@@ -2,6 +2,7 @@ import { useEffect, useState, MouseEvent, useRef } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+
 import { AlertFilterPanel } from "./AlertFilterPanel";
 import axios from "axios";
 import {
@@ -34,6 +35,17 @@ interface DetectionEvent {
   ITEMS: Item[];
   LOCATION: string;
 }
+interface MergedCCTV {
+  title: string;
+  subtitle: string;
+  youtubeUrl: string;
+  location: string;
+  lastDetection: string;
+  manage: string;
+}
+const [selectedId, setSelectedId] = useState<string | null>(null);
+ const [mergedFeeds, setMergedFeeds] = useState<MergedCCTV[]>([]);
+  const selectedFeed = mergedFeeds.find((feed) => feed.title === selectedId) || null;
 
 
 // ✅ API 응답 → DetectionEvent 타입으로 변환
@@ -405,9 +417,7 @@ export default function AlertHistory() {
                 (() => {
                     const imageSrc = selectedAlert.IMG_PATH.startsWith("https")
                         ? selectedAlert.IMG_PATH
-                        : selectedAlert.IMG_PATH.startsWith("/")
-                        ? `/ai/get_image?path=${encodeURIComponent(selectedAlert.IMG_PATH)}`
-                        : `/ai/get_image?path=${encodeURIComponent(selectedAlert.IMG_PATH.slice(2))}`;
+                        : `/ai/get_image?path=${encodeURIComponent(selectedAlert.IMG_PATH)}`;
                     return (
                     <img
                         src={imageSrc}
@@ -439,7 +449,8 @@ export default function AlertHistory() {
         <CardContent className="flex justify-center py-6">
             <div className="w-[960px] h-[540px] bg-black rounded-md overflow-hidden shadow-md">
             <img
-                src="/ai/video_feed?cctv_id=101"
+                key={selectedId}
+                src={selectedFeed?.youtubeUrl}
                 alt="CCTV 영상"
                 className="w-full h-full object-cover"
             />

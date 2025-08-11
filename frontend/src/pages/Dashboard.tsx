@@ -362,7 +362,7 @@ export default function Dashboard() {
                     style={{ top: cctv.top, left: cctv.left }}
                   >
                     {isActive && (
-                      <div className="absolute -top-8 left-1/2 -translate-x-1/2 text-4xl text-red-600 drop-shadow-lg animate-bounce">
+                      <div className="absolute -top-8 left-1 -translate-x-1/2 text-4xl text-red-600 drop-shadow-lg animate-bounce">
                         ⬇
                       </div>
                     )}

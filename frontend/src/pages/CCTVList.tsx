@@ -59,7 +59,7 @@ export default function CCTVList() {
           const merged: MergedCCTV[] = Object.entries(latestEvents)
   .map(([_, event]: any) => {
     const feed = feeds.find((f) => Number(f.cctvId) === Number(event.cctvId));
-    if (!feed) return null; // 🔥 mockData에 없는 CCTV는 제외
+    if (!feed) return null; 
 
     return {
       title: feed.title,
@@ -75,7 +75,7 @@ export default function CCTVList() {
           : "처리완료",
     };
   })
-  .filter(Boolean); // 🔥 null 제거
+  .filter(Boolean);
 
           setMergedFeeds(merged);
           if (merged.length > 0) setSelectedId(merged[0].title);

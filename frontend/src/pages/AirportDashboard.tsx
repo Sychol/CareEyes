@@ -28,9 +28,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import profileMan1 from "@/assets/profile/man1.png";
 
-// ==========================
-// 타입/상수/유틸 - BEGIN
-// ==========================
+
 interface UserData {
   MEMBER_NAME: string;
   DEPARTMENT: string;
@@ -362,6 +360,61 @@ const AirportDashboard = () => {
       });
   }, [toast]);
 
+  // 사용자 정보 갱신 함수
+  const fetchUserInfo = () => {
+    // axios 인스턴스에 기본 캐시 무효화 헤더 설정
+    const axiosInstance = axios.create({
+      headers: {
+        'Cache-Control': 'no-cache, no-store, must-revalidate, max-age=0',
+        'Pragma': 'no-cache',
+        'Expires': '0',
+        'If-Modified-Since': '0',
+        'If-None-Match': '0',
+        'X-Requested-With': 'XMLHttpRequest'
+      }
+    });
+
+    // 항상 userinfo API를 사용하여 현재 사용자의 최신 상태를 가져옴
+    axiosInstance
+      .get("/api/member/userinfo", { 
+        withCredentials: true,
+        // URL에 타임스탬프와 랜덤 값 추가하여 캐시 무효화
+        params: {
+          _t: Date.now(),
+          _v: Math.random().toString(36).substring(7),
+          _r: Math.random().toString(36).substring(7)
+        }
+      })
+      .then((res) => {
+        const userInfo = res.data;
+        if (userInfo && userInfo.memberName) {
+          const newAlertState = userInfo.alertState;
+          console.log("서버에서 받은 alertState:", newAlertState);
+          console.log("현재 로컬 alertState:", userData.ALERT_STATE);
+          
+          // 상태가 실제로 변경되었는지 확인
+          if (userData.ALERT_STATE !== newAlertState) {
+            console.log("alertState 변경 감지:", userData.ALERT_STATE, "->", newAlertState);
+            setUserData({
+              MEMBER_NAME: userInfo.memberName,
+              DEPARTMENT: userInfo.department,
+              MEMBER_ID: userInfo.memberId,
+              ALERT_STATE: newAlertState,
+              KAKAO_ID: userInfo.kakaoId,
+            });
+            // alertState에 따라 알림 상태 설정
+            setSelectedNotification(newAlertState === 1 ? "general" : "emergency");
+          } else {
+            console.log("alertState 변경 없음:", newAlertState);
+          }
+        }
+      })
+      .catch((error) => {
+        console.error("사용자 정보 갱신 실패:", error);
+        // 에러 발생 시 현재 상태 유지
+      });
+  };
+
   // 2. 이벤트 리스트 불러오기 (10초마다 갱신)
   useEffect(() => {
     const fetchEvents = () => {
@@ -394,44 +447,6 @@ const AirportDashboard = () => {
             `,
             duration: 1500,
           });
-        });
-    };
-
-    // 사용자 정보 갱신 함수
-    const fetchUserInfo = () => {
-      // 항상 userinfo API를 사용하여 현재 사용자의 최신 상태를 가져옴
-      axios
-        .get("/api/member/userinfo", { 
-          withCredentials: true,
-          headers: {
-            'Cache-Control': 'no-cache, no-store, must-revalidate',
-            'Pragma': 'no-cache',
-            'Expires': '0'
-          },
-          // URL에 타임스탬프 추가하여 캐시 무효화
-          params: {
-            _t: Date.now()
-          }
-        })
-        .then((res) => {
-          const userInfo = res.data;
-          if (userInfo && userInfo.memberName) {
-            const newAlertState = userInfo.alertState;
-            console.log("서버에서 받은 alertState:", newAlertState);
-            setUserData({
-              MEMBER_NAME: userInfo.memberName,
-              DEPARTMENT: userInfo.department,
-              MEMBER_ID: userInfo.memberId,
-              ALERT_STATE: newAlertState,
-              KAKAO_ID: userInfo.kakaoId,
-            });
-            // alertState에 따라 알림 상태 설정
-            setSelectedNotification(newAlertState === 1 ? "general" : "emergency");
-          }
-        })
-        .catch((error) => {
-          console.error("사용자 정보 갱신 실패:", error);
-          // 에러 발생 시 현재 상태 유지
         });
     };
 
@@ -522,6 +537,8 @@ const AirportDashboard = () => {
     try {
       if (!userData.MEMBER_ID) throw new Error("사용자 ID가 없습니다.");
 
+      console.log("알림 상태 변경 요청 시작 - 현재 alertState:", userData.ALERT_STATE, "새로운 상태:", newKey);
+
       let response;
       if (newKey === "general") {
         // 알림받기 활성화
@@ -550,44 +567,29 @@ const AirportDashboard = () => {
 
       // 서버 응답 확인 후 상태 업데이트
       if (response.data && response.data.success !== false) {
+        console.log("알림 상태 변경 API 응답 성공:", response.data);
+        
+        // 로컬 상태 즉시 업데이트
         setSelectedNotification(newKey);
-        setUserData((prev) =>
-          prev ? { ...prev, ALERT_STATE: newKey === "general" ? 1 : 0 } : prev
-        );
+        setUserData((prev) => {
+          if (prev) {
+            const newAlertState = newKey === "general" ? 1 : 0;
+            console.log("로컬 상태 업데이트:", prev.ALERT_STATE, "->", newAlertState);
+            return { ...prev, ALERT_STATE: newAlertState };
+          }
+          return prev;
+        });
         setShowPausePopup(false);
 
-        // 상태 변경 후 즉시 서버에서 최신 상태 확인
+        // 즉시 서버에서 최신 상태 확인 (여러 번 시도)
+        console.log("fetchUserInfo 호출 시작");
+        fetchUserInfo();
+        
+        // 추가로 1초 후에도 한 번 더 확인
         setTimeout(() => {
-          axios
-            .get("/api/member/userinfo", { 
-              withCredentials: true,
-              headers: {
-                'Cache-Control': 'no-cache, no-store, must-revalidate',
-                'Pragma': 'no-cache',
-                'Expires': '0'
-              },
-              params: {
-                _t: Date.now()
-              }
-            })
-            .then((res) => {
-              const userInfo = res.data;
-              if (userInfo && userInfo.memberName) {
-                console.log("상태 변경 후 서버 상태 확인:", userInfo.alertState);
-                setUserData({
-                  MEMBER_NAME: userInfo.memberName,
-                  DEPARTMENT: userInfo.department,
-                  MEMBER_ID: userInfo.memberId,
-                  ALERT_STATE: userInfo.alertState,
-                  KAKAO_ID: userInfo.kakaoId,
-                });
-                setSelectedNotification(userInfo.alertState === 1 ? "general" : "emergency");
-              }
-            })
-            .catch((error) => {
-              console.error("상태 변경 후 확인 실패:", error);
-            });
-        }, 1000); // 1초 후 확인
+          console.log("1초 후 추가 fetchUserInfo 호출");
+          fetchUserInfo();
+        }, 1000);
 
         toast({
           title: `알림 상태 변경됨`,
@@ -630,6 +632,8 @@ const AirportDashboard = () => {
     try {
       if (!userData.MEMBER_ID) throw new Error("사용자 ID가 없습니다.");
 
+      console.log("일시정지 요청 시작 - 현재 alertState:", userData.ALERT_STATE);
+
       const response = await axios.post(`/api/member/pause-alert`, {
         memberId: userData.MEMBER_ID,
         alertState: 0, // 일시정지 상태
@@ -644,42 +648,28 @@ const AirportDashboard = () => {
 
       // 서버 응답 확인 후 상태 업데이트
       if (response.data && response.data.success !== false) {
+        console.log("일시정지 API 응답 성공:", response.data);
+        
+        // 로컬 상태 즉시 업데이트
         setSelectedNotification("emergency");
-        setUserData((prev) => (prev ? { ...prev, ALERT_STATE: 0 } : prev));
+        setUserData((prev) => {
+          if (prev) {
+            console.log("로컬 상태 업데이트:", prev.ALERT_STATE, "->", 0);
+            return { ...prev, ALERT_STATE: 0 };
+          }
+          return prev;
+        });
         setShowPausePopup(false);
 
-        // 일시정지 설정 후 즉시 서버에서 최신 상태 확인
+        // 즉시 서버에서 최신 상태 확인 (여러 번 시도)
+        console.log("fetchUserInfo 호출 시작");
+        fetchUserInfo();
+        
+        // 추가로 1초 후에도 한 번 더 확인
         setTimeout(() => {
-          axios
-            .get("/api/member/userinfo", { 
-              withCredentials: true,
-              headers: {
-                'Cache-Control': 'no-cache, no-store, must-revalidate',
-                'Pragma': 'no-cache',
-                'Expires': '0'
-              },
-              params: {
-                _t: Date.now()
-              }
-            })
-            .then((res) => {
-              const userInfo = res.data;
-              if (userInfo && userInfo.memberName) {
-                console.log("일시정지 후 서버 상태 확인:", userInfo.alertState);
-                setUserData({
-                  MEMBER_NAME: userInfo.memberName,
-                  DEPARTMENT: userInfo.department,
-                  MEMBER_ID: userInfo.memberId,
-                  ALERT_STATE: userInfo.alertState,
-                  KAKAO_ID: userInfo.kakaoId,
-                });
-                setSelectedNotification(userInfo.alertState === 1 ? "general" : "emergency");
-              }
-            })
-            .catch((error) => {
-              console.error("일시정지 후 상태 확인 실패:", error);
-            });
-        }, 1000); // 1초 후 확인
+          console.log("1초 후 추가 fetchUserInfo 호출");
+          fetchUserInfo();
+        }, 1000);
 
         toast({
           title: "일시정지 설정 완료",
@@ -864,6 +854,7 @@ const AirportDashboard = () => {
                 <span>이상물체 탐지 알림 내역</span>
               </CardTitle>
               <div className="flex items-center space-x-2">
+                <Filter className="h-2 w-4 text-muted-foreground" />
                 <select
                   value={filterStatus}
                   onChange={(e) => setFilterStatus(e.target.value)}

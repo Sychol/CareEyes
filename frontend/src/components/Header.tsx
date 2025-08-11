@@ -1,8 +1,7 @@
-import { useEffect, useState } from "react";
-import { ChevronRight, User } from "lucide-react";
+import { useState, useEffect } from "react";
+import axios from "axios";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,7 +10,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import axios from "axios";
+import { ChevronRight, User } from "lucide-react";
+import woman1 from "@/assets/profile/woman1.png"; 
 
 const USER_INFO_API_URL = "/api/member/userinfo";
 
@@ -25,21 +25,6 @@ const pageNames: Record<string, string> = {
   "/settings": "Setting",
 };
 
-// ✅ 1. ID 기반 이미지 매칭 로직 추가
-const profileImagePaths = Object.values(
-  import.meta.glob("@/assets/profile/man*.png", { eager: true, as: "url" })
-);
-
-const getProfileImageById = (id: number | string): string | null => {
-  const numericId = Number(id);
-  if (!numericId || profileImagePaths.length === 0) {
-    return null;
-  }
-  // ID를 이미지 배열의 길이로 나눈 나머지 값을 인덱스로 사용
-  const index = numericId % profileImagePaths.length;
-  return profileImagePaths[index];
-};
-
 export function Header() {
   const location = useLocation();
   const navigate = useNavigate();
@@ -50,13 +35,9 @@ export function Header() {
     DEPARTMENT: "",
     MEMBER_ID: "",
   });
-  
-  // ✅ 2. 프로필 이미지 경로를 저장할 state 추가
-  const [profileImg, setProfileImg] = useState<string | null>(null);
 
   useEffect(() => {
-    axios
-      .get(USER_INFO_API_URL)
+    axios.get(USER_INFO_API_URL, { withCredentials: true })
       .then((res) => {
         const userInfo = res.data;
         if (userInfo && userInfo.memberName) {
@@ -65,9 +46,6 @@ export function Header() {
             DEPARTMENT: userInfo.department,
             MEMBER_ID: userInfo.memberId,
           });
-          // ✅ 3. 사용자 ID를 기반으로 이미지 경로를 찾아서 state에 저장
-          const imgSrc = getProfileImageById(userInfo.memberId);
-          setProfileImg(imgSrc);
         }
       })
       .catch((err) => {
@@ -108,10 +86,8 @@ export function Header() {
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="relative h-8 w-8 rounded-full">
               <Avatar className="h-8 w-8">
-                {/* ✅ 4. state에 저장된 이미지 경로를 사용 */}
-                <AvatarImage src={profileImg || ""} alt={userData.MEMBER_NAME} />
+                <AvatarImage src={woman1} alt={userData.MEMBER_NAME} /> {/* 👈 2. 불러온 이미지를 여기에 적용합니다. */}
                 <AvatarFallback className="bg-white/20 text-white">
-                  {/* 사진 없을 땐 이름 첫 글자 보여주기 */}
                   {userData.MEMBER_NAME ? (
                     userData.MEMBER_NAME.charAt(0)
                   ) : (
@@ -134,9 +110,7 @@ export function Header() {
               <User className="mr-2 h-4 w-4" />
               <span>프로필</span>
             </DropdownMenuItem>
-
             <DropdownMenuSeparator />
-
             <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer">
               <span>Sign Out</span>
             </DropdownMenuItem>
