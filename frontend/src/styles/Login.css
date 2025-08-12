@@ -35,9 +35,9 @@ html, body, #root {
   width: 100vw;
   display: flex;
   justify-content: center;
-  align-items: flex-start; /* 상단 정렬로 변경하여 스크롤 시작점 조정 */
+  align-items: flex-start;
   background-color: #f0f2f5;
-  padding: 20px;
+  padding:20px;
   box-sizing: border-box;
   min-height: 100vh; /* 스크롤 가능 영역 확보 */
 }
@@ -62,7 +62,7 @@ html, body, #root {
   max-width: 400px;
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 70px;
   padding: 20px;
   border-radius: 8px;
   box-sizing: border-box;
@@ -75,6 +75,7 @@ html, body, #root {
     display: flex;
     flex-direction: column;
     gap: 8px;
+    margin-top: 20px; /* 로고 섹션 상단 여백 추가 */
     margin-bottom: 30px; /* 로고 섹션 하단 여백 추가 */
 }
 
