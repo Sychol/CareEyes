@@ -1,12 +1,22 @@
-# requirements.txt 예시
+# requirements.txt
 --extra-index-url https://download.pytorch.org/whl/cpu
 
-numpy<2
-torch==2.2.0+cpu
-torchvision
-opencv-python-headless
-ultralytics
+
+# === Core ===
+numpy==1.26.4
+python-dateutil>=2.8.2
+
+# === ML / YOLO ===
+ultralytics==8.3.175
+# CPU
+torch==2.2.2+cpu
+torchvision==0.17.2+cpu
+
+# === ncloud ===
+boto3==1.28.*
+
+# === others ===
+opencv-python-headless>=4.7.0
 flask
 requests
-boto3
 streamlink

@@ -101,8 +101,11 @@ docker container prune
 # 사용하지 않는 이미지 전체 삭제
 docker image prune -a
 
+# 컨테이너 진입
+docker exec -it {container_id or name} /bin/bash
 
-======== docker 관련 명령어 ========
+
+======== docker compose 관련 명령어 ========
 
 # 이미지 빌드 (수정 후에 다시 해야됨)
 docker compose build

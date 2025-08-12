@@ -133,6 +133,7 @@ const StatusUpdateModal = ({ alert, onClose, onUpdate }: StatusUpdateModalProps)
 };
 
 export default function AlertHistory() {
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const [alerts, setAlerts] = useState<DetectionEvent[]>([]);
   const [filters, setFilters] = useState<{
     level: string[];
