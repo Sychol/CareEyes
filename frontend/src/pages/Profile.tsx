@@ -1,17 +1,12 @@
-// 회원 정보 페이지 v1.9
-
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useProfileManagement } from '../hooks/useProfileManagement';
 
-// 이미지 에셋 import
 import KakaoLogo from '../assets/profile/kakao.png';
 import NaverLogo from '../assets/profile/naver.png';
 import GoogleLogo from '../assets/profile/google.png';
-import CareEyesLogo from '../assets/logo/CareEyes_Logo.png'
-/**
- * @function Profile
- * @description 사용자 프로필 정보를 표시하고 수정하는 페이지 컴포넌트입니다.
- */
+import CareEyesLogo from '../assets/logo/CareEyes_Logo.png';
+
 const Profile = () => {
     const {
         profile,
@@ -52,41 +47,30 @@ const Profile = () => {
         handleWithdrawal,
         fetchUserProfile,
     } = useProfileManagement();
-    
-    // 현재 비밀번호 표시 상태 관리
-    /**
-     * @description 현재 비밀번호 필드의 비밀번호 표시 여부를 관리하는 상태
-     */
+
+    const navigate = useNavigate();
     const [showCurrentPassword, setShowCurrentPassword] = useState(false);
 
-    /**
-     * @function toggleCurrentPasswordVisibility
-     * @description 현재 비밀번호의 표시 상태를 토글합니다.
-     */
     const toggleCurrentPasswordVisibility = () => {
         setShowCurrentPassword(!showCurrentPassword);
     };
 
     useEffect(() => {
-    fetchUserProfile(); // ✅ 페이지 진입 시 항상 최신 정보로
+        fetchUserProfile();
     }, []);
 
-    /**
-     * @function handleSubmit
-     * @description 폼 제출 시 프로필 정보를 업데이트합니다.
-     * @param {React.FormEvent} e - 폼 이벤트 객체
-     */
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        updateProfile();
+        try {
+            await updateProfile();
+            navigate('/');
+        } catch (err) {
+            console.error("프로필 업데이트 실패:", err);
+        }
     };
 
-    /**
-     * @function handleCancel
-     * @description 취소 버튼 클릭 시 이전 페이지로 돌아갑니다.
-     */
     const handleCancel = () => {
-        window.history.back(); // 이전 페이지로 돌아가기
+        window.history.back();
     };
 
 
@@ -103,27 +87,22 @@ const Profile = () => {
     return (
         <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4 sm:p-6 lg:p-8 font-inter">
             <div className="bg-white rounded-2xl shadow-lg w-full max-w-2xl p-6 sm:p-8 lg:p-10 max-h-[calc(100vh-5rem)] overflow-y-auto
-                        scrollbar-hide">
-                {/* 로고 또는 프로필 공간 */}
+                            scrollbar-hide">
                 <div className="flex justify-center mb-6">
                     <div  className="w-24 h-24 bg-gray-200 flex items-center justify-center text-gray-500">
-                        {/* 필요시 로고 대신 프로필 사진 삽입 가능 */}
                         <img src={CareEyesLogo} alt="CareEyes 로고" className="w-full h-full object-cover" />
                     </div>
                 </div>
                 <h1 className="text-3xl sm:text-4xl font-extrabold text-center text-gray-800 mb-8">회원정보</h1>
                 <form onSubmit={handleSubmit} className="space-y-6">
-                    {/* 소셜 계정 연동 섹션 */}
                     <section className="space-y-1 mt-8">
                         <h2 className="text-2xl font-bold text-gray-700">소셜 계정</h2>
-
-                        {/* 카카오 연동 */}
                         <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl shadow-inner">
                             <div className="flex items-center gap-4">
                                 <img src={KakaoLogo} alt="카카오 로고" className="w-8 h-8" />
                                 <span className="text-base font-medium text-gray-700">카카오</span>
                             </div>
-                            {profile.kakaoId != null && profile.kakaoId !== undefined ?(    
+                            {profile.kakaoId != null && profile.kakaoId !== undefined ?(   
                                 <button
                                     type="button"
                                     className="px-5 py-2 bg-red-600 text-white border-none rounded-lg cursor-pointer text-base font-medium transition duration-300 ease-in-out whitespace-nowrap hover:bg-red-700"
@@ -143,8 +122,6 @@ const Profile = () => {
                                 </button>
                             )}
                         </div>
-
-                        {/* 네이버 연동 */}
                         <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl shadow-inner">
                             <div className="flex items-center gap-4">
                                 <img src={NaverLogo} alt="네이버 로고" className="w-8 h-8" />
@@ -170,8 +147,6 @@ const Profile = () => {
                                 </button>
                             )}
                         </div>
-
-                        {/* 구글 연동 */}
                         <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl shadow-inner">
                             <div className="flex items-center gap-4">
                                 <img src={GoogleLogo} alt="구글 로고" className="w-8 h-8" />
@@ -197,40 +172,32 @@ const Profile = () => {
                                 </button>
                             )}
                         </div>
-
                     </section>
-                   
-                    {/* 사용자 정보 섹션 */}
-
+                    
                     <section className="space-y-4">
                         <h2 className="text-2xl font-bold text-gray-700">개인 정보</h2>
-
-                        {/* 멤버 ID (읽기 전용) */}
                         <div>
                             <label htmlFor="memberId" className="block text-sm font-medium text-gray-600 mb-1">ID</label>
                             <input
                                 id="memberId"
                                 type="text"
                                 value={profile.memberId}
-                                className="w-full p-3 border border-gray-300 rounded-lg bg-gray-100 cursor-not-allowed" // 읽기 전용 스타일
+                                className="w-full p-3 border border-gray-300 rounded-lg bg-gray-100 cursor-not-allowed"
                                 title="회원 ID"
-                                disabled // 수정 불가능하게 설정
+                                disabled
                             />
                         </div>
-
-                        {/* 회원 이름 (읽기 전용) */}
                         <div>
                             <label htmlFor="memberName" className="block text-sm font-medium text-gray-600 mb-1">이름</label>
                             <input
                                 id="memberName"
                                 type="text"
                                 value={profile.memberName}
-                                className="w-full p-3 border border-gray-300 rounded-lg bg-gray-100 cursor-not-allowed" // 읽기 전용 스타일
+                                className="w-full p-3 border border-gray-300 rounded-lg bg-gray-100 cursor-not-allowed"
                                 title="회원 이름"
-                                disabled // 수정 불가능하게 설정
+                                disabled
                             />
                         </div>
-
                         <div>
                             <label htmlFor="email" className="block text-sm font-medium text-gray-600 mb-1">이메일</label>
                             <input
@@ -239,8 +206,8 @@ const Profile = () => {
                                 value={profile.email}
                                 onChange={handleEmailChange}
                                 className="w-full p-3 border border-gray-300 rounded-lg 
-               focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 
-               transition-colors duration-200"
+                                       focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 
+                                       transition-colors duration-200"
                                 placeholder="이메일 주소"
                                 required
                                 title="이메일 주소"
@@ -281,36 +248,30 @@ const Profile = () => {
                                 />
                             </div>
                         </div>
-
-                        {/* 소속 (읽기 전용) */}
                         <div>
                             <label htmlFor="company" className="block text-sm font-medium text-gray-600 mb-1">소속</label>
                             <input
                                 id="company"
                                 type="text"
                                 value={profile.company || ''}
-                                className="w-full p-3 border border-gray-300 rounded-lg bg-gray-100 cursor-not-allowed" // 읽기 전용 스타일
+                                className="w-full p-3 border border-gray-300 rounded-lg bg-gray-100 cursor-not-allowed"
                                 title="소속 회사"
-                                disabled // 수정 불가능하게 설정
+                                disabled
                             />
                         </div>
-
-                        {/* 부서 (읽기 전용) */}
                         <div>
                             <label htmlFor="department" className="block text-sm font-medium text-gray-600 mb-1">부서</label>
                             <input
                                 id="department"
                                 type="text"
                                 value={profile.department || ''}
-                                className="w-full p-3 border border-gray-300 rounded-lg bg-gray-100 cursor-not-allowed" // 읽기 전용 스타일
+                                className="w-full p-3 border border-gray-300 rounded-lg bg-gray-100 cursor-not-allowed"
                                 title="부서"
-                                disabled // 수정 불가능하게 설정
+                                disabled
                             />
                         </div>
-
                     </section>
 
-                    {/* 비밀번호 변경 섹션 */}
                     <section className="space-y-4 mt-8">
                         <h2 className="text-2xl font-bold text-gray-700 flex items-center justify-between">
                             비밀번호 변경
@@ -318,21 +279,19 @@ const Profile = () => {
                         <div>
                             <label htmlFor="currentPassword" className="block text-sm font-medium text-gray-600 mb-1">현재 비밀번호</label>
                             <div className="relative">
-                                {/* showCurrentPassword 값에 따라 input type 변경 */}
                                 <input
                                     id="currentPassword"
                                     type={showCurrentPassword ? 'text' : 'password'}
                                     value={currentPassword}
                                     onChange={handleCurrentPasswordChange}
                                     className="w-full p-3 pr-10 border border-gray-300 rounded-lg 
-                           focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 
-                           transition-colors duration-200"
+                                           focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 
+                                           transition-colors duration-200"
                                     placeholder="현재 비밀번호를 입력해주세요"
                                     title="현재 비밀번호"
                                 />
                                 <span className="absolute inset-y-0 right-0 pr-3 flex items-center text-sm leading-5">
-                                   {/* 버튼 클릭 시 상태를 토글하는 함수 연결 */}
-                                   <button
+                                    <button
                                         type="button"
                                         className="text-gray-500 hover:text-gray-700"
                                         onClick={toggleCurrentPasswordVisibility}
@@ -357,8 +316,8 @@ const Profile = () => {
                                     onFocus={handleNewPasswordFocus}
                                     onBlur={handleNewPasswordBlur}
                                     className="w-full p-3 pr-10 border border-gray-300 rounded-lg 
-                           focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 
-                           transition-colors duration-200"
+                                           focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 
+                                           transition-colors duration-200"
                                     placeholder="8자 이상, 영문/숫자/특수문자 중 2가지 이상"
                                     title="새 비밀번호"
                                 />
@@ -403,8 +362,8 @@ const Profile = () => {
                                     onFocus={handleConfirmNewPasswordFocus}
                                     onBlur={handleConfirmNewPasswordBlur}
                                     className="w-full p-3 pr-10 border border-gray-300 rounded-lg 
-                           focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 
-                           transition-colors duration-200"
+                                           focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 
+                                           transition-colors duration-200"
                                     placeholder="새 비밀번호를 다시 입력해주세요"
                                     title="새 비밀번호 확인"
                                 />
@@ -433,9 +392,7 @@ const Profile = () => {
                     {error && <p className="text-center mt-5 p-3 rounded-lg text-base font-medium bg-red-100 text-red-600">{error}</p>}
                     {passwordChangeMessage && <p className="text-center mt-5 p-3 rounded-lg text-base font-medium bg-green-100 text-green-600">{passwordChangeMessage}</p>}
 
-             {/* 버튼 섹션 */}
                     <div className="flex justify-between items-center mt-12">
-                        {/* 취소 버튼 (왼쪽) */}
                         <button
                             type="button"
                             onClick={handleCancel}
@@ -443,14 +400,12 @@ const Profile = () => {
                         >
                             취소
                         </button>
-                        {/* 정보 수정 버튼 (가운데) */}
                         <button
                             type="submit"
                             className="px-6 py-2 border-none rounded-lg text-base font-semibold cursor-pointer transition duration-300 ease-in-out min-w-32 text-center hover:-translate-y-0.5 text-white bg-careeyes"
                         >
                             정보 수정
                         </button>
-                        {/* 회원 탈퇴 버튼 (오른쪽, 배경 박스) */}
                         <div className="bg-red-100 rounded-md">
                             <button
                                 type="button"
