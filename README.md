@@ -1,6 +1,4 @@
 # 📎 CareEyes(팀명: CareEyes)
-![CareEyes Logo](./문서/readme_images/CareEyes_title_Logo.png)
-
 <img width="256" height="256" alt="CareEyes_title Logo" src="./문서/readme_images/CareEyes_title_Logo.png" />
 
 ## 👀 서비스 소개
