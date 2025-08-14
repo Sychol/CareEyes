@@ -63,14 +63,16 @@
 <br>
 
 ## 📌 SW유스케이스
-![시스템 아키텍처](./문서/readme_images/유스케이스.png)
+![유스케이스_다이어그램1](./문서/readme_images/유스케이스_다이어그램1.png)
+<br>
+![유스케이스_다이어그램2](./문서/readme_images/유스케이스_다이어그램2.png)
 <br>
 
 ## 📌 서비스 흐름도
 ![서비스 흐름도](./문서/readme_images/서비스_흐름도.png)
 
 ## 📌 ER다이어그램
-![ER다이어그램](./문서/readme_images/ER다이어그램.png)
+![ER다이어그램](./문서/readme_images/ERD.png)
 <br>
 
 ## 🖽 활용 데이터 및 AI 모델
