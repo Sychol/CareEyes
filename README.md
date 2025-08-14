@@ -24,14 +24,16 @@
 <br>
 
 ## ⭐ 설계 과정
-![주요 서비스 흐름도](./문서/readme_images/주요_서비스_흐름도.png)
+### ➡ 서비스 흐름도
+![서비스 흐름도](./문서/readme_images/서비스_흐름도.png)
 <br>
+
+### 💥 챌린지 포인트
 ![챌린지_포인트](./문서/readme_images/챌린지_포인트.png)
 <br>
 
 ## ⛏ 구현 내용
-![사용언어 및 도구](./문서/readme_images/사용_언어_및_도구.png)
-<br>
+
 ### 1. Frontend
 - 사용 언어 : HTML, CSS, TypeScript
 - Framework : React (vite)
@@ -56,6 +58,10 @@
 - 컨테이너 : Docker
 <br>
 
+## 🛠 사용 언어 및 도구
+![사용언어 및 도구](./문서/readme_images/사용_언어_및_도구.png)
+<br>
+
 ## ⚙ 시스템 아키텍처(구조)
 ![시스템_아키텍쳐 및 도구](./문서/readme_images/시스템_아키텍쳐.png)
 <br>
@@ -66,14 +72,11 @@
 ![유스케이스_다이어그램2](./문서/readme_images/유스케이스_다이어그램2.png)
 <br>
 
-## 📌 서비스 흐름도
-![서비스 흐름도](./문서/readme_images/서비스_흐름도.png)
-
 ## 📌 ER다이어그램
 ![ER다이어그램](./문서/readme_images/ERD.png)
 <br>
 
-## 🖽 활용 데이터 및 AI 모델
+# 🖽 활용 데이터 및 AI 모델
 ![활용_데이터_및_AI_모델](./문서/readme_images/활용_데이터_및_AI_모델.png)
 <br>
 
