@@ -3,6 +3,9 @@
 환경설정 변수 저장
 """
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # YOLO 모델 경로 설정
 YOLO_MODEL_PATH = "./model/best.pt"
@@ -29,10 +32,10 @@ SPRING_PROXY = "http://223.130.130.196:8090/api" # test서버
 BUCKET_NAME = "careeyes-bucket"
 ENDPOINT = "https://kr.object.ncloudstorage.com"
 REGION_NAME = 'us-east-1'
-NCLOUD_ACCESS_KEY = os.environ.get("NCLOUD_ACCESS_KEY")
-NCLOUD_SECRET_KEY = os.environ.get("NCLOUD_SECRET_KEY")
-#NCLOUD_ACCESS_KEY = os.getenv("NCLOUD_ACCESS_KEY")
-#NCLOUD_SECRET_KEY = os.getenv("NCLOUD_SECRET_KEY")
+# NCLOUD_ACCESS_KEY = os.environ.get("NCLOUD_ACCESS_KEY")
+# NCLOUD_SECRET_KEY = os.environ.get("NCLOUD_SECRET_KEY")
+NCLOUD_ACCESS_KEY = os.getenv("NCLOUD_ACCESS_KEY")
+NCLOUD_SECRET_KEY = os.getenv("NCLOUD_SECRET_KEY")
 
 TARGET_CCTV = [
         (101, "https://www.youtube.com/watch?v=91PfFoqvuUk"),
