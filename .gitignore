@@ -9,8 +9,8 @@ __pycache__/
 *.pyc
 
 *.ipynb
-*.env
+#*.env
 *.pem
-docker-compose.override.yml
+#docker-compose.override.yml
 
 ai-server/model/YOLOv11_base

@@ -1,0 +1,7 @@
+# aiserver/docker-compose.override.yml
+
+services:
+  careeyes-ai:
+    environment:
+      NCLOUD_ACCESS_KEY: <<ncp_access_key_id>>
+      NCLOUD_SECRET_KEY: <<ncp_secret_key>>
